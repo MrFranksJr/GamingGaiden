@@ -120,6 +120,13 @@
         }
         # End Migration 6
 
+        # Migration 7 - Add release_date column
+        if (-Not $gamesTableSchema.name.Contains("release_date")) {
+            $addReleaseDateColumnQuery = "ALTER TABLE games ADD COLUMN release_date TEXT"
+            Invoke-SqliteQuery -Query $addReleaseDateColumnQuery -SQLiteConnection $dbConnection
+        }
+        # End Migration 7
+
         $dbConnection.Close()
         $dbConnection.Dispose()
     }

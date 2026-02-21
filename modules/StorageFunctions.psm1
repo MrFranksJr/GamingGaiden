@@ -11,18 +11,20 @@
         [string]$GameSessionCount,
         [string]$GameStatus = "",
         [string]$GameRomBasedName = "",
-        [string]$GameGamingPCName = ""
+        [string]$GameGamingPCName = "",
+        [string]$GameReleaseDate = ""
     )
 
     $gameIconBytes = (Get-Content -Path $GameIconPath -Encoding byte -Raw);
 
-    $addGameQuery = "INSERT INTO games (name, exe_name, icon, play_time, idle_time, last_play_date, completed, platform, session_count, status, rom_based_name, gaming_pc_name)" +
-    "VALUES (@GameName, @GameExeName, @gameIconBytes, @GamePlayTime, @GameIdleTime, @GameLastPlayDate, @GameCompleteStatus, @GamePlatform, @GameSessionCount, @GameStatus, @GameRomBasedName, @GameGamingPCName)"
+    $addGameQuery = "INSERT INTO games (name, exe_name, icon, play_time, idle_time, last_play_date, completed, platform, session_count, status, rom_based_name, gaming_pc_name, release_date)" +
+    "VALUES (@GameName, @GameExeName, @gameIconBytes, @GamePlayTime, @GameIdleTime, @GameLastPlayDate, @GameCompleteStatus, @GamePlatform, @GameSessionCount, @GameStatus, @GameRomBasedName, @GameGamingPCName, @GameReleaseDate)"
 
     $gameNamePattern = SQLEscapedMatchPattern($GameName.Trim())
     $setGameStatusNull = "UPDATE games SET status = @GameStatus WHERE name LIKE '{0}'" -f $gameNamePattern
     $setRomBasedNameNull = "UPDATE games SET rom_based_name = @GameRomBasedName WHERE name LIKE '{0}'" -f $gameNamePattern
     $setGamingPCNameNull = "UPDATE games SET gaming_pc_name = @GameGamingPCName WHERE name LIKE '{0}'" -f $gameNamePattern
+    $setReleaseDateNull = "UPDATE games SET release_date = @GameReleaseDate WHERE name LIKE '{0}'" -f $gameNamePattern
 
     Log "Adding $GameName in Database"
 
@@ -39,6 +41,7 @@
         GameStatus         = $GameStatus
         GameRomBasedName   = $GameRomBasedName.Trim()
         GameGamingPCName   = $GameGamingPCName.Trim()
+        GameReleaseDate    = $GameReleaseDate
     }
 
     # Have to set Null Values after the Save for clean code, bcause the following doesn't work
@@ -66,6 +69,12 @@
     if ($GameGamingPCName -eq "") {
         RunDBQuery $setGamingPCNameNull @{
             GameGamingPCName = [System.DBNull]::Value
+        }
+    }
+
+    if ($GameReleaseDate -eq "") {
+        RunDBQuery $setReleaseDateNull @{
+            GameReleaseDate = [System.DBNull]::Value
         }
     }
 
@@ -168,7 +177,8 @@ function UpdateGameOnEdit() {
         [string]$GameCompleteStatus,
         [string]$GamePlatform,
         [string]$GameStatus,
-        [string]$GameGamingPCName = ""
+        [string]$GameGamingPCName = "",
+        [string]$GameReleaseDate = ""
     )
 
     $gameIconBytes = (Get-Content -Path $GameIconPath -Encoding byte -Raw);
@@ -176,9 +186,10 @@ function UpdateGameOnEdit() {
     $gameNamePattern = SQLEscapedMatchPattern($OriginalGameName.Trim())
 
     if ( $OriginalGameName -eq $GameName) {
-        $updateGameQuery = "UPDATE games SET exe_name = @GameExeName, icon = @gameIconBytes, play_time = @GamePlayTime, completed = @GameCompleteStatus, platform = @GamePlatform, status = @GameStatus, gaming_pc_name = @GameGamingPCName WHERE name LIKE '{0}'" -f $gameNamePattern
+        $updateGameQuery = "UPDATE games SET exe_name = @GameExeName, icon = @gameIconBytes, play_time = @GamePlayTime, completed = @GameCompleteStatus, platform = @GamePlatform, status = @GameStatus, gaming_pc_name = @GameGamingPCName, release_date = @GameReleaseDate WHERE name LIKE '{0}'" -f $gameNamePattern
         
         $setGamingPCNameNull = "UPDATE games SET gaming_pc_name = @GameGamingPCName WHERE name LIKE '{0}'" -f $gameNamePattern
+        $setReleaseDateNull = "UPDATE games SET release_date = @GameReleaseDate WHERE name LIKE '{0}'" -f $gameNamePattern
 
         Log "Editing $GameName in database"
         RunDBQuery $updateGameQuery @{
@@ -189,11 +200,18 @@ function UpdateGameOnEdit() {
             GamePlatform       = $GamePlatform.Trim()
             GameStatus         = $GameStatus
             GameGamingPCName   = $GameGamingPCName.Trim()
+            GameReleaseDate    = $GameReleaseDate
         }
 
         if ($GameGamingPCName -eq "") {
             RunDBQuery $setGamingPCNameNull @{
                 GameGamingPCName = [System.DBNull]::Value
+            }
+        }
+
+        if ($GameReleaseDate -eq "") {
+            RunDBQuery $setReleaseDateNull @{
+                GameReleaseDate = [System.DBNull]::Value
             }
         }
     }
@@ -209,16 +227,20 @@ function UpdateGameOnEdit() {
         $getLastPlayDateQuery = "SELECT last_play_date FROM games WHERE name LIKE '{0}'" -f $gameNamePattern
         $gameLastPlayDate = (RunDBQuery $getLastPlayDateQuery).last_play_date
 
+        $getReleaseDateQuery = "SELECT release_date FROM games WHERE name LIKE '{0}'" -f $gameNamePattern
+        $gameReleaseDate = (RunDBQuery $getReleaseDateQuery).release_date
+        if ($null -eq $gameReleaseDate) { $gameReleaseDate = "" }
+
         if (IsExeEmulator $GameExeName) {
             $getRomBasedNameQuery = "SELECT rom_based_name FROM games WHERE name LIKE '{0}'" -f $gameNamePattern
             $romBasedName = (RunDBQuery $getRomBasedNameQuery).rom_based_name
 
             SaveGame -GameName $GameName -GameExeName $GameExeName -GameIconPath $GameIconPath `
-                -GamePlayTime $GamePlayTime -GameIdleTime $gameIdleTime -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus $GameCompleteStatus -GamePlatform $GamePlatform -GameSessionCount $gameSessionCount -GameStatus $GameStatus -GameRomBasedName $romBasedName -GameGamingPCName $GameGamingPCName
+                -GamePlayTime $GamePlayTime -GameIdleTime $gameIdleTime -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus $GameCompleteStatus -GamePlatform $GamePlatform -GameSessionCount $gameSessionCount -GameStatus $GameStatus -GameRomBasedName $romBasedName -GameGamingPCName $GameGamingPCName -GameReleaseDate $gameReleaseDate
         }
         else {
             SaveGame -GameName $GameName -GameExeName $GameExeName -GameIconPath $GameIconPath `
-                -GamePlayTime $GamePlayTime -GameIdleTime $gameIdleTime -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus $GameCompleteStatus -GamePlatform $GamePlatform -GameSessionCount $gameSessionCount -GameStatus $GameStatus -GameGamingPCName $GameGamingPCName
+                -GamePlayTime $GamePlayTime -GameIdleTime $gameIdleTime -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus $GameCompleteStatus -GamePlatform $GamePlatform -GameSessionCount $gameSessionCount -GameStatus $GameStatus -GameGamingPCName $GameGamingPCName -GameReleaseDate $gameReleaseDate
         }
 
         RemoveGame($OriginalGameName)

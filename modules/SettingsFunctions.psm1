@@ -41,19 +41,20 @@ function RefreshPCListBox {
 
 function RenderEditGameForm($GamesList) {
 
-    $editGameForm = CreateForm "Gaming Gaiden: Edit Game" 865 345 ".\icons\running.ico"
+    $editGameForm = CreateForm "Gaming Gaiden: Edit Game" 865 385 ".\icons\running.ico"
 
     $imagePath = "./icons/default.png"
 
     # Hidden fields to save non user editable values
-    $pictureBoxImagePath = CreateTextBox $imagePath 874 304 1 1; $pictureBoxImagePath.hide(); $editGameForm.Controls.Add($pictureBoxImagePath)
-    $textOriginalGameName = CreateTextBox "" 874 304 1 1; $textOriginalGameName.hide(); $editGameForm.Controls.Add($textOriginalGameName)
+    $pictureBoxImagePath = CreateTextBox $imagePath 874 344 1 1; $pictureBoxImagePath.hide(); $editGameForm.Controls.Add($pictureBoxImagePath)
+    $textOriginalGameName = CreateTextBox "" 874 344 1 1; $textOriginalGameName.hide(); $editGameForm.Controls.Add($textOriginalGameName)
     # Hidden fields end
 
     $listBox = New-Object System.Windows.Forms.ListBox
     $listBox.Location = New-Object System.Drawing.Point(585, 55)
     $listBox.Size = New-Object System.Drawing.Size(260, 20)
-    $listBox.Height = 200
+    $listBox.Height = 240
+
     [void] $listBox.Items.AddRange($GamesList)
 
     $labelSearch = Createlabel "Search:" 585 20; $editGameForm.Controls.Add($labelSearch)
@@ -75,9 +76,18 @@ function RenderEditGameForm($GamesList) {
     $labelPlayTime = Createlabel "PlayTime:" 170 140; $editGameForm.Controls.Add($labelPlayTime)
     $textPlayTime = CreateTextBox "" 245 140 200 20; $editGameForm.Controls.Add($textPlayTime)
 
-    $labelGamingPC = Createlabel "Gaming PC:" 170 180; $editGameForm.Controls.Add($labelGamingPC)
+    $labelReleaseDate = Createlabel "Release Date:" 170 180; $editGameForm.Controls.Add($labelReleaseDate)
+    $datePickerReleaseDate = New-Object System.Windows.Forms.DateTimePicker
+    $datePickerReleaseDate.Location = New-Object System.Drawing.Point(245, 180)
+    $datePickerReleaseDate.Size = New-Object System.Drawing.Size(200, 20)
+    $datePickerReleaseDate.Format = [System.Windows.Forms.DateTimePickerFormat]::Short
+    $datePickerReleaseDate.ShowCheckBox = $true
+    $datePickerReleaseDate.Checked = $false
+    $editGameForm.Controls.Add($datePickerReleaseDate)
+
+    $labelGamingPC = Createlabel "Gaming PC:" 170 220; $editGameForm.Controls.Add($labelGamingPC)
     $listboxGamingPC = New-Object System.Windows.Forms.ListBox
-    $listboxGamingPC.Location = New-Object System.Drawing.Point(245, 180)
+    $listboxGamingPC.Location = New-Object System.Drawing.Point(245, 220)
     $listboxGamingPC.Size = New-Object System.Drawing.Size(200, 80)
     $listboxGamingPC.SelectionMode = [System.Windows.Forms.SelectionMode]::MultiSimple
 
@@ -101,13 +111,13 @@ function RenderEditGameForm($GamesList) {
 
     $checkboxCompleted = New-Object Windows.Forms.CheckBox
     $checkboxCompleted.Text = "Finished"
-    $checkboxCompleted.Top = 175
+    $checkboxCompleted.Top = 215
     $checkboxCompleted.Left = 470
     $editGameForm.Controls.Add($checkboxCompleted)
 
     $checkboxDropped = New-Object Windows.Forms.CheckBox
     $checkboxDropped.Text = "Dropped"
-    $checkboxDropped.Top = 195
+    $checkboxDropped.Top = 235
     $checkboxDropped.Left = 470
     $checkboxDropped.Add_CheckedChanged({
             if ($checkboxDropped.Checked) {
@@ -126,7 +136,7 @@ function RenderEditGameForm($GamesList) {
 
     $checkboxHold = New-Object Windows.Forms.CheckBox
     $checkboxHold.Text = "Pick Up Later"
-    $checkboxHold.Top = 215
+    $checkboxHold.Top = 255
     $checkboxHold.Left = 470
     $checkboxHold.Add_CheckedChanged({
             if ($checkboxHold.Checked) {
@@ -145,7 +155,7 @@ function RenderEditGameForm($GamesList) {
 
     $checkboxForever = New-Object Windows.Forms.CheckBox
     $checkboxForever.Text = "Forever Game"
-    $checkboxForever.Top = 235
+    $checkboxForever.Top = 275
     $checkboxForever.Left = 470
     $checkboxForever.Add_CheckedChanged({
             if ($checkboxForever.Checked) {
@@ -173,6 +183,12 @@ function RenderEditGameForm($GamesList) {
             $textOriginalGameName.Text = $selectedGame.name
             $textExe.Text = ($selectedGame.exe_name + ".exe")
             $textPlatform.Text = $selectedGame.platform
+            if ($null -ne $selectedGame.release_date -and $selectedGame.release_date -ne "") {
+                $datePickerReleaseDate.Value = [datetime]::ParseExact($selectedGame.release_date, "yyyy-MM-dd", $null)
+                $datePickerReleaseDate.Checked = $true
+            } else {
+                $datePickerReleaseDate.Checked = $false
+            }
             $checkboxCompleted.Checked = ($selectedGame.completed -eq 'TRUE')
             $checkboxDropped.Checked = ($selectedGame.status -eq 'dropped')
             $checkboxHold.Checked = ($selectedGame.status -eq 'hold')
@@ -223,7 +239,7 @@ function RenderEditGameForm($GamesList) {
         })
     $editGameForm.Controls.Add($listBox)
 
-    $buttonSearchIcon = CreateButton "Search" 20 230
+    $buttonSearchIcon = CreateButton "Search" 20 270
     $buttonSearchIcon.Size = New-Object System.Drawing.Size(60, 23)
     $buttonSearchIcon.Add_Click({
             $gameName = $textName.Text
@@ -236,7 +252,7 @@ function RenderEditGameForm($GamesList) {
         })
     $editGameForm.Controls.Add($buttonSearchIcon)
 
-    $buttonUpdateIcon = CreateButton "Update" 90 230
+    $buttonUpdateIcon = CreateButton "Update" 90 270
     $buttonUpdateIcon.Size = New-Object System.Drawing.Size(60, 23)
     $buttonUpdateIcon.Add_Click({
             $downloadsDirectoryPath = (New-Object -ComObject Shell.Application).Namespace('shell:Downloads').Self.Path
@@ -285,7 +301,7 @@ function RenderEditGameForm($GamesList) {
         })
     $editGameForm.Controls.Add($buttonRemove)
 
-    $buttonOK = CreateButton "OK" 245 270
+    $buttonOK = CreateButton "OK" 245 310
     $buttonOK.Add_Click({
             $currentlySelectedIndex = $listBox.SelectedIndex
 
@@ -294,6 +310,8 @@ function RenderEditGameForm($GamesList) {
                 $listBox.SetSelected($currentlySelectedIndex, $true)
                 return
             }
+
+            $gameReleaseDate = if ($datePickerReleaseDate.Checked) { $datePickerReleaseDate.Value.ToString("yyyy-MM-dd") } else { "" }
 
             $gameName = $textName.Text
 
@@ -321,7 +339,7 @@ function RenderEditGameForm($GamesList) {
             }
             $gameGamingPCName = $selectedPCs -join ','
 
-            UpdateGameOnEdit -OriginalGameName $textOriginalGameName.Text -GameName $gameName -GameExeName $gameExeName -GameIconPath $pictureBoxImagePath.Text -GamePlayTime $playTimeInMin -GameCompleteStatus $gameCompleteStatus -GamePlatform $textPlatform.Text -GameStatus $gameStatus -GameGamingPCName $gameGamingPCName
+            UpdateGameOnEdit -OriginalGameName $textOriginalGameName.Text -GameName $gameName -GameExeName $gameExeName -GameIconPath $pictureBoxImagePath.Text -GamePlayTime $playTimeInMin -GameCompleteStatus $gameCompleteStatus -GamePlatform $textPlatform.Text -GameStatus $gameStatus -GameGamingPCName $gameGamingPCName -GameReleaseDate $gameReleaseDate
 
             ShowMessage "Updated '$gameName' in Database." "OK" "Asterisk"
 
@@ -338,7 +356,7 @@ function RenderEditGameForm($GamesList) {
         })
     $editGameForm.Controls.Add($buttonOK)
 
-    $buttonCancel = CreateButton "Cancel" 370 270;
+    $buttonCancel = CreateButton "Cancel" 370 310;
     $buttonCancel.Add_Click({
             $textSearch.Remove_TextChanged({})
             $listBox.Remove_SelectedIndexChanged({})
@@ -531,7 +549,7 @@ function RenderEditPlatformForm($PlatformsList) {
 }
 
 function RenderAddGameForm() {
-    $addGameForm =	CreateForm "Gaming Gaiden: Add Game" 570 295 ".\icons\running.ico"
+    $addGameForm =	CreateForm "Gaming Gaiden: Add Game" 570 335 ".\icons\running.ico"
 
     $labelName = Createlabel "Name:" 170 20; $addGameForm.Controls.Add($labelName)
     $textName = CreateTextBox "" 245 20 300 20;	$addGameForm.Controls.Add($textName)
@@ -545,9 +563,18 @@ function RenderAddGameForm() {
     $labelPlayTime = Createlabel "PlayTime:" 170 140; $addGameForm.Controls.Add($labelPlayTime)
     $textPlayTime = CreateTextBox "0 Hr 0 Min" 245 140 200 20; $textPlayTime.ReadOnly = $true; $addGameForm.Controls.Add($textPlayTime)
 
-    $labelGamingPC = Createlabel "Gaming PC:" 170 180; $addGameForm.Controls.Add($labelGamingPC)
+    $labelReleaseDate = Createlabel "Release Date:" 170 180; $addGameForm.Controls.Add($labelReleaseDate)
+    $datePickerReleaseDate = New-Object System.Windows.Forms.DateTimePicker
+    $datePickerReleaseDate.Location = New-Object System.Drawing.Point(245, 180)
+    $datePickerReleaseDate.Size = New-Object System.Drawing.Size(200, 20)
+    $datePickerReleaseDate.Format = [System.Windows.Forms.DateTimePickerFormat]::Short
+    $datePickerReleaseDate.ShowCheckBox = $true
+    $datePickerReleaseDate.Checked = $false
+    $addGameForm.Controls.Add($datePickerReleaseDate)
+
+    $labelGamingPC = Createlabel "Gaming PC:" 170 220; $addGameForm.Controls.Add($labelGamingPC)
     $dropdownGamingPC = New-Object System.Windows.Forms.ComboBox
-    $dropdownGamingPC.Location = New-Object System.Drawing.Point(245, 180)
+    $dropdownGamingPC.Location = New-Object System.Drawing.Point(245, 220)
     $dropdownGamingPC.Size = New-Object System.Drawing.Size(200, 20)
     $dropdownGamingPC.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
 
@@ -568,7 +595,7 @@ function RenderAddGameForm() {
 
     $addGameForm.Controls.Add($dropdownGamingPC)
 
-    $buttonSearchIcon = CreateButton "Search" 25 220
+    $buttonSearchIcon = CreateButton "Search" 25 260
     $buttonSearchIcon.Size = New-Object System.Drawing.Size(60, 23)
     $buttonSearchIcon.Add_Click({
             $gameName = $textName.Text
@@ -582,14 +609,14 @@ function RenderAddGameForm() {
     $addGameForm.Controls.Add($buttonSearchIcon)
 
     $imagePath = "./icons/default.png"
-    $pictureBoxImagePath = CreateTextBox $imagePath 579 294 1 1; $pictureBoxImagePath.hide(); $addGameForm.Controls.Add($pictureBoxImagePath)
+    $pictureBoxImagePath = CreateTextBox $imagePath 579 334 1 1; $pictureBoxImagePath.hide(); $addGameForm.Controls.Add($pictureBoxImagePath)
 
     $pictureBox = CreatePictureBox $imagePath 15 20 147 147
     $addGameForm.Controls.Add($pictureBox)
 
     $labelPictureBox = Createlabel "Game Icon" 62 167; $addGameForm.Controls.Add($labelPictureBox)
 
-    $buttonUpdateIcon = CreateButton "Update" 95 220
+    $buttonUpdateIcon = CreateButton "Update" 95 260
     $buttonUpdateIcon.Size = New-Object System.Drawing.Size(60, 23)
     $buttonUpdateIcon.Add_Click({
             $downloadsDirectoryPath = (New-Object -ComObject Shell.Application).Namespace('shell:Downloads').Self.Path
@@ -637,12 +664,15 @@ function RenderAddGameForm() {
         })
     $addGameForm.Controls.Add($buttonUpdateExe)
 
-    $buttonOK = CreateButton "OK" 245 220
+    $buttonOK = CreateButton "OK" 245 260
     $buttonOK.Add_Click({
             if ($textExe.Text -eq "" -Or $textName.Text -eq "" ) {
                 ShowMessage "Name, Exe fields cannot be empty. Try Again." "OK" "Error"
                 return
             }
+
+            $gameReleaseDate = if ($datePickerReleaseDate.Checked) { $datePickerReleaseDate.Value.ToString("yyyy-MM-dd") } else { "" }
+
             $gameName = $textName.Text
             $gameExeFile = Get-Item $textExe.Text
             $gameExeName = $gameExeFile.BaseName
@@ -651,7 +681,7 @@ function RenderAddGameForm() {
             $gameGamingPCName = if ($dropdownGamingPC.SelectedItem -eq "") { "" } else { $dropdownGamingPC.SelectedItem }
 
             SaveGame -GameName $gameName -GameExeName $gameExeName -GameIconPath $gameIconPath `
-                -GamePlayTime 0 -GameIdleTime 0 -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus 'FALSE' -GamePlatform 'PC' -GameSessionCount 0 -GameGamingPCName $gameGamingPCName
+                -GamePlayTime 0 -GameIdleTime 0 -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus 'FALSE' -GamePlatform 'PC' -GameSessionCount 0 -GameGamingPCName $gameGamingPCName -GameReleaseDate $gameReleaseDate
 
             ShowMessage "Registered '$gameName' in Database." "OK" "Asterisk"
 
@@ -662,7 +692,7 @@ function RenderAddGameForm() {
         })
     $addGameForm.Controls.Add($buttonOK)
 
-    $buttonCancel = CreateButton "Cancel" 370 220;
+    $buttonCancel = CreateButton "Cancel" 370 260;
     $buttonCancel.Add_Click({
             $pictureBox.Image.Dispose(); $pictureBox.Dispose();
             $addGameForm.Dispose()
