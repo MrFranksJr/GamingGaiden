@@ -265,7 +265,6 @@ try {
     $statsSubMenuItem = CreateMenuItem "Statistics"
     $gamingTimeMenuItem = CreateMenuItem "Time Spent Gaming"
     $mostPlayedMenuItem = CreateMenuItem "Most Played"
-    $idleTimeMenuItem = CreateMenuItem "Idle Time"
     $pcVsEmulationMenuItem = CreateMenuItem "PC vs Emulation"
     $summaryItem = CreateMenuItem "Life Time Summary"
     $gamesPerPlatformMenuItem = CreateMenuItem "Games Per Platform"
@@ -275,7 +274,6 @@ try {
     $statsSubMenuItem.DropDownItems.Add($sessionHistoryMenuItem)
     $statsSubMenuItem.DropDownItems.Add($gamesPerPlatformMenuItem)
     $statsSubMenuItem.DropDownItems.Add($mostPlayedMenuItem)
-    $statsSubMenuItem.DropDownItems.Add($idleTimeMenuItem)
     $statsSubMenuItem.DropDownItems.Add($pcVsEmulationMenuItem)
     
 
@@ -361,12 +359,6 @@ try {
             }
         })
 
-    $idleTimeMenuItem.Add_Click({
-            $idleTimeCheckResult = RenderIdleTime
-            if ($idleTimeCheckResult -ne $false) {
-                Invoke-Item ".\ui\IdleTime.html"
-            }
-        })
 
     $pcVsEmulationMenuItem.Add_Click({
             $pcVsEmulationCheckResult = RenderPCvsEmulation

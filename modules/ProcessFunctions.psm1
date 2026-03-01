@@ -67,42 +67,17 @@
 function TimeTrackerLoop($DetectedExe) {
     $hwInfoSensorSession = 'HKCU:\SOFTWARE\HWiNFO64\Sensors\Custom\Gaming Gaiden\Other1'
     $playTimeForCurrentSession = 0
-    $idleSessionsCount = 0
-    $idleSessions = New-Object int[] 100;
     $exeStartTime = ($null = [System.Diagnostics.Process]::GetProcessesByName($DetectedExe)).StartTime | Sort-Object | Select-Object -First 1
 
     while ($null = [System.Diagnostics.Process]::GetProcessesByName($DetectedExe)) {
         $playTimeForCurrentSession = [int16] (New-TimeSpan -Start $exeStartTime).TotalMinutes
-        $idleTime = [int16] ([PInvoke.Win32.UserInput]::IdleTime).Minutes
-
-        if ($idleTime -ge 10) {
-            # Entered idle Session
-            while ($idleTime -ge 5) {
-                # Track idle Time for current Idle Session
-                $idleSessions[$idleSessionsCount] = $idleTime
-                $idleTime = [int16] ([PInvoke.Win32.UserInput]::IdleTime).Minutes
-
-                # Keep the hwinfo sensor updated to current play time session length while tracking idle session
-                $playTimeForCurrentSession = [int16] (New-TimeSpan -Start $exeStartTime).TotalMinutes
-                Set-Itemproperty -path $hwInfoSensorSession -Name 'Value' -value $playTimeForCurrentSession
-
-                Start-Sleep -s 5
-            }
-            # Exited Idle Session, increment idle session counter for storing next idle sessions's length
-            $idleSessionsCount++
-        }
-
         Set-Itemproperty -path $hwInfoSensorSession -Name 'Value' -value $playTimeForCurrentSession
         Start-Sleep -s 5
     }
 
-    $idleTimeForCurrentSession = ($idleSessions | Measure-Object -Sum).Sum
-    Log "Play time for current session: $playTimeForCurrentSession min. Idle time for current session: $idleTimeForCurrentSession min."
+    Log "Play time for current session: $playTimeForCurrentSession min."
 
-    $PlayTimeExcludingIdleTime = $playTimeForCurrentSession - $idleTimeForCurrentSession
-    Log "Play time for current session excluding Idle time $PlayTimeExcludingIdleTime min"
-
-    return @($PlayTimeExcludingIdleTime, $idleTimeForCurrentSession)
+    return $playTimeForCurrentSession
 }
 
 function MonitorGame($DetectedExe) {
@@ -149,18 +124,14 @@ function MonitorGame($DetectedExe) {
 
     # Create Temp file to signal parent process to update notification icon color to show game is running
     Write-Output "$gameName" > "$env:TEMP\GmGdn-TrackingGame.txt"
-    $sessionTimeDetails = TimeTrackerLoop $DetectedExe
-    $currentPlayTime = $sessionTimeDetails[0]
-    $currentIdleTime = $sessionTimeDetails[1]
+    $currentPlayTime = TimeTrackerLoop $DetectedExe
     # Remove Temp file to signal parent process to update notification icon color to show game has finished
     Remove-Item "$env:TEMP\GmGdn-TrackingGame.txt"
 
     if ($null -ne $entityFound) {
         Log "Game Already Exists. Updating PlayTime and Last Played Date"
         $recordedGamePlayTime = GetPlayTime $gameName
-        $recordedGameIdleTime = GetIdleTime $gameName
         $updatedPlayTime = $recordedGamePlayTime + $currentPlayTime
-        $updatedIdleTime = $recordedGameIdleTime + $currentIdleTime
 
         # Get current PC and append if needed
         $currentPC = Read-Setting "current_pc"
@@ -177,7 +148,7 @@ function MonitorGame($DetectedExe) {
             }
         }
 
-        UpdateGameOnSession -GameName $gameName -GamePlayTime $updatedPlayTime -GameIdleTime $updatedIdleTime -GameLastPlayDate $updatedLastPlayDate -GameGamingPCName $updatedPCList
+        UpdateGameOnSession -GameName $gameName -GamePlayTime $updatedPlayTime -GameLastPlayDate $updatedLastPlayDate -GameGamingPCName $updatedPCList
     }
     else {
         Log "Detected emulated game is new and doesn't exist already. Adding to database."
@@ -186,7 +157,7 @@ function MonitorGame($DetectedExe) {
         $pcNameForGame = if ($null -ne $currentPC) { $currentPC } else { "" }
 
         SaveGame -GameName $gameName -GameExeName $DetectedExe -GameIconPath "./icons/default.png" `
-            -GamePlayTime $currentPlayTime -GameIdleTime $currentIdleTime -GameLastPlayDate $updatedLastPlayDate -GameCompleteStatus 'FALSE' -GamePlatform $emulatedGameDetails.Platform -GameSessionCount 1 -GameRomBasedName $gameName -GameGamingPCName $pcNameForGame
+            -GamePlayTime $currentPlayTime -GameLastPlayDate $updatedLastPlayDate -GameCompleteStatus 'FALSE' -GamePlatform $emulatedGameDetails.Platform -GameSessionCount 1 -GameRomBasedName $gameName -GameGamingPCName $pcNameForGame
     }
 
     RecordPlaytimOnDate($currentPlayTime)

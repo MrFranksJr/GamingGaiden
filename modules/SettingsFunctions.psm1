@@ -681,7 +681,7 @@ function RenderAddGameForm() {
             $gameGamingPCName = if ($dropdownGamingPC.SelectedItem -eq "") { "" } else { $dropdownGamingPC.SelectedItem }
 
             SaveGame -GameName $gameName -GameExeName $gameExeName -GameIconPath $gameIconPath `
-                -GamePlayTime 0 -GameIdleTime 0 -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus 'FALSE' -GamePlatform 'PC' -GameSessionCount 0 -GameGamingPCName $gameGamingPCName -GameReleaseDate $gameReleaseDate
+                -GamePlayTime 0 -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus 'FALSE' -GamePlatform 'PC' -GameSessionCount 0 -GameGamingPCName $gameGamingPCName -GameReleaseDate $gameReleaseDate
 
             ShowMessage "Registered '$gameName' in Database." "OK" "Asterisk"
 

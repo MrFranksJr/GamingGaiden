@@ -53,7 +53,6 @@ function UpdateAllStatsInBackground() {
     RenderGamingTime -InBackground $true
     RenderGamesPerPlatform -InBackground $true
     RenderMostPlayed -InBackground $true
-    RenderIdleTime -InBackground $true
     RenderPCvsEmulation -InBackground $true
     RenderSessionHistory -InBackground $true
 }
@@ -281,7 +280,7 @@ function RenderSummary() {
         $null = $gamingPCs.add($thisPC)
     }
 
-    $getGamesSummaryDataQuery = "SELECT COUNT(*) AS total_games, SUM(play_time) AS total_play_time, SUM(session_count) AS total_sessions, SUM(idle_time) AS total_idle_time FROM games"
+    $getGamesSummaryDataQuery = "SELECT COUNT(*) AS total_games, SUM(play_time) AS total_play_time, SUM(session_count) AS total_sessions FROM games"
     $gamesSummaryData = RunDBQuery $getGamesSummaryDataQuery
 
     $getPlayDateSummaryQuery = "SELECT MIN(play_date) AS min_play_date, MAX(play_date) AS max_play_date FROM daily_playtime"
@@ -299,9 +298,8 @@ function RenderSummary() {
     $endDate = Get-Date -Date $playDateSummary.max_play_date -Format "MMM yyyy"
 
     $totalPlayTime = PlayTimeMinsToString $gamesSummaryData.total_play_time
-    $totalIdleTime = PlayTimeMinsToString $gamesSummaryData.total_idle_time
 
-    $summaryStatement = "<b>Duration: </b>$startDate - $endDate. <b>Games: </b>$($gamesSummaryData.total_games). <b>Sessions: </b>$($gamesSummaryData.total_sessions).<br><br><b>Play time: </b>$totalPlayTime. <b>Idle time: </b>$totalIdleTime."
+    $summaryStatement = "<b>Duration: </b>$startDate - $endDate. <b>Games: </b>$($gamesSummaryData.total_games). <b>Sessions: </b>$($gamesSummaryData.total_sessions).<br><br><b>Play time: </b>$totalPlayTime."
 
     $summaryTable = $gamesPlayTimeVsSessionData | ConvertTo-Html -Fragment
     $pcTable = $gamingPCs | ConvertTo-Html -Fragment
@@ -314,37 +312,6 @@ function RenderSummary() {
     $report = $report -replace "_PCWARNING_", $pcWarning
 
     [System.Web.HttpUtility]::HtmlDecode($report) | Out-File -encoding UTF8 $workingDirectory\ui\Summary.html
-}
-
-function RenderIdleTime() {
-    param(
-        [bool]$InBackground = $false
-    )
-
-    Log "Rendering Idle time"
-
-    $workingDirectory = (Get-Location).Path
-
-    $getGamesIdleTimeDataQuery = "SELECT name, idle_time as time FROM games WHERE idle_time > 0 ORDER BY idle_time DESC"
-    $gamesIdleTimeData = RunDBQuery $getGamesIdleTimeDataQuery
-    if ($gamesIdleTimeData.Length -eq 0) {
-        if(-Not $InBackground) {
-            ShowMessage "No Idle Games found in DB." "OK" "Error"
-        }
-        Log "Error: Idle Games list empty. Returning"
-        return $false
-    }
-
-    $getTotalIdleTimeQuery = "SELECT SUM(idle_time) as total_idle_time FROM games"
-    $totalIdleTime = (RunDBQuery $getTotalIdleTimeQuery).total_idle_time
-    $totalIdleTimeString = PlayTimeMinsToString $totalIdleTime
-
-    $table = $gamesIdleTimeData | ConvertTo-Html -Fragment
-
-    $report = (Get-Content $workingDirectory\ui\templates\IdleTime.html.template) -replace "_GAMESIDLETIMETABLE_", $table
-    $report = $report -replace "_TOTALIDLETIME_", $totalIdleTimeString
-
-    [System.Web.HttpUtility]::HtmlDecode($report) | Out-File -encoding UTF8 $workingDirectory\ui\IdleTime.html
 }
 
 function RenderGamesPerPlatform() {
