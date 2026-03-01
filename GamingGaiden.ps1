@@ -1,6 +1,6 @@
 ﻿#Requires -Version 5.1
 
-#_pragma iconFile '.\build\GamingGaiden\icons\running.ico'
+#_pragma iconFile '.\icons\running.ico'
 #_pragma title 'Gaming Gaiden: Gameplay Time Tracker'
 #_pragma product 'Gaming Gaiden'
 #_pragma copyright '© 2023 Kulvinder Singh'
