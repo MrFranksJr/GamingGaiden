@@ -127,6 +127,17 @@
         }
         # End Migration 7
 
+        # Migration 8 - Merge idle_time into play_time before removing idle time feature
+        $gamesTableSchema = Invoke-SqliteQuery -query "PRAGMA table_info('games')" -SQLiteConnection $dbConnection
+        if ($gamesTableSchema.name.Contains("idle_time")) {
+            $hasIdleTime = Invoke-SqliteQuery -Query "SELECT COUNT(*) as count FROM games WHERE idle_time > 0" -SQLiteConnection $dbConnection
+            if ($hasIdleTime.count -gt 0) {
+                $mergeIdleTimeQuery = "UPDATE games SET play_time = play_time + idle_time, idle_time = 0"
+                Invoke-SqliteQuery -Query $mergeIdleTimeQuery -SQLiteConnection $dbConnection
+            }
+        }
+        # End Migration 8
+
         $dbConnection.Close()
         $dbConnection.Dispose()
     }
