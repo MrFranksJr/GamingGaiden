@@ -138,6 +138,13 @@
         }
         # End Migration 8
 
+        # Migration 9 - Remove idle_time column
+        $gamesTableSchema = Invoke-SqliteQuery -query "PRAGMA table_info('games')" -SQLiteConnection $dbConnection
+        if ($gamesTableSchema.name.Contains("idle_time")) {
+            Invoke-SqliteQuery -Query "ALTER TABLE games DROP COLUMN idle_time" -SQLiteConnection $dbConnection
+        }
+        # End Migration 9
+
         $dbConnection.Close()
         $dbConnection.Dispose()
     }
