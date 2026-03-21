@@ -81,7 +81,7 @@
       <button class="custom-button help-button" onclick="window.location.href='file:///C:/ProgramData/GamingGaiden/ui/Manual.html';">?</button>
       <button class="custom-button" id="all-games-button" onclick="window.location.href='file:///C:/ProgramData/GamingGaiden/ui/AllGames.html';">All Games</button>
       <button class="custom-button" id="session-history-button" onclick="window.location.href='file:///C:/ProgramData/GamingGaiden/ui/SessionHistory.html';">Session History</button>
-      <button class="custom-button" id="games-per-platform-button" onclick="window.location.href='file:///C:/ProgramData/GamingGaiden/ui/GamesPerPlatform.html';">Games Per Platform</button>
+      <button class="custom-button" id="games-per-pc-button" onclick="window.location.href='file:///C:/ProgramData/GamingGaiden/ui/GamesPerPC.html';">Games Per PC</button>
     </div>
   </body>
 </html>

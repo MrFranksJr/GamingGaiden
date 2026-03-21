@@ -31,7 +31,7 @@ https://github.com/user-attachments/assets/4837b88c-e403-4069-a3f5-3f0147e9328a
     - Install on multiple gaming pcs and share database to tracks games played, hours played for each pc separately.
 - #### UI and Statistics
     - Fast browser based UI with search and sorting. Quick view popup for recent games.
-    - Multiple in depth statistics on gaming. Lifetime summary, monthly/yearly time analysis, most played games, games per platform etc.
+    - Multiple in depth statistics on gaming. Lifetime summary, monthly/yearly time analysis, most played games, games per PC etc.
     - Value for money analysis for gaming pc by calculating gaming cost per hour or per month.
     - Integrated google image search for game icons / box art.
     - Mark games as Playing / Finished / On Hold / Dropped to track backlog completion.

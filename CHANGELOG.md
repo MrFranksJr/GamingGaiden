@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Feature: Being able to add the release date of a game to the database. [[99827f0](https://github.com/kulvind3r/gaminggaiden/commit/99827f0aa508e487627742f3db7e9a878bcb59e8)]
 
 ### Changed
+- Renamed "Games Per Platform" statistics page to "Games Per PC", now groups games by gaming PC instead of platform.
 - Migration 8: Merge `idle_time` into `play_time`. [[ed5b3de](https://github.com/kulvind3r/gaminggaiden/commit/ed5b3ded905903d4a4c019c481bdfc4a53d78abf)]
 
 ### Removed

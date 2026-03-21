@@ -51,7 +51,7 @@ function UpdateAllStatsInBackground() {
     RenderGameList -InBackground $true
     RenderSummary -InBackground $true
     RenderGamingTime -InBackground $true
-    RenderGamesPerPlatform -InBackground $true
+    RenderGamesPerPC -InBackground $true
     RenderMostPlayed -InBackground $true
     RenderSessionHistory -InBackground $true
 }
@@ -313,18 +313,18 @@ function RenderSummary() {
     [System.Web.HttpUtility]::HtmlDecode($report) | Out-File -encoding UTF8 $workingDirectory\ui\Summary.html
 }
 
-function RenderGamesPerPlatform() {
+function RenderGamesPerPC() {
     param(
         [bool]$InBackground = $false
     )
 
-    Log "Rendering games per platform"
+    Log "Rendering games per PC"
 
     $workingDirectory = (Get-Location).Path
 
-    $getGamesPerPlatformDataQuery = "SELECT  platform, COUNT(name) FROM games GROUP BY platform"
-    $getGamesPerPlatformData = @(RunDBQuery $getGamesPerPlatformDataQuery)
-    if ($getGamesPerPlatformData.Count -eq 0) {
+    $getGamesPerPCDataQuery = "SELECT COALESCE(NULLIF(gaming_pc_name, ''), 'Unknown') as gaming_pc_name, COUNT(name) FROM games GROUP BY COALESCE(NULLIF(gaming_pc_name, ''), 'Unknown')"
+    $getGamesPerPCData = @(RunDBQuery $getGamesPerPCDataQuery)
+    if ($getGamesPerPCData.Count -eq 0) {
         if(-Not $InBackground) {
             ShowMessage "No Games found in DB. Please add some games first." "OK" "Error"
         }
@@ -332,11 +332,11 @@ function RenderGamesPerPlatform() {
         return $false
     }
 
-    $table = $getGamesPerPlatformData | ConvertTo-Html -Fragment
+    $table = $getGamesPerPCData | ConvertTo-Html -Fragment
 
-    $report = (Get-Content $workingDirectory\ui\templates\GamesPerPlatform.html.template) -replace "_GAMESPERPLATFORMTABLE_", $table
+    $report = (Get-Content $workingDirectory\ui\templates\GamesPerPC.html.template) -replace "_GAMESPERPCTABLE_", $table
 
-    [System.Web.HttpUtility]::HtmlDecode($report) | Out-File -encoding UTF8 $workingDirectory\ui\GamesPerPlatform.html
+    [System.Web.HttpUtility]::HtmlDecode($report) | Out-File -encoding UTF8 $workingDirectory\ui\GamesPerPC.html
 }
 
 function RenderAboutDialog() {

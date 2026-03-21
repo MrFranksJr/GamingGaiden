@@ -11,7 +11,7 @@ App menu: *Settings => Edit Game*, select game from list (searchable).
 - Change executable (after reinstall)
 - Update icon (*Search* for online, *Update* to browse - png/jpg supported)
 - Manually adjust play time
-- Change platform
+- Change PC
 - Mark as finished / other status (checkbox)
 
 ### Pause/Resume game tracking

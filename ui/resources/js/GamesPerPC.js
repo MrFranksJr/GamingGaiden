@@ -6,7 +6,7 @@ $("table")[0].setAttribute("id", "data-table");
 
 function updateChart() {
   const ctx = document
-    .getElementById("games-per-platform-chart")
+    .getElementById("games-per-pc-chart")
     .getContext("2d");
 
   new Chart(ctx, {
@@ -41,7 +41,17 @@ function updateChart() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        tooltip: chartTooltipConfig,
+        tooltip: {
+          displayColors: false,
+          yAlign: "top",
+          caretPadding: 7,
+          callbacks: {
+            label: function (context) {
+              var pcName = context.chart.data.labels[context.dataIndex];
+              return pcName + ": " + context.parsed + " games";
+            },
+          },
+        },
         legend: chartLegendConfig,
         datalabels: {
           color: getChartTextColor(),

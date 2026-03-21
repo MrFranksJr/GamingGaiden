@@ -261,12 +261,12 @@ try {
     $gamingTimeMenuItem = CreateMenuItem "Time Spent Gaming"
     $mostPlayedMenuItem = CreateMenuItem "Most Played"
     $summaryItem = CreateMenuItem "Life Time Summary"
-    $gamesPerPlatformMenuItem = CreateMenuItem "Games Per Platform"
+    $gamesPerPCMenuItem = CreateMenuItem "Games Per PC"
     $sessionHistoryMenuItem = CreateMenuItem "Session History"
     $statsSubMenuItem.DropDownItems.Add($summaryItem)
     $statsSubMenuItem.DropDownItems.Add($gamingTimeMenuItem)
     $statsSubMenuItem.DropDownItems.Add($sessionHistoryMenuItem)
-    $statsSubMenuItem.DropDownItems.Add($gamesPerPlatformMenuItem)
+    $statsSubMenuItem.DropDownItems.Add($gamesPerPCMenuItem)
     $statsSubMenuItem.DropDownItems.Add($mostPlayedMenuItem)
     
 
@@ -338,10 +338,10 @@ try {
             }
         })
 
-    $gamesPerPlatformMenuItem.Add_Click({
-            $gamesPerPlatformCheckResult = RenderGamesPerPlatform
-            if ($gamesPerPlatformCheckResult -ne $false) {
-                Invoke-Item ".\ui\GamesPerPlatform.html"
+    $gamesPerPCMenuItem.Add_Click({
+            $gamesPerPCCheckResult = RenderGamesPerPC
+            if ($gamesPerPCCheckResult -ne $false) {
+                Invoke-Item ".\ui\GamesPerPC.html"
             }
         })
 
