@@ -55,6 +55,18 @@ https://github.com/user-attachments/assets/4837b88c-e403-4069-a3f5-3f0147e9328a
 4. Use the shortcut on desktop / start menu for launching the application.
 5. Regularly backup your `GamingGaiden.db` and `backups` folder to avoid data loss. Click ***Settings => Open Install Directory*** option in app menu to find them.
 
+## Development and Deployment
+If you are modifying Gaming Gaiden and want to quickly deploy your changes to the live installation:
+
+1. **Deploy.bat (Recommended)**: Double-click `Deploy.bat` in the root directory. This will:
+    - Stop the running `GamingGaiden.exe`.
+    - Run `Build.ps1` to re-generate the executable and manual.
+    - Sync all source files (`modules`, `icons`, `ui`) to `C:\ProgramData\GamingGaiden`.
+    - Automatically restart the application.
+
+2. **Manual PowerShell**: Run `.\Deploy.ps1` from an elevated PowerShell terminal.
+    - Use `.\Deploy.ps1 -NoBuild` for near-instant updates of scripts or UI files without re-building the `.exe`.
+
 ## How to uninstall
 Run `Uninstall Gaming Gaiden` from the `Gaming Gaiden` start menu folder. `GamingGaiden.db` and `backups` are not removed for preserving data.
 
