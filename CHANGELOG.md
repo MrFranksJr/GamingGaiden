@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Idle time feature from code and UI. [[8f3abdc](https://github.com/kulvind3r/gaminggaiden/commit/8f3abdc06f124ab6d004415cf2d03835adcfdee5)]
 - Migration 9: Drop `idle_time` column from `games` table. [[aed9c47](https://github.com/kulvind3r/gaminggaiden/commit/aed9c47f72b2387fc7ed018332582524bfa0c3c8)]
+- Emulator support: removed Add/Edit Emulator settings, PC vs Emulation statistics, emulated platforms database table, rom_based_name column, and all related UI/documentation.
+- Migration 10: Drop `emulated_platforms` table and `rom_based_name` column from `games` table.
 
 ### Fixed
 - Small edit to facilitate build tools. [[25376e8](https://github.com/kulvind3r/gaminggaiden/commit/25376e83e97ccc10eb9325fe63889c350d86bc32)]

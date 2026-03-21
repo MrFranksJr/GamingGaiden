@@ -3,15 +3,8 @@
 
     # Fetch games in order of most recent to least recent
     $getGameExesQuery = "SELECT exe_name FROM games ORDER BY last_play_date DESC"
-    $getEmulatorExesQuery = "SELECT exe_name FROM emulated_platforms"
 
-    $gameExeList = @((RunDBQuery $getGameExesQuery).exe_name)
-    $rawEmulatorExes = @((RunDBQuery $getEmulatorExesQuery).exe_name)
-
-    # Flatten the returned result rows containing multiple emulator exes into list with one exe per item
-    $emulatorExeList = ($rawEmulatorExes -join ',') -split ','
-
-    $exeList = [string[]] (($gameExeList + $emulatorExeList) | Select-Object -Unique)
+    $exeList = [string[]] @((RunDBQuery $getGameExesQuery).exe_name)
 
     # PERFORMANCE OPTIMIZATION: CPU & MEMORY
     # Process games in batches of 35 with most recent 10 games processed every batch. 5 sec wait b/w every batch.
@@ -86,9 +79,7 @@ function MonitorGame($DetectedExe) {
     $databaseFileHashBefore = CalculateFileHash '.\GamingGaiden.db'
     Log "Database hash before: $databaseFileHashBefore"
 
-    $emulatedGameDetails = $null
     $gameName = $null
-    $romBasedName = $null
     $entityFound = $null
     $updatedPlayTime = 0
     $updatedLastPlayDate = (Get-Date ([datetime]::UtcNow) -UFormat %s).Split('.').Get(0)
@@ -98,28 +89,10 @@ function MonitorGame($DetectedExe) {
     # Strips the decimal/comma first, then casts the clean string to an integer, fixes for non-US locales
     $sessionStartTimeUnix = [int]((Get-Date ($processStartTime.ToUniversalTime()) -UFormat %s).Split('.,')[0])
 
-    if (IsExeEmulator $DetectedExe) {
-        $emulatedGameDetails = FindEmulatedGameDetails $DetectedExe
-        if ($emulatedGameDetails -eq $false) {
-            Log "Error: Problem in fetching emulated game details. See earlier logs for more info"
-            Log "Error: Cannot resume detection until $DetectedExe exits. No playtime will be recorded."
-
-            TimeTrackerLoop $DetectedExe
-            return
-        }
-
-        $romBasedName = $emulatedGameDetails.RomBasedName
-        $entityFound = DoesEntityExists "games" "rom_based_name" $romBasedName
-    }
-    else {
-        $entityFound = DoesEntityExists "games" "exe_name" $DetectedExe
-    }
+    $entityFound = DoesEntityExists "games" "exe_name" $DetectedExe
 
     if ($null -ne $entityFound) {
         $gameName = $entityFound.name
-    }
-    else {
-        $gameName = $romBasedName
     }
 
     # Create Temp file to signal parent process to update notification icon color to show game is running
@@ -150,25 +123,18 @@ function MonitorGame($DetectedExe) {
 
         UpdateGameOnSession -GameName $gameName -GamePlayTime $updatedPlayTime -GameLastPlayDate $updatedLastPlayDate -GameGamingPCName $updatedPCList
     }
-    else {
-        Log "Detected emulated game is new and doesn't exist already. Adding to database."
 
+    if ($null -ne $gameName) {
+        RecordPlaytimOnDate($currentPlayTime)
+
+        # Record individual session history
+        RecordSessionHistory -GameName $gameName -StartTime $sessionStartTimeUnix -Duration $currentPlayTime
+
+        # Update current PC playtime
         $currentPC = Read-Setting "current_pc"
-        $pcNameForGame = if ($null -ne $currentPC) { $currentPC } else { "" }
-
-        SaveGame -GameName $gameName -GameExeName $DetectedExe -GameIconPath "./icons/default.png" `
-            -GamePlayTime $currentPlayTime -GameLastPlayDate $updatedLastPlayDate -GameCompleteStatus 'FALSE' -GamePlatform $emulatedGameDetails.Platform -GameSessionCount 1 -GameRomBasedName $gameName -GameGamingPCName $pcNameForGame
-    }
-
-    RecordPlaytimOnDate($currentPlayTime)
-
-    # Record individual session history
-    RecordSessionHistory -GameName $gameName -StartTime $sessionStartTimeUnix -Duration $currentPlayTime
-
-    # Update current PC playtime
-    $currentPC = Read-Setting "current_pc"
-    if ($null -ne $currentPC) {
-        UpdatePCPlaytime -PCName $currentPC -DurationMinutes $currentPlayTime
+        if ($null -ne $currentPC) {
+            UpdatePCPlaytime -PCName $currentPC -DurationMinutes $currentPlayTime
+        }
     }
 
     $databaseFileHashAfter = CalculateFileHash '.\GamingGaiden.db'

@@ -13,14 +13,6 @@
 
         Invoke-SqliteQuery -Query $createGamesTableQuery -SQLiteConnection $dbConnection
 
-        $createPlatformsTableQuery = "CREATE TABLE IF NOT EXISTS emulated_platforms (
-                            name TEXT PRIMARY KEY NOT NULL,
-                            exe_name TEXT,
-                            core TEXT,
-                            rom_extensions TEXT)"
-
-        Invoke-SqliteQuery -Query $createPlatformsTableQuery -SQLiteConnection $dbConnection
-
         $createDailyPlaytimeTableQuery = "CREATE TABLE IF NOT EXISTS daily_playtime (
                             play_date TEXT PRIMARY KEY NOT NULL,
                             play_time INTEGER)"
@@ -40,29 +32,12 @@
 
         $gamesTableSchema = Invoke-SqliteQuery -query "PRAGMA table_info('games')" -SQLiteConnection $dbConnection
 
-        # Migration 1
-        if (-Not $gamesTableSchema.name.Contains("idle_time")) {
-            $addIdleTimeColumnInGamesTableQuery = "ALTER TABLE games ADD COLUMN idle_time INTEGER DEFAULT 0"
-            Invoke-SqliteQuery -Query $addIdleTimeColumnInGamesTableQuery -SQLiteConnection $dbConnection
-        }
-        # End Migration 1
-
         # Migration 2
         if (-Not $gamesTableSchema.name.Contains("session_count")) {
             $addSessionCountColumnInGamesTableQuery = "ALTER TABLE games ADD COLUMN session_count INTEGER DEFAULT 0"
             Invoke-SqliteQuery -Query $addSessionCountColumnInGamesTableQuery -SQLiteConnection $dbConnection
         }
         # End Migration 2
-
-        # Migration 3
-        if (-Not $gamesTableSchema.name.Contains("rom_based_name")) {
-            $addRomBasedNameColumnInGamesTableQuery = "ALTER TABLE games ADD COLUMN rom_based_name TEXT"
-            $updateRomBasedNameColumnValues = "UPDATE games SET rom_based_name = name WHERE exe_name IN (SELECT DISTINCT exe_name FROM emulated_platforms)"
-
-            Invoke-SqliteQuery -Query $addRomBasedNameColumnInGamesTableQuery -SQLiteConnection $dbConnection
-            Invoke-SqliteQuery -Query $updateRomBasedNameColumnValues -SQLiteConnection $dbConnection
-        }
-        # End Migration 3
 
         # Migration 4
         if (-Not $gamesTableSchema.name.Contains("status")) {
@@ -144,6 +119,18 @@
             Invoke-SqliteQuery -Query "ALTER TABLE games DROP COLUMN idle_time" -SQLiteConnection $dbConnection
         }
         # End Migration 9
+
+        # Migration 10 - Remove emulator support: drop emulated_platforms table and rom_based_name column
+        $tableExists = Invoke-SqliteQuery -Query "SELECT name FROM sqlite_master WHERE type='table' AND name='emulated_platforms'" -SQLiteConnection $dbConnection
+        if ($null -ne $tableExists) {
+            Invoke-SqliteQuery -Query "DROP TABLE emulated_platforms" -SQLiteConnection $dbConnection
+        }
+
+        $gamesTableSchema = Invoke-SqliteQuery -query "PRAGMA table_info('games')" -SQLiteConnection $dbConnection
+        if ($gamesTableSchema.name.Contains("rom_based_name")) {
+            Invoke-SqliteQuery -Query "ALTER TABLE games DROP COLUMN rom_based_name" -SQLiteConnection $dbConnection
+        }
+        # End Migration 10
 
         $dbConnection.Close()
         $dbConnection.Dispose()

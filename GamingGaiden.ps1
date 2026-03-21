@@ -242,9 +242,7 @@ try {
 
     $settingsSubMenuItem = CreateMenuItem "Settings"
     $addGameMenuItem = CreateMenuItem "Add Game"
-    $addPlatformMenuItem = CreateMenuItem "Add Emulator"
     $editGameMenuItem = CreateMenuItem "Edit Game"
-    $editPlatformMenuItem = CreateMenuItem "Edit Emulator"
     $gamingPCMenuItem = CreateMenuItem "Gaming PCs"
     $openInstallDirectoryMenuItem = CreateMenuItem "Open Install Directory"
     $lightThemeMenuItem = CreateMenuItem "Light Theme"
@@ -252,12 +250,9 @@ try {
     $settingsSubMenuItem.DropDownItems.Add($addGameMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($editGameMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($menuItemSeparator1)
-    $settingsSubMenuItem.DropDownItems.Add($addPlatformMenuItem)
-    $settingsSubMenuItem.DropDownItems.Add($editPlatformMenuItem)
-    $settingsSubMenuItem.DropDownItems.Add($menuItemSeparator7)
     $settingsSubMenuItem.DropDownItems.Add($lightThemeMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($darkThemeMenuItem)
-    $settingsSubMenuItem.DropDownItems.Add($menuItemSeparator8)
+    $settingsSubMenuItem.DropDownItems.Add($menuItemSeparator7)
     $settingsSubMenuItem.DropDownItems.Add($gamingPCMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($openInstallDirectoryMenuItem)
     
@@ -265,7 +260,6 @@ try {
     $statsSubMenuItem = CreateMenuItem "Statistics"
     $gamingTimeMenuItem = CreateMenuItem "Time Spent Gaming"
     $mostPlayedMenuItem = CreateMenuItem "Most Played"
-    $pcVsEmulationMenuItem = CreateMenuItem "PC vs Emulation"
     $summaryItem = CreateMenuItem "Life Time Summary"
     $gamesPerPlatformMenuItem = CreateMenuItem "Games Per Platform"
     $sessionHistoryMenuItem = CreateMenuItem "Session History"
@@ -274,7 +268,6 @@ try {
     $statsSubMenuItem.DropDownItems.Add($sessionHistoryMenuItem)
     $statsSubMenuItem.DropDownItems.Add($gamesPerPlatformMenuItem)
     $statsSubMenuItem.DropDownItems.Add($mostPlayedMenuItem)
-    $statsSubMenuItem.DropDownItems.Add($pcVsEmulationMenuItem)
     
 
     $appContextMenu = New-Object System.Windows.Forms.ContextMenuStrip
@@ -360,13 +353,6 @@ try {
         })
 
 
-    $pcVsEmulationMenuItem.Add_Click({
-            $pcVsEmulationCheckResult = RenderPCvsEmulation
-            if ($pcVsEmulationCheckResult -ne $false) {
-                Invoke-Item ".\ui\PCvsEmulation.html"
-            }
-        })
-
     $sessionHistoryMenuItem.Add_Click({
             $sessionHistoryCheckResult = RenderSessionHistory
             if ($sessionHistoryCheckResult -ne $false) {
@@ -385,12 +371,6 @@ try {
             Remove-Item -Force "$env:TEMP\GmGdn-*"
         })
 
-    $addPlatformMenuItem.Add_Click({
-            Log "Starting emulated platform registration"
-
-            ExecuteSettingsFunction -SettingsFunctionToCall $function:RenderAddPlatformForm
-        })
-
     $editGameMenuItem.Add_Click({
             Log "Starting game editing"
 
@@ -405,19 +385,6 @@ try {
 
             # Cleanup temp Files
             Remove-Item -Force "$env:TEMP\GmGdn-*"
-        })
-
-    $editPlatformMenuItem.Add_Click({
-            Log "Starting platform editing"
-
-            $platformsList = @((RunDBQuery "SELECT name FROM emulated_platforms").name)
-            if ($platformsList.Length -eq 0) {
-                ShowMessage "No Platforms found in database. Please add few emulators first." "OK" "Error"
-                Log "Error: Platform list empty. Returning"
-                return
-            }
-
-            ExecuteSettingsFunction -SettingsFunctionToCall $function:RenderEditPlatformForm -EntityList $platformsList
         })
 
     $gamingPCMenuItem.Add_Click({

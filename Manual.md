@@ -4,23 +4,6 @@
 3. Icon should auto update. You can set a new icon by using *Search* (searches google for game icon) and *Update* (browse for image) buttons.
 4. Change the auto populated *Name* to a better one and click *Ok*.
 
-### Track emulated games
-
-**Requires launching games via command line params** like 
-
-- *pcsx2-qtx64-avx2.exe %ROM%*
-- *retroarch.exe -L cores\\flycast_libretro.dll %ROM%*. 
-
-Most frontends already use the above way.
-
-1. *Settings => Add Emulator*
-2. Enter platform (NES, Genesis, PS2, etc.)
-3. *Add Exe* - emulator executable (can add multiple per platform)
-4. For Retroarch: *Add Core* when prompted
-5. *Rom Extns* - comma-separated list without dots/spaces (zip,chd,rvg)
-
-**New emulated games are auto added using ROM filename as name of Game. If ROM file is renamed, a new game entry will get auto created.**
-
 ### Update tracked game status, edit play time, change icon etc.
 
 App menu: *Settings => Edit Game*, select game from list (searchable).
@@ -30,14 +13,6 @@ App menu: *Settings => Edit Game*, select game from list (searchable).
 - Manually adjust play time
 - Change platform
 - Mark as finished / other status (checkbox)
-
-### Update emulator for platform
-
-*Settings => Edit Emulator*, select platform from list (searchable).
-
-- Update executable path or add new exe for emulator
-- Change core for Retroarch
-- Modify ROM extensions
 
 ### Pause/Resume game tracking
 
@@ -55,26 +30,6 @@ App menu: *Stop Tracker* to pause, *Start Tracker* to resume.
 2. Exit app. 
 3. Copy database file from inside one of the backup zips to install directory. 
 4. Restart app.
-
-### Games launched from emulator application directly are not tracked
-
-Games launched from emulator GUI (Retroarch, PCSX2, Dolphin, Duckstation) lack command line parameters in Windows process. Use a frontend (EmulationStation, Launchbox) or desktop shortcuts with command lines.
-
-### Track multiple platforms using a single emulator
-
-1. Copy emulator exe with platform-specific names. Example: Copy *Dolphin.exe* to *Dolphin-Wii.exe* and *Dolphin-Gamecube.exe*. 
-2. Register each platform with its renamed exe. 
-3. Update frontend/shortcuts to use new exes.
-
-Alternative: Name platform *"Gamecube and Wii"* using single exe.
-
-### Track multiple platforms using a single Retroarch core
-
-1. Copy *retroarch.exe* with platform-specific names (e.g. *Retroarch-Genesis.exe*, *Retroarch-GameGear.exe*). 
-2. Register each platform with its renamed exe. 
-3. Update frontend/shortcuts.
-
-Alternative: Name platform *"Genesis & GameGear"* using single core.
 
 ### Track games on multiple PCs in a single Gaming Gaiden database
 

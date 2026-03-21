@@ -53,7 +53,6 @@ function UpdateAllStatsInBackground() {
     RenderGamingTime -InBackground $true
     RenderGamesPerPlatform -InBackground $true
     RenderMostPlayed -InBackground $true
-    RenderPCvsEmulation -InBackground $true
     RenderSessionHistory -InBackground $true
 }
 
@@ -338,42 +337,6 @@ function RenderGamesPerPlatform() {
     $report = (Get-Content $workingDirectory\ui\templates\GamesPerPlatform.html.template) -replace "_GAMESPERPLATFORMTABLE_", $table
 
     [System.Web.HttpUtility]::HtmlDecode($report) | Out-File -encoding UTF8 $workingDirectory\ui\GamesPerPlatform.html
-}
-
-function RenderPCvsEmulation() {
-    param(
-        [bool]$InBackground = $false
-    )
-
-    Log "Rendering PC vs Emulation"
-
-    $workingDirectory = (Get-Location).Path
-
-    $getPCvsEmulationTimeQuery = "SELECT  platform, IFNULL(SUM(play_time), 0) as play_time FROM games WHERE platform LIKE 'PC' UNION SELECT 'Emulation', IFNULL(SUM(play_time), 0) as play_time FROM games WHERE platform NOT LIKE 'PC'"
-    $pcVsEmulationTime = @(RunDBQuery $getPCvsEmulationTimeQuery)
-    if ($pcVsEmulationTime.Count -eq 0) {
-        if(-Not $InBackground) {
-            ShowMessage "No Games found in DB. Please add some games first." "OK" "Error"
-        }
-        Log "Error: Games list empty. Returning"
-        return $false
-    }
-
-    $totalPlayTime = $pcVsEmulationTime[0].play_time + $pcVsEmulationTime[1].play_time
-
-    if ($totalPlayTime -eq 0 ) {
-        if(-Not $InBackground) {
-            ShowMessage "No play time found in DB. Please play some games first." "OK" "Error"
-        }
-        Log "Error: No playtime found in DB. Returning"
-        return $false
-    }
-
-    $table = $pcVsEmulationTime | ConvertTo-Html -Fragment
-
-    $report = (Get-Content $workingDirectory\ui\templates\PCvsEmulation.html.template) -replace "_PCVSEMULATIONTABLE_", $table
-
-    [System.Web.HttpUtility]::HtmlDecode($report) | Out-File -encoding UTF8 $workingDirectory\ui\PCvsEmulation.html
 }
 
 function RenderAboutDialog() {

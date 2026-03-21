@@ -25,15 +25,13 @@ A small powershell tray application for windows os to track gaming time. Helps y
 https://github.com/user-attachments/assets/4837b88c-e403-4069-a3f5-3f0147e9328a
 
 ## Features
-- #### Time Tracking and Emulator Support
-    - Tracks play time & session history for PC or emulated games.
-    - Auto tracks new roms after registering any emulator just once.
-    - Supports Retroarch cores.
+- #### Time Tracking
+    - Tracks play time & session history for PC games.
     - Out of box HWiNFO64 integration with session time and tracking status metrics.
     - Install on multiple gaming pcs and share database to tracks games played, hours played for each pc separately.
 - #### UI and Statistics
     - Fast browser based UI with search and sorting. Quick view popup for recent games.
-    - Multiple in depth statistics on gaming. Lifetime summary, monthly/yearly time analysis, most played games, games per emulator etc.
+    - Multiple in depth statistics on gaming. Lifetime summary, monthly/yearly time analysis, most played games, games per platform etc.
     - Value for money analysis for gaming pc by calculating gaming cost per hour or per month.
     - Integrated google image search for game icons / box art.
     - Mark games as Playing / Finished / On Hold / Dropped to track backlog completion.

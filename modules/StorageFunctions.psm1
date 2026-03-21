@@ -9,19 +9,17 @@
         [string]$GamePlatform,
         [string]$GameSessionCount,
         [string]$GameStatus = "",
-        [string]$GameRomBasedName = "",
         [string]$GameGamingPCName = "",
         [string]$GameReleaseDate = ""
     )
 
     $gameIconBytes = (Get-Content -Path $GameIconPath -Encoding byte -Raw);
 
-    $addGameQuery = "INSERT INTO games (name, exe_name, icon, play_time, last_play_date, completed, platform, session_count, status, rom_based_name, gaming_pc_name, release_date)" +
-    "VALUES (@GameName, @GameExeName, @gameIconBytes, @GamePlayTime, @GameLastPlayDate, @GameCompleteStatus, @GamePlatform, @GameSessionCount, @GameStatus, @GameRomBasedName, @GameGamingPCName, @GameReleaseDate)"
+    $addGameQuery = "INSERT INTO games (name, exe_name, icon, play_time, last_play_date, completed, platform, session_count, status, gaming_pc_name, release_date)" +
+    "VALUES (@GameName, @GameExeName, @gameIconBytes, @GamePlayTime, @GameLastPlayDate, @GameCompleteStatus, @GamePlatform, @GameSessionCount, @GameStatus, @GameGamingPCName, @GameReleaseDate)"
 
     $gameNamePattern = SQLEscapedMatchPattern($GameName.Trim())
     $setGameStatusNull = "UPDATE games SET status = @GameStatus WHERE name LIKE '{0}'" -f $gameNamePattern
-    $setRomBasedNameNull = "UPDATE games SET rom_based_name = @GameRomBasedName WHERE name LIKE '{0}'" -f $gameNamePattern
     $setGamingPCNameNull = "UPDATE games SET gaming_pc_name = @GameGamingPCName WHERE name LIKE '{0}'" -f $gameNamePattern
     $setReleaseDateNull = "UPDATE games SET release_date = @GameReleaseDate WHERE name LIKE '{0}'" -f $gameNamePattern
 
@@ -37,7 +35,6 @@
         GamePlatform       = $GamePlatform.Trim()
         GameSessionCount   = $GameSessionCount
         GameStatus         = $GameStatus
-        GameRomBasedName   = $GameRomBasedName.Trim()
         GameGamingPCName   = $GameGamingPCName.Trim()
         GameReleaseDate    = $GameReleaseDate
     }
@@ -51,12 +48,6 @@
     #    RunDBQuery $addGameQuery @{ ..., GameRomBasedName = $var }
     #
     # On using the above code, [System.DBNull]::Value gets casted to string for some reason and gets inserted in DB as blank string instead of a true NULL.
-
-    if ($GameRomBasedName -eq "") {
-        RunDBQuery $setRomBasedNameNull @{
-            GameRomBasedName = [System.DBNull]::Value
-        }
-    }
 
     if ($GameStatus -eq "") {
         RunDBQuery $setGameStatusNull @{
@@ -76,26 +67,6 @@
         }
     }
 
-}
-
-function SavePlatform() {
-    param(
-        [string]$PlatformName,
-        [string]$EmulatorExeList,
-        [string]$CoreName,
-        [string]$RomExtensions
-    )
-
-    $addPlatformQuery = "INSERT INTO emulated_platforms (name, exe_name, core, rom_extensions)" +
-    "VALUES (@PlatformName, @EmulatorExeList, @CoreName, @RomExtensions)"
-
-    Log "Adding $PlatformName in database"
-    RunDBQuery $addPlatformQuery @{
-        PlatformName    = $PlatformName.Trim()
-        EmulatorExeList = $EmulatorExeList.Trim()
-        CoreName        = $CoreName.Trim()
-        RomExtensions   = $RomExtensions.Trim()
-    }
 }
 
 function SavePC() {
@@ -224,17 +195,8 @@ function UpdateGameOnEdit() {
         $gameReleaseDate = (RunDBQuery $getReleaseDateQuery).release_date
         if ($null -eq $gameReleaseDate) { $gameReleaseDate = "" }
 
-        if (IsExeEmulator $GameExeName) {
-            $getRomBasedNameQuery = "SELECT rom_based_name FROM games WHERE name LIKE '{0}'" -f $gameNamePattern
-            $romBasedName = (RunDBQuery $getRomBasedNameQuery).rom_based_name
-
-            SaveGame -GameName $GameName -GameExeName $GameExeName -GameIconPath $GameIconPath `
-                -GamePlayTime $GamePlayTime -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus $GameCompleteStatus -GamePlatform $GamePlatform -GameSessionCount $gameSessionCount -GameStatus $GameStatus -GameRomBasedName $romBasedName -GameGamingPCName $GameGamingPCName -GameReleaseDate $gameReleaseDate
-        }
-        else {
-            SaveGame -GameName $GameName -GameExeName $GameExeName -GameIconPath $GameIconPath `
-                -GamePlayTime $GamePlayTime -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus $GameCompleteStatus -GamePlatform $GamePlatform -GameSessionCount $gameSessionCount -GameStatus $GameStatus -GameGamingPCName $GameGamingPCName -GameReleaseDate $gameReleaseDate
-        }
+        SaveGame -GameName $GameName -GameExeName $GameExeName -GameIconPath $GameIconPath `
+            -GamePlayTime $GamePlayTime -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus $GameCompleteStatus -GamePlatform $GamePlatform -GameSessionCount $gameSessionCount -GameStatus $GameStatus -GameGamingPCName $GameGamingPCName -GameReleaseDate $gameReleaseDate
 
         RemoveGame($OriginalGameName)
     }
@@ -285,42 +247,6 @@ function UpdatePC() {
     }
 }
 
-function  UpdatePlatformOnEdit() {
-    param(
-        [string]$OriginalPlatformName,
-        [string]$PlatformName,
-        [string]$EmulatorExeList,
-        [string]$EmulatorCore,
-        [string]$PlatformRomExtensions
-    )
-
-    $platformNamePattern = SQLEscapedMatchPattern($OriginalPlatformName.Trim())
-
-    if ( $OriginalPlatformName -eq $PlatformName) {
-
-        $updatePlatformQuery = "UPDATE emulated_platforms set exe_name = @EmulatorExeList, core = @EmulatorCore, rom_extensions = @PlatformRomExtensions WHERE name LIKE '{0}'" -f $platformNamePattern
-
-        Log "Editing $PlatformName in database"
-        RunDBQuery $updatePlatformQuery @{
-            EmulatorExeList       = $EmulatorExeList
-            EmulatorCore          = $EmulatorCore
-            PlatformRomExtensions = $PlatformRomExtensions.Trim()
-        }
-    }
-    else {
-        Log "User changed platform's name from $OriginalPlatformName to $PlatformName. Need to delete the platform and add it again"
-        Log "All games mapped to $OriginalPlatformName will be updated to platform $PlatformName"
-
-        RemovePlatform($OriginalPlatformName)
-
-        SavePlatform -PlatformName $PlatformName -EmulatorExeList $EmulatorExeList -CoreName $EmulatorCore -RomExtensions $PlatformRomExtensions
-
-        $updateGamesPlatformQuery = "UPDATE games SET platform = @PlatformName WHERE platform LIKE '{0}'" -f $platformNamePattern
-
-        RunDBQuery $updateGamesPlatformQuery @{ PlatformName = $PlatformName }
-    }
-}
-
 function RemoveGame($GameName) {
     $gameNamePattern = SQLEscapedMatchPattern($GameName.Trim())
     $removeGameQuery = "DELETE FROM games WHERE name LIKE '{0}'" -f $gameNamePattern
@@ -335,14 +261,6 @@ function RemovePC($PCName) {
 
     Log "Removing PC $PCName from database"
     RunDBQuery $removePCQuery
-}
-
-function RemovePlatform($PlatformName) {
-    $platformNamePattern = SQLEscapedMatchPattern($PlatformName.Trim())
-    $removePlatformQuery = "DELETE FROM emulated_platforms WHERE name LIKE '{0}'" -f $platformNamePattern
-
-    Log "Removing $PlatformName from database"
-    RunDBQuery $removePlatformQuery
 }
 
 function RecordPlaytimOnDate($PlayTime) {
