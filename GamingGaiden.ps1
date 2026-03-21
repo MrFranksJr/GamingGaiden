@@ -4,7 +4,7 @@
 #_pragma title 'Gaming Gaiden: Gameplay Time Tracker'
 #_pragma product 'Gaming Gaiden'
 #_pragma copyright '© 2023 Kulvinder Singh'
-#_pragma version '2026.01.26'
+#_pragma version '2026.03.21'
 
 [System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')    | Out-null
 [System.Reflection.Assembly]::LoadWithPartialName('System.Drawing')          | Out-null
@@ -394,7 +394,7 @@ try {
     $editGameMenuItem.Add_Click({
             Log "Starting game editing"
 
-            $gamesList = (RunDBQuery "SELECT name FROM games").name
+            $gamesList = @((RunDBQuery "SELECT name FROM games").name)
             if ($gamesList.Length -eq 0) {
                 ShowMessage "No Games found in database. Please add few games first." "OK" "Error"
                 Log "Error: Games list empty. Returning"
@@ -410,7 +410,7 @@ try {
     $editPlatformMenuItem.Add_Click({
             Log "Starting platform editing"
 
-            $platformsList = (RunDBQuery "SELECT name FROM emulated_platforms").name
+            $platformsList = @((RunDBQuery "SELECT name FROM emulated_platforms").name)
             if ($platformsList.Length -eq 0) {
                 ShowMessage "No Platforms found in database. Please add few emulators first." "OK" "Error"
                 Log "Error: Platform list empty. Returning"
@@ -423,7 +423,7 @@ try {
     $gamingPCMenuItem.Add_Click({
             Log "Starting Gaming PC registration"
 
-            $PCList = (RunDBQuery "SELECT name FROM gaming_pcs").name
+            $PCList = @((RunDBQuery "SELECT name FROM gaming_pcs").name)
 
             ExecuteSettingsFunction -SettingsFunctionToCall $function:RenderGamingPCForm -EntityList $PCList
 
@@ -452,6 +452,9 @@ try {
     # Launch Application
     Log "Starting tracker on app boot"
     StartTrackerJob
+
+    Log "Pre-rendering statistics pages"
+    UpdateAllStatsInBackground
 
     Log "Starting timer to check for Tracking updates"
     $Timer.Start()

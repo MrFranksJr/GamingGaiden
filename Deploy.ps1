@@ -35,33 +35,29 @@ if ($args -contains "-NoBuild") {
 }
 
 # 3. Copy files to the install directory
-# Exclude database and backups to prevent overwriting user data
-Write-Host "Syncing files to $InstallDirectory..." -ForegroundColor Cyan
-
-$excludeList = @("GamingGaiden.db", "backups", "settings.ini", "GamingGaiden.log", "build")
-
-# Create the install directory if it doesn't exist (though it should)
-if (-not (Test-Path $InstallDirectory)) {
-    New-Item -ItemType Directory -Path $InstallDirectory -Force | Out-Null
-}
-
-# Important: Use Robocopy for efficient syncing (handles mirrors, exclusions, and is faster than Copy-Item)
-# We want to make sure the build outputs are also copied
-$buildOutput = Join-Path $SourceDirectory "build\GamingGaiden"
-if (Test-Path $buildOutput) {
-    Write-Host "Syncing build artifacts..." -ForegroundColor Cyan
-    robocopy $buildOutput $InstallDirectory /S /E /R:3 /W:5 /NP /NDL /NJH /NJS /XF "GamingGaiden.db" "settings.ini" "*.log" /XD "backups" | Out-Null
-}
-
 Write-Host "Syncing source files (modules, icons, ui)..." -ForegroundColor Cyan
+
+# Sync modules and icons (complete mirror)
 robocopy (Join-Path $SourceDirectory "modules") (Join-Path $InstallDirectory "modules") /MIR /R:3 /W:5 /NP /NDL /NJH /NJS | Out-Null
 robocopy (Join-Path $SourceDirectory "icons") (Join-Path $InstallDirectory "icons") /MIR /R:3 /W:5 /NP /NDL /NJH /NJS | Out-Null
-robocopy (Join-Path $SourceDirectory "ui") (Join-Path $InstallDirectory "ui") /MIR /R:3 /W:5 /NP /NDL /NJH /NJS /XD "cache" | Out-Null
 
-# Handle the main script if we're not using the EXE-only path
-if (-not (Test-Path $buildOutput)) {
-    Write-Host "Copying main script..." -ForegroundColor Cyan
-    Copy-Item (Join-Path $SourceDirectory "GamingGaiden.ps1") (Join-Path $InstallDirectory "GamingGaiden.ps1") -Force
+# Sync UI folder but protect the generated HTML files from being purged!
+# We mirror resources but exclude purging of .html files because they are generated in the build step
+robocopy (Join-Path $SourceDirectory "ui") (Join-Path $InstallDirectory "ui") /MIR /XF "*.html" /R:3 /W:5 /NP /NDL /NJH /NJS /XD "cache" "templates" | Out-Null
+
+# Now Sync build artifacts (which includes the .exe and the generated .html files)
+$buildOutput = Join-Path $SourceDirectory "build\GamingGaiden"
+if (Test-Path $buildOutput) {
+    Write-Host "Syncing build artifacts (EXE and HTML pages)..." -ForegroundColor Cyan
+    # This will copy GamingGaiden.exe and all the HTML files from the build's ui folder
+    robocopy $buildOutput $InstallDirectory /S /E /R:3 /W:5 /NP /NDL /NJH /NJS /XF "GamingGaiden.db" "settings.ini" "*.log" /XD "backups" | Out-Null
+} else {
+    # If no build folder exists (e.g., -NoBuild was used but no previous build exists)
+    # We still need to make sure the main script is there
+    if (-not (Test-Path (Join-Path $InstallDirectory "GamingGaiden.exe"))) {
+        Write-Host "Copying main script (as backup)..." -ForegroundColor Cyan
+        Copy-Item (Join-Path $SourceDirectory "GamingGaiden.ps1") (Join-Path $InstallDirectory "GamingGaiden.ps1") -Force
+    }
 }
 
 # 4. Unblock files (common issue on Windows for downloaded/moved scripts)

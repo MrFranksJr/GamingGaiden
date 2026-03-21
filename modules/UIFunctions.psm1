@@ -67,8 +67,8 @@ function RenderGameList() {
     $workingDirectory = (Get-Location).Path
 
     $getAllGamesQuery = "SELECT name, icon, platform, play_time, session_count, completed, last_play_date, status, gaming_pc_name FROM games"
-    $gameRecords = RunDBQuery $getAllGamesQuery
-    if ($gameRecords.Length -eq 0) {
+    $gameRecords = @(RunDBQuery $getAllGamesQuery)
+    if ($gameRecords.Count -eq 0) {
         if(-Not $InBackground) {
             ShowMessage "No Games found in DB. Please add some games first." "OK" "Error"
         }
@@ -160,8 +160,8 @@ function RenderGamingTime() {
     $workingDirectory = (Get-Location).Path
 
     $getDailyPlayTimeDataQuery = "SELECT play_date as date, play_time as time FROM daily_playtime ORDER BY date ASC"
-    $dailyPlayTimeData = RunDBQuery $getDailyPlayTimeDataQuery
-    if ($dailyPlayTimeData.Length -eq 0) {
+    $dailyPlayTimeData = @(RunDBQuery $getDailyPlayTimeDataQuery)
+    if ($dailyPlayTimeData.Count -eq 0) {
         if(-Not $InBackground) {
             ShowMessage "No Records of Game Time found in DB. Please play some games first." "OK" "Error"
         }
@@ -186,8 +186,8 @@ function RenderMostPlayed() {
     $workingDirectory = (Get-Location).Path
 
     $getGamesPlayTimeDataQuery = "SELECT name, play_time as time FROM games Order By play_time DESC"
-    $gamesPlayTimeData = RunDBQuery $getGamesPlayTimeDataQuery
-    if ($gamesPlayTimeData.Length -eq 0) {
+    $gamesPlayTimeData = @(RunDBQuery $getGamesPlayTimeDataQuery)
+    if ($gamesPlayTimeData.Count -eq 0) {
         if(-Not $InBackground) {
             ShowMessage "No Games found in DB. Please add some games first." "OK" "Error"
         }
@@ -212,8 +212,8 @@ function RenderSummary() {
     $workingDirectory = (Get-Location).Path
 
     $getGamesPlayTimeVsSessionDataQuery = "SELECT name, play_time, session_count, completed, status FROM games"
-    $gamesPlayTimeVsSessionData = RunDBQuery $getGamesPlayTimeVsSessionDataQuery
-    if ($gamesPlayTimeVsSessionData.Length -eq 0) {
+    $gamesPlayTimeVsSessionData = @(RunDBQuery $getGamesPlayTimeVsSessionDataQuery)
+    if ($gamesPlayTimeVsSessionData.Count -eq 0) {
         if(-Not $InBackground) {
             ShowMessage "No Games found in DB. Please add some games first." "OK" "Error"
         }
@@ -222,12 +222,12 @@ function RenderSummary() {
     }
 
     $getGamingPCsQuery = "SELECT * FROM gaming_pcs ORDER BY in_use DESC, end_date DESC"
-    $gamingPCData = RunDBQuery $getGamingPCsQuery
+    $gamingPCData = @(RunDBQuery $getGamingPCsQuery)
 
     # Check if PC warning should be shown
     $currentPC = Read-Setting "current_pc"
     $pcWarning = ""
-    if ($null -eq $currentPC -and $gamingPCData.Length -gt 1) {
+    if ($null -eq $currentPC -and $gamingPCData.Count -gt 1) {
         $pcWarning = "<p style='color: red; font-size: 12px; margin: 5px 0;'>⚠ Current PC unidentified. Mark a PC as current to measure PC usage</p>"
     }
 
@@ -324,8 +324,8 @@ function RenderGamesPerPlatform() {
     $workingDirectory = (Get-Location).Path
 
     $getGamesPerPlatformDataQuery = "SELECT  platform, COUNT(name) FROM games GROUP BY platform"
-    $getGamesPerPlatformData = RunDBQuery $getGamesPerPlatformDataQuery
-    if ($getGamesPerPlatformData.Length -eq 0) {
+    $getGamesPerPlatformData = @(RunDBQuery $getGamesPerPlatformDataQuery)
+    if ($getGamesPerPlatformData.Count -eq 0) {
         if(-Not $InBackground) {
             ShowMessage "No Games found in DB. Please add some games first." "OK" "Error"
         }
@@ -350,8 +350,8 @@ function RenderPCvsEmulation() {
     $workingDirectory = (Get-Location).Path
 
     $getPCvsEmulationTimeQuery = "SELECT  platform, IFNULL(SUM(play_time), 0) as play_time FROM games WHERE platform LIKE 'PC' UNION SELECT 'Emulation', IFNULL(SUM(play_time), 0) as play_time FROM games WHERE platform NOT LIKE 'PC'"
-    $pcVsEmulationTime = RunDBQuery $getPCvsEmulationTimeQuery
-    if ($pcVsEmulationTime.Length -eq 0) {
+    $pcVsEmulationTime = @(RunDBQuery $getPCvsEmulationTimeQuery)
+    if ($pcVsEmulationTime.Count -eq 0) {
         if(-Not $InBackground) {
             ShowMessage "No Games found in DB. Please add some games first." "OK" "Error"
         }
@@ -416,8 +416,8 @@ function RenderAboutDialog() {
 
 function RenderQuickView() {
     $lastFiveGamesQuery = "Select icon, name, play_time, last_play_date from games ORDER BY completed, last_play_date DESC LIMIT 5"
-    $gameRecords = RunDBQuery $lastFiveGamesQuery
-    if ($gameRecords.Length -eq 0) {
+    $gameRecords = @(RunDBQuery $lastFiveGamesQuery)
+    if ($gameRecords.Count -eq 0) {
         ShowMessage "No Games found in DB. Please add some games first." "OK" "Error"
         Log "Error: Games list empty. Returning"
         return
@@ -515,9 +515,9 @@ LEFT JOIN games g ON sh.game_name = g.name
 ORDER BY sh.start_time DESC
 "@
 
-    $sessionData = RunDBQuery $getSessionDataQuery
+    $sessionData = @(RunDBQuery $getSessionDataQuery)
 
-    if ($sessionData.Length -eq 0) {
+    if ($sessionData.Count -eq 0) {
         if (-Not $InBackground) {
             ShowMessage "No session history found. Play some games first!" "OK" "Info"
         }
