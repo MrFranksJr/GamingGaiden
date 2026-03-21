@@ -50,7 +50,7 @@ Copy-Item -Recurse -Path $SourceFiles -Destination .\build\GamingGaiden\ -Force
 $templateFiles = Get-ChildItem .\ui\templates\*.template -File
 foreach ($template in $templateFiles) {
     $htmlFileName = $template.Name -replace '\.template$', ''
-    if ($htmlFileName -ne "Manual.html" -and $htmlFileName -ne "IdleTime.html") {
+    if ($htmlFileName -ne "Manual.html") {
         Copy-Item -Path .\ui\404.html -Destination .\build\GamingGaiden\ui\$htmlFileName -Force
     }
 }

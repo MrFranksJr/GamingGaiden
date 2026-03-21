@@ -9,17 +9,13 @@
         />
         <link rel="stylesheet" href="./resources/css/theme-light.css" id="theme-link" />
         <script>
-            // Attempt to load theme.css if it exists, otherwise stay with theme-light.css
-            // This ensures a default theme is present for IDEs/local viewing
             (function() {
                 var themeLink = document.getElementById('theme-link');
                 var testLink = document.createElement('link');
                 testLink.rel = 'stylesheet';
                 testLink.href = './resources/css/theme.css';
                 testLink.onload = function() { themeLink.href = testLink.href; };
-                // No need for onerror, we stay with theme-light.css
                 document.head.appendChild(testLink);
-                // Immediately remove testLink as it's only for testing existence/loading
                 document.head.removeChild(testLink);
             })();
         </script>

@@ -1,4 +1,4 @@
-<div align="center">
+<div style="text-align: center;">
 
 [![GitHub stars](https://img.shields.io/github/stars/kulvind3r/gaminggaiden)](https://github.com/kulvind3r/gaminggaiden/stargazers)
 [![GitHub Downloads (latest)](https://img.shields.io/github/downloads/kulvind3r/gaminggaiden/latest/total?label=Downloads%20-%20Latest&color=%23FFD166)](https://github.com/kulvind3r/GamingGaiden/releases/latest)
@@ -29,7 +29,6 @@ https://github.com/user-attachments/assets/4837b88c-e403-4069-a3f5-3f0147e9328a
     - Tracks play time & session history for PC or emulated games.
     - Auto tracks new roms after registering any emulator just once.
     - Supports Retroarch cores.
-    - Detects and removes idle time from gaming sessions.
     - Out of box HWiNFO64 integration with session time and tracking status metrics.
     - Install on multiple gaming pcs and share database to tracks games played, hours played for each pc separately.
 - #### UI and Statistics
@@ -84,7 +83,6 @@ GamingGaiden performs following tasks that are similar to common malware behavio
 - Scanning running programs to detect and track games.
 - Adding registry entries for HWinfo64 integration.
 - Periodically sleeping to conserve resources.
-- Monitoring user activity to detect idle time.
 - Packaged as an executable using ps12exe.
 
 Its PowerShell-based implementation also raises flags as powershell scripts can be used maliciously and have low trust in tech community.
