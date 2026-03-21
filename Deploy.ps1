@@ -22,7 +22,24 @@ if ($process) {
     }
 }
 
-# 2. Run the Build process (Optional but recommended for consistency)
+# 2. Backup the database before deploying
+$dbPath = Join-Path $InstallDirectory "GamingGaiden.db"
+if (Test-Path $dbPath) {
+    Write-Host "Backing up database before deployment..." -ForegroundColor Cyan
+    $backupDir = Join-Path $InstallDirectory "backups"
+    mkdir -Force $backupDir | Out-Null
+    $timestamp = Get-Date -f "dd-MM-yyyy-HH.mm.ss"
+    Copy-Item $dbPath "$env:TEMP\"
+    Compress-Archive "$env:TEMP\GamingGaiden.db" (Join-Path $backupDir "GamingGaiden-$timestamp.zip")
+    Remove-Item "$env:TEMP\GamingGaiden.db"
+    # Keep only the 5 most recent backups
+    Get-ChildItem -Path $backupDir -File | Sort-Object -Property CreationTime | Select-Object -SkipLast 5 | Remove-Item
+    Write-Host "Database backup created successfully." -ForegroundColor Green
+} else {
+    Write-Host "No database found at $InstallDirectory, skipping backup." -ForegroundColor Gray
+}
+
+# 3. Run the Build process (Optional but recommended for consistency)
 if ($args -contains "-NoBuild") {
     Write-Host "Skipping build as requested..." -ForegroundColor Gray
 } else {
@@ -34,7 +51,7 @@ if ($args -contains "-NoBuild") {
     }
 }
 
-# 3. Copy files to the install directory
+# 4. Copy files to the install directory
 Write-Host "Syncing source files (modules, icons, ui)..." -ForegroundColor Cyan
 
 # Sync modules and icons (complete mirror)
@@ -60,11 +77,11 @@ if (Test-Path $buildOutput) {
     }
 }
 
-# 4. Unblock files (common issue on Windows for downloaded/moved scripts)
+# 5. Unblock files (common issue on Windows for downloaded/moved scripts)
 Write-Host "Unblocking files..." -ForegroundColor Cyan
 Get-ChildItem -Path $InstallDirectory -Recurse | Unblock-File
 
-# 5. Restart Gaming Gaiden
+# 6. Restart Gaming Gaiden
 $exePath = Join-Path $InstallDirectory "GamingGaiden.exe"
 if (Test-Path $exePath) {
     Write-Host "Restarting Gaming Gaiden..." -ForegroundColor Green

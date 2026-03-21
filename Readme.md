@@ -66,6 +66,19 @@ If you are modifying Gaming Gaiden and want to quickly deploy your changes to th
 2. **Manual PowerShell**: Run `.\Deploy.ps1` from an elevated PowerShell terminal.
     - Use `.\Deploy.ps1 -NoBuild` for near-instant updates of scripts or UI files without re-building the `.exe`.
 
+### Rolling back after a deploy
+
+Each deployment automatically backs up `GamingGaiden.db` before copying any files (stored as a timestamped zip in the `backups` folder). To roll back:
+
+1. Stop Gaming Gaiden (exit from the tray icon or close the process).
+2. Open the install directory (`C:\ProgramData\GamingGaiden\backups`).
+3. Find the backup zip from just before the bad deploy (named `GamingGaiden-dd-MM-yyyy-HH.mm.ss.zip`).
+4. Extract `GamingGaiden.db` from the zip and copy it into `C:\ProgramData\GamingGaiden`, replacing the current database.
+5. If you also need to revert the application files, re-run `Deploy.bat` from the previous version of the source code (e.g. check out the earlier commit with `git checkout`).
+6. Restart Gaming Gaiden.
+
+> **Note:** Only the 5 most recent backups are kept. If you need to preserve a specific backup long-term, copy it to another location.
+
 ## How to uninstall
 Run `Uninstall Gaming Gaiden` from the `Gaming Gaiden` start menu folder. `GamingGaiden.db` and `backups` are not removed for preserving data.
 
