@@ -198,6 +198,12 @@ function UpdateGameOnEdit() {
         SaveGame -GameName $GameName -GameExeName $GameExeName -GameIconPath $GameIconPath `
             -GamePlayTime $GamePlayTime -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus $GameCompleteStatus -GamePlatform $GamePlatform -GameSessionCount $gameSessionCount -GameStatus $GameStatus -GameGamingPCName $GameGamingPCName -GameReleaseDate $gameReleaseDate
 
+        $updateSessionHistoryQuery = "UPDATE session_history SET game_name = @NewGameName WHERE game_name LIKE '{0}'" -f $gameNamePattern
+        Log "Updating session history references from $OriginalGameName to $GameName"
+        RunDBQuery $updateSessionHistoryQuery @{
+            NewGameName = $GameName.Trim()
+        }
+
         RemoveGame($OriginalGameName)
     }
 }
