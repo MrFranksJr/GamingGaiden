@@ -1,5 +1,5 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<!DOCTYPE html>
+<html lang="en">
     <head>
         <title>Gaming Gaiden</title>
         <link
@@ -7,116 +7,131 @@
         type="image/x-icon"
         href="./resources/images/favicon.ico"
         />
-        <link rel="stylesheet" href="./resources/css/theme.css" />
-    </head>
-    <style type="text/css">
-        body {
-            display: flex;
-            flex-direction: column;
-            font-family: monospace;
-            background-color: var(--bg-primary);
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
+        <link rel="stylesheet" href="./resources/css/theme-light.css" id="theme-link" />
+        <script>
+            // Attempt to load theme.css if it exists, otherwise stay with theme-light.css
+            // This ensures a default theme is present for IDEs/local viewing
+            (function() {
+                var themeLink = document.getElementById('theme-link');
+                var testLink = document.createElement('link');
+                testLink.rel = 'stylesheet';
+                testLink.href = './resources/css/theme.css';
+                testLink.onload = function() { themeLink.href = testLink.href; };
+                // No need for onerror, we stay with theme-light.css
+                document.head.appendChild(testLink);
+                // Immediately remove testLink as it's only for testing existence/loading
+                document.head.removeChild(testLink);
+            })();
+        </script>
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                font-family: monospace;
+                background-color: var(--bg-primary);
+                margin: 0;
+                padding: 20px;
+                min-height: 100vh;
+                box-sizing: border-box;
+            }
 
-        #main-panel {
-            width: 100%;
-            background: var(--bg-panel);
-            border-radius: 8px;
-            box-shadow: var(--shadow-primary) 0 2px 4px,
-                var(--shadow-secondary) 0 7px 20px -3px;
-            padding: 30px;
-            margin: 0 auto 30px auto;
-            max-width: 1840px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
-        }
+            #main-panel {
+                width: 100%;
+                background: var(--bg-panel);
+                border-radius: 8px;
+                box-shadow: var(--shadow-primary) 0 2px 4px,
+                    var(--shadow-secondary) 0 7px 20px -3px;
+                padding: 30px;
+                margin: 0 auto 30px auto;
+                max-width: 1840px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                box-sizing: border-box;
+            }
 
-        #banner {
-            width: 26%;
-            height: 26%;
-            margin-bottom: 15px;
-        }
+            #banner {
+                width: 26%;
+                height: 26%;
+                margin-bottom: 15px;
+            }
 
-        p {
-            font-size: 2.5vh;
-            text-align: center;
-            margin: 10px 0;
-            color: var(--text-primary);
-        }
+            p {
+                font-size: 2.5vh;
+                text-align: center;
+                margin: 10px 0;
+                color: var(--text-primary);
+            }
 
-        #tutorial {
-            margin-top: 15px;
-        }
+            #tutorial {
+                margin-top: 15px;
+            }
 
-        .custom-button {
-            align-items: center;
-            appearance: none;
-            background-color: var(--bg-button);
-            border-radius: 4px;
-            border-width: 0;
-            box-shadow: var(--shadow-primary) 0 2px 4px,
+            .custom-button {
+                align-items: center;
+                appearance: none;
+                background-color: var(--bg-button);
+                border-radius: 4px;
+                border-width: 0;
+                box-shadow: var(--shadow-primary) 0 2px 4px,
+                    var(--shadow-secondary) 0 7px 13px -3px, var(--shadow-inset) 0 -3px 0 inset;
+                box-sizing: border-box;
+                color: var(--text-primary);
+                cursor: pointer;
+                display: inline-flex;
+                font-family: monospace;
+                height: 38px;
+                justify-content: center;
+                line-height: 1;
+                list-style: none;
+                overflow: hidden;
+                padding-left: 16px;
+                padding-right: 16px;
+                position: relative;
+                text-align: left;
+                text-decoration: none;
+                transition: box-shadow 0.15s, transform 0.15s;
+                user-select: none;
+                -webkit-user-select: none;
+                touch-action: manipulation;
+                white-space: nowrap;
+                will-change: box-shadow, transform;
+                font-size: 18px;
+            }
+
+            .custom-button:focus {
+            box-shadow: var(--shadow-inset) 0 0 0 1.5px inset, var(--shadow-primary) 0 2px 4px,
                 var(--shadow-secondary) 0 7px 13px -3px, var(--shadow-inset) 0 -3px 0 inset;
-            box-sizing: border-box;
-            color: var(--text-primary);
-            cursor: pointer;
-            display: inline-flex;
-            font-family: monospace;
-            height: 38px;
-            justify-content: center;
-            line-height: 1;
-            list-style: none;
-            overflow: hidden;
-            padding-left: 16px;
-            padding-right: 16px;
-            position: relative;
-            text-align: left;
-            text-decoration: none;
-            transition: box-shadow 0.15s, transform 0.15s;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-            white-space: nowrap;
-            will-change: box-shadow, transform;
-            font-size: 18px;
-        }
+            }
 
-        .custom-button:focus {
-        box-shadow: var(--shadow-inset) 0 0 0 1.5px inset, var(--shadow-primary) 0 2px 4px,
-            var(--shadow-secondary) 0 7px 13px -3px, var(--shadow-inset) 0 -3px 0 inset;
-        }
+            .custom-button:hover {
+            box-shadow: var(--shadow-primary) 0 4px 8px,
+                var(--shadow-secondary) 0 7px 13px -3px, var(--shadow-inset) 0 -3px 0 inset;
+            transform: translateY(-2px);
+            }
 
-        .custom-button:hover {
-        box-shadow: var(--shadow-primary) 0 4px 8px,
-            var(--shadow-secondary) 0 7px 13px -3px, var(--shadow-inset) 0 -3px 0 inset;
-        transform: translateY(-2px);
-        }
+            .custom-button:active {
+            box-shadow: var(--shadow-inset) 0 3px 7px inset;
+            transform: translateY(2px);
+            }
 
-        .custom-button:active {
-        box-shadow: var(--shadow-inset) 0 3px 7px inset;
-        transform: translateY(2px);
-        }
-
-        #navigation-bar {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 1840px;
-            margin: 0 auto;
-            flex-shrink: 0;
-            gap: 10px;
-        }
-    </style>
+            #navigation-bar {
+                display: flex;
+                justify-content: space-between;
+                width: 100%;
+                max-width: 1840px;
+                margin: 0 auto;
+                flex-shrink: 0;
+                gap: 10px;
+            }
+        </style>
+    </head>
     <body>
         <div id="main-panel">
-            <img id="banner" src="./resources/images/404.png">
+            <img id="banner" src="./resources/images/404.png" alt="404 Banner">
             <p>Please render this page atleast once from<br>app menu before using web ui buttons</p>
-            <img id="tutorial" src="./resources/images/404-tutorial.gif">
+            <img id="tutorial" src="./resources/images/404-tutorial.gif" alt="Tutorial GIF">
         </div>
         <div id="navigation-bar">
             <button class="custom-button" id="summary-button" onclick="window.location.href='file:///C:/ProgramData/GamingGaiden/ui/Summary.html';">Life Time Summary</button>
