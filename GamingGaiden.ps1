@@ -3,7 +3,7 @@
 #_pragma iconFile '.\icons\running.ico'
 #_pragma title 'Gaming Gaiden: Gameplay Time Tracker'
 #_pragma product 'Gaming Gaiden'
-#_pragma copyright '© 2023 Kulvinder Singh'
+#_pragma copyright '© 2023 Kulvinder Singh, contributions © 2026 Franky Blondeel'
 #_pragma version '2026.03.21'
 
 [System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')    | Out-null

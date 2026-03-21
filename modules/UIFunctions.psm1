@@ -338,7 +338,7 @@ function RenderGamesPerPC() {
 }
 
 function RenderAboutDialog() {
-    $aboutForm = CreateForm "About" 350 280 ".\icons\running.ico"
+    $aboutForm = CreateForm "About" 350 360 ".\icons\running.ico"
 
     $pictureBox = CreatePictureBox "./icons/banner.png" 0 10 345 70
     $aboutForm.Controls.Add($pictureBox)
@@ -347,28 +347,41 @@ function RenderAboutDialog() {
     $aboutForm.Controls.Add($labelVersion)
 
     $textCopyRight = [char]::ConvertFromUtf32(0x000000A9) + " 2023 Kulvinder Singh"
-    $labelCopyRight = CreateLabel $textCopyRight 112 110
+    $labelCopyRight = CreateLabel $textCopyRight 112 120
     $aboutForm.Controls.Add($labelCopyRight)
 
+    $textContributions = "contributions " + [char]::ConvertFromUtf32(0x000000A9) + " 2026 Franky Blondeel"
+    $labelContributions = CreateLabel $textContributions 90 140
+    $aboutForm.Controls.Add($labelContributions)
+
     $labelHome = New-Object Windows.Forms.LinkLabel
-    $labelHome.Text = "Home"
-    $labelHome.Location = New-Object Drawing.Point(160, 140)
+    $labelHome.Text = "Kulvinder's GitHub"
+    $labelHome.Location = New-Object Drawing.Point(130, 170)
     $labelHome.AutoSize = $true
     $labelHome.Add_LinkClicked({
             Start-Process "https://github.com/kulvind3r/GamingGaiden"
         })
     $aboutForm.Controls.Add($labelHome)
 
+    $labelFrankyGitHub = New-Object Windows.Forms.LinkLabel
+    $labelFrankyGitHub.Text = "Franky's GitHub"
+    $labelFrankyGitHub.Location = New-Object Drawing.Point(135, 190)
+    $labelFrankyGitHub.AutoSize = $true
+    $labelFrankyGitHub.Add_LinkClicked({
+            Start-Process "https://github.com/MrFranksJr/GamingGaiden"
+        })
+    $aboutForm.Controls.Add($labelFrankyGitHub)
+
     $labelAttributions = New-Object Windows.Forms.LinkLabel
     $labelAttributions.Text = "Open Source And Original Art Attributions"
-    $labelAttributions.Location = New-Object Drawing.Point(70, 165)
+    $labelAttributions.Location = New-Object Drawing.Point(70, 220)
     $labelAttributions.AutoSize = $true
     $labelAttributions.Add_LinkClicked({
             Start-Process "https://github.com/kulvind3r/GamingGaiden#attributions"
         })
     $aboutForm.Controls.Add($labelAttributions)
 
-    $buttonClose = CreateButton "Close" 140 205; $buttonClose.Add_Click({ $pictureBox.Image.Dispose(); $pictureBox.Dispose(); $aboutForm.Dispose() }); $aboutForm.Controls.Add($buttonClose)
+    $buttonClose = CreateButton "Close" 140 260; $buttonClose.Add_Click({ $pictureBox.Image.Dispose(); $pictureBox.Dispose(); $aboutForm.Dispose() }); $aboutForm.Controls.Add($buttonClose)
 
     $aboutForm.ShowDialog()
     $pictureBox.Image.Dispose(); $pictureBox.Dispose();
