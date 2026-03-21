@@ -1,17 +1,15 @@
 ﻿class Game {
     [ValidateNotNullOrEmpty()][string]$Icon
     [ValidateNotNullOrEmpty()][string]$Name
-    [ValidateNotNullOrEmpty()][string]$Platform
     [ValidateNotNullOrEmpty()][string]$Playtime
     [ValidateNotNullOrEmpty()][string]$Session_Count
     [ValidateNotNullOrEmpty()][string]$Completed
     [ValidateNotNullOrEmpty()][string]$Last_Played_On
     [string]$Gaming_PC
 
-    Game($IconUri, $Name, $Platform, $Playtime, $SessionCount, $Completed, $LastPlayDate, $GamingPC) {
+    Game($IconUri, $Name, $Playtime, $SessionCount, $Completed, $LastPlayDate, $GamingPC) {
         $this.Icon = $IconUri
         $this.Name = $Name
-        $this.Platform = $Platform
         $this.Playtime = $Playtime
         $this.Session_Count = $SessionCount
         $this.Completed = $Completed
@@ -65,7 +63,7 @@ function RenderGameList() {
 
     $workingDirectory = (Get-Location).Path
 
-    $getAllGamesQuery = "SELECT name, icon, platform, play_time, session_count, completed, last_play_date, status, gaming_pc_name FROM games"
+    $getAllGamesQuery = "SELECT name, icon, play_time, session_count, completed, last_play_date, status, gaming_pc_name FROM games"
     $gameRecords = @(RunDBQuery $getAllGamesQuery)
     if ($gameRecords.Count -eq 0) {
         if(-Not $InBackground) {
@@ -130,13 +128,13 @@ function RenderGameList() {
             $statusUri = "<div>Forever</div><img src=`".\resources\images\forever.png`">"
         }
 
-        $currentGame = [Game]::new($iconUri, $name, $gameRecord.platform, $gameRecord.play_time, $gameRecord.session_count, $statusUri, $gameRecord.last_play_date, $gamingPCs)
+        $currentGame = [Game]::new($iconUri, $name, $gameRecord.play_time, $gameRecord.session_count, $statusUri, $gameRecord.last_play_date, $gamingPCs)
 
         # Assign to null to avoid appending output to pipeline, improves performance and resource consumption
         $null = $games.Add($currentGame)
     }
 
-    $table = $games | ConvertTo-Html -Fragment -Property Icon, Name, Platform, Playtime, Session_Count, Completed, Gaming_PC, Last_Played_On
+    $table = $games | ConvertTo-Html -Fragment -Property Icon, Name, Playtime, Session_Count, Completed, Gaming_PC, Last_Played_On
 
     $report = (Get-Content $workingDirectory\ui\templates\AllGames.html.template) -replace "_GAMESTABLE_", $table
     $report = $report -replace "Last_Played_On", "Last Played On"
@@ -469,7 +467,6 @@ function RenderSessionHistory() {
 SELECT
     sh.id,
     sh.game_name,
-    g.platform,
     DATE(sh.start_time, 'unixepoch', 'localtime') as session_date,
     sh.start_time,
     sh.duration
@@ -497,7 +494,6 @@ ORDER BY sh.start_time DESC
     $getGamesWithSessionsQuery = @"
 SELECT
     sh.game_name,
-    g.platform,
     g.icon,
     COUNT(sh.id) as session_count,
     SUM(sh.duration) as total_duration

@@ -30,7 +30,7 @@ function GetGameDetails($Game) {
 
     $gameDetails = RunDBQuery $getGameDetailsQuery
 
-    Log ("Found details: name: {0}, exe_name: {1}, platform: {2}, play_time: {3}" -f $gameDetails.name, $gameDetails.exe_name, $gameDetails.platform, $gameDetails.play_time)
+    Log ("Found details: name: {0}, exe_name: {1}, play_time: {2}" -f $gameDetails.name, $gameDetails.exe_name, $gameDetails.play_time)
     return $gameDetails
 }
 

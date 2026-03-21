@@ -98,7 +98,6 @@ function renderGameCards(games) {
     card.innerHTML = `
       <img src="${game.icon}" class="game-card-icon" alt="${game.game_name}">
       <div class="game-card-name">${game.game_name}</div>
-      <div class="game-card-platform">${game.platform}</div>
       <div class="game-card-stats">${game.sessionCount} ${sessionsText} • ${hours}h</div>
     `;
 

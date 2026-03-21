@@ -8,8 +8,7 @@
                             icon BLOB,
                             play_time INTEGER,
                             last_play_date INTEGER,
-                            completed TEXT,
-                            platform TEXT)"
+                            completed TEXT)"
 
         Invoke-SqliteQuery -Query $createGamesTableQuery -SQLiteConnection $dbConnection
 
@@ -131,6 +130,13 @@
             Invoke-SqliteQuery -Query "ALTER TABLE games DROP COLUMN rom_based_name" -SQLiteConnection $dbConnection
         }
         # End Migration 10
+
+        # Migration 11 - Remove platform column (no longer needed after removing emulator support)
+        $gamesTableSchema = Invoke-SqliteQuery -query "PRAGMA table_info('games')" -SQLiteConnection $dbConnection
+        if ($gamesTableSchema.name.Contains("platform")) {
+            Invoke-SqliteQuery -Query "ALTER TABLE games DROP COLUMN platform" -SQLiteConnection $dbConnection
+        }
+        # End Migration 11
 
         $dbConnection.Close()
         $dbConnection.Dispose()

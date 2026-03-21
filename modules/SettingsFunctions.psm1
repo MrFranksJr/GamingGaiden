@@ -70,24 +70,21 @@ function RenderEditGameForm($GamesList) {
     $labelExe = Createlabel "Exe:" 170 60; $editGameForm.Controls.Add($labelExe)
     $textExe = CreateTextBox "" 245 60 200 20; $textExe.ReadOnly = $true; $editGameForm.Controls.Add($textExe)
 
-    $labelPlatform = Createlabel "Platform:" 170 100; $editGameForm.Controls.Add($labelPlatform)
-    $textPlatform = CreateTextBox "" 245 100 200 20; $editGameForm.Controls.Add($textPlatform)
+    $labelPlayTime = Createlabel "PlayTime:" 170 100; $editGameForm.Controls.Add($labelPlayTime)
+    $textPlayTime = CreateTextBox "" 245 100 200 20; $editGameForm.Controls.Add($textPlayTime)
 
-    $labelPlayTime = Createlabel "PlayTime:" 170 140; $editGameForm.Controls.Add($labelPlayTime)
-    $textPlayTime = CreateTextBox "" 245 140 200 20; $editGameForm.Controls.Add($textPlayTime)
-
-    $labelReleaseDate = Createlabel "Release Date:" 170 180; $editGameForm.Controls.Add($labelReleaseDate)
+    $labelReleaseDate = Createlabel "Release Date:" 170 140; $editGameForm.Controls.Add($labelReleaseDate)
     $datePickerReleaseDate = New-Object System.Windows.Forms.DateTimePicker
-    $datePickerReleaseDate.Location = New-Object System.Drawing.Point(245, 180)
+    $datePickerReleaseDate.Location = New-Object System.Drawing.Point(245, 140)
     $datePickerReleaseDate.Size = New-Object System.Drawing.Size(200, 20)
     $datePickerReleaseDate.Format = [System.Windows.Forms.DateTimePickerFormat]::Short
     $datePickerReleaseDate.ShowCheckBox = $true
     $datePickerReleaseDate.Checked = $false
     $editGameForm.Controls.Add($datePickerReleaseDate)
 
-    $labelGamingPC = Createlabel "Gaming PC:" 170 220; $editGameForm.Controls.Add($labelGamingPC)
+    $labelGamingPC = Createlabel "Gaming PC:" 170 180; $editGameForm.Controls.Add($labelGamingPC)
     $listboxGamingPC = New-Object System.Windows.Forms.ListBox
-    $listboxGamingPC.Location = New-Object System.Drawing.Point(245, 220)
+    $listboxGamingPC.Location = New-Object System.Drawing.Point(245, 180)
     $listboxGamingPC.Size = New-Object System.Drawing.Size(200, 80)
     $listboxGamingPC.SelectionMode = [System.Windows.Forms.SelectionMode]::MultiSimple
 
@@ -182,7 +179,6 @@ function RenderEditGameForm($GamesList) {
             $textName.Text = $selectedGame.name
             $textOriginalGameName.Text = $selectedGame.name
             $textExe.Text = ($selectedGame.exe_name + ".exe")
-            $textPlatform.Text = $selectedGame.platform
             if ($null -ne $selectedGame.release_date -and $selectedGame.release_date -ne "") {
                 $datePickerReleaseDate.Value = [datetime]::ParseExact($selectedGame.release_date, "yyyy-MM-dd", $null)
                 $datePickerReleaseDate.Checked = $true
@@ -305,8 +301,8 @@ function RenderEditGameForm($GamesList) {
     $buttonOK.Add_Click({
             $currentlySelectedIndex = $listBox.SelectedIndex
 
-            if ($textName.Text -eq "" -Or $textPlatform.Text -eq "" -Or $textPlayTime.Text -eq "")	{
-                ShowMessage "Name, Platform, Playtime fields cannot be empty. Try Again." "OK" "Error"
+            if ($textName.Text -eq "" -Or $textPlayTime.Text -eq "")	{
+                ShowMessage "Name, Playtime fields cannot be empty. Try Again." "OK" "Error"
                 $listBox.SetSelected($currentlySelectedIndex, $true)
                 return
             }
@@ -339,7 +335,7 @@ function RenderEditGameForm($GamesList) {
             }
             $gameGamingPCName = $selectedPCs -join ','
 
-            UpdateGameOnEdit -OriginalGameName $textOriginalGameName.Text -GameName $gameName -GameExeName $gameExeName -GameIconPath $pictureBoxImagePath.Text -GamePlayTime $playTimeInMin -GameCompleteStatus $gameCompleteStatus -GamePlatform $textPlatform.Text -GameStatus $gameStatus -GameGamingPCName $gameGamingPCName -GameReleaseDate $gameReleaseDate
+            UpdateGameOnEdit -OriginalGameName $textOriginalGameName.Text -GameName $gameName -GameExeName $gameExeName -GameIconPath $pictureBoxImagePath.Text -GamePlayTime $playTimeInMin -GameCompleteStatus $gameCompleteStatus -GameStatus $gameStatus -GameGamingPCName $gameGamingPCName -GameReleaseDate $gameReleaseDate
 
             ShowMessage "Updated '$gameName' in Database." "OK" "Asterisk"
 
@@ -385,24 +381,21 @@ function RenderAddGameForm() {
     $labelExe = Createlabel "Exe:" 170 60; $addGameForm.Controls.Add($labelExe)
     $textExe = CreateTextBox "" 245 60 200 20; $textExe.ReadOnly = $true; $addGameForm.Controls.Add($textExe)
 
-    $labelPlatform = Createlabel "Platform:" 170 100; $addGameForm.Controls.Add($labelPlatform)
-    $textPlatform = CreateTextBox "PC" 245 100 200 20; $textPlatform.ReadOnly = $true; $addGameForm.Controls.Add($textPlatform)
+    $labelPlayTime = Createlabel "PlayTime:" 170 100; $addGameForm.Controls.Add($labelPlayTime)
+    $textPlayTime = CreateTextBox "0 Hr 0 Min" 245 100 200 20; $textPlayTime.ReadOnly = $true; $addGameForm.Controls.Add($textPlayTime)
 
-    $labelPlayTime = Createlabel "PlayTime:" 170 140; $addGameForm.Controls.Add($labelPlayTime)
-    $textPlayTime = CreateTextBox "0 Hr 0 Min" 245 140 200 20; $textPlayTime.ReadOnly = $true; $addGameForm.Controls.Add($textPlayTime)
-
-    $labelReleaseDate = Createlabel "Release Date:" 170 180; $addGameForm.Controls.Add($labelReleaseDate)
+    $labelReleaseDate = Createlabel "Release Date:" 170 140; $addGameForm.Controls.Add($labelReleaseDate)
     $datePickerReleaseDate = New-Object System.Windows.Forms.DateTimePicker
-    $datePickerReleaseDate.Location = New-Object System.Drawing.Point(245, 180)
+    $datePickerReleaseDate.Location = New-Object System.Drawing.Point(245, 140)
     $datePickerReleaseDate.Size = New-Object System.Drawing.Size(200, 20)
     $datePickerReleaseDate.Format = [System.Windows.Forms.DateTimePickerFormat]::Short
     $datePickerReleaseDate.ShowCheckBox = $true
     $datePickerReleaseDate.Checked = $false
     $addGameForm.Controls.Add($datePickerReleaseDate)
 
-    $labelGamingPC = Createlabel "Gaming PC:" 170 220; $addGameForm.Controls.Add($labelGamingPC)
+    $labelGamingPC = Createlabel "Gaming PC:" 170 180; $addGameForm.Controls.Add($labelGamingPC)
     $dropdownGamingPC = New-Object System.Windows.Forms.ComboBox
-    $dropdownGamingPC.Location = New-Object System.Drawing.Point(245, 220)
+    $dropdownGamingPC.Location = New-Object System.Drawing.Point(245, 180)
     $dropdownGamingPC.Size = New-Object System.Drawing.Size(200, 20)
     $dropdownGamingPC.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
 
@@ -509,7 +502,7 @@ function RenderAddGameForm() {
             $gameGamingPCName = if ($dropdownGamingPC.SelectedItem -eq "") { "" } else { $dropdownGamingPC.SelectedItem }
 
             SaveGame -GameName $gameName -GameExeName $gameExeName -GameIconPath $gameIconPath `
-                -GamePlayTime 0 -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus 'FALSE' -GamePlatform 'PC' -GameSessionCount 0 -GameGamingPCName $gameGamingPCName -GameReleaseDate $gameReleaseDate
+                -GamePlayTime 0 -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus 'FALSE' -GameSessionCount 0 -GameGamingPCName $gameGamingPCName -GameReleaseDate $gameReleaseDate
 
             ShowMessage "Registered '$gameName' in Database." "OK" "Asterisk"
 

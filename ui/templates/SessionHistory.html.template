@@ -123,10 +123,6 @@
             <h2 id="selected-game-name">Select a game to view sessions</h2>
             <div id="selected-game-stats">
               <div class="stat-item">
-                <span class="stat-label">Platform:</span>
-                <span class="stat-value" id="stat-platform"></span>
-              </div>
-              <div class="stat-item">
                 <span class="stat-label">Sessions:</span>
                 <span class="stat-value" id="stat-sessions"></span>
               </div>

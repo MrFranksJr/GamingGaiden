@@ -6,7 +6,6 @@
         [string]$GamePlayTime,
         [string]$GameLastPlayDate,
         [string]$GameCompleteStatus,
-        [string]$GamePlatform,
         [string]$GameSessionCount,
         [string]$GameStatus = "",
         [string]$GameGamingPCName = "",
@@ -15,8 +14,8 @@
 
     $gameIconBytes = (Get-Content -Path $GameIconPath -Encoding byte -Raw);
 
-    $addGameQuery = "INSERT INTO games (name, exe_name, icon, play_time, last_play_date, completed, platform, session_count, status, gaming_pc_name, release_date)" +
-    "VALUES (@GameName, @GameExeName, @gameIconBytes, @GamePlayTime, @GameLastPlayDate, @GameCompleteStatus, @GamePlatform, @GameSessionCount, @GameStatus, @GameGamingPCName, @GameReleaseDate)"
+    $addGameQuery = "INSERT INTO games (name, exe_name, icon, play_time, last_play_date, completed, session_count, status, gaming_pc_name, release_date)" +
+    "VALUES (@GameName, @GameExeName, @gameIconBytes, @GamePlayTime, @GameLastPlayDate, @GameCompleteStatus, @GameSessionCount, @GameStatus, @GameGamingPCName, @GameReleaseDate)"
 
     $gameNamePattern = SQLEscapedMatchPattern($GameName.Trim())
     $setGameStatusNull = "UPDATE games SET status = @GameStatus WHERE name LIKE '{0}'" -f $gameNamePattern
@@ -32,7 +31,6 @@
         GamePlayTime       = $GamePlayTime
         GameLastPlayDate   = $GameLastPlayDate
         GameCompleteStatus = $GameCompleteStatus
-        GamePlatform       = $GamePlatform.Trim()
         GameSessionCount   = $GameSessionCount
         GameStatus         = $GameStatus
         GameGamingPCName   = $GameGamingPCName.Trim()
@@ -142,7 +140,6 @@ function UpdateGameOnEdit() {
         [string]$GameIconPath,
         [string]$GamePlayTime,
         [string]$GameCompleteStatus,
-        [string]$GamePlatform,
         [string]$GameStatus,
         [string]$GameGamingPCName = "",
         [string]$GameReleaseDate = ""
@@ -153,7 +150,7 @@ function UpdateGameOnEdit() {
     $gameNamePattern = SQLEscapedMatchPattern($OriginalGameName.Trim())
 
     if ( $OriginalGameName -eq $GameName) {
-        $updateGameQuery = "UPDATE games SET exe_name = @GameExeName, icon = @gameIconBytes, play_time = @GamePlayTime, completed = @GameCompleteStatus, platform = @GamePlatform, status = @GameStatus, gaming_pc_name = @GameGamingPCName, release_date = @GameReleaseDate WHERE name LIKE '{0}'" -f $gameNamePattern
+        $updateGameQuery = "UPDATE games SET exe_name = @GameExeName, icon = @gameIconBytes, play_time = @GamePlayTime, completed = @GameCompleteStatus, status = @GameStatus, gaming_pc_name = @GameGamingPCName, release_date = @GameReleaseDate WHERE name LIKE '{0}'" -f $gameNamePattern
         
         $setGamingPCNameNull = "UPDATE games SET gaming_pc_name = @GameGamingPCName WHERE name LIKE '{0}'" -f $gameNamePattern
         $setReleaseDateNull = "UPDATE games SET release_date = @GameReleaseDate WHERE name LIKE '{0}'" -f $gameNamePattern
@@ -164,7 +161,6 @@ function UpdateGameOnEdit() {
             gameIconBytes      = $gameIconBytes
             GamePlayTime       = $GamePlayTime
             GameCompleteStatus = $GameCompleteStatus
-            GamePlatform       = $GamePlatform.Trim()
             GameStatus         = $GameStatus
             GameGamingPCName   = $GameGamingPCName.Trim()
             GameReleaseDate    = $GameReleaseDate
@@ -196,7 +192,7 @@ function UpdateGameOnEdit() {
         if ($null -eq $gameReleaseDate) { $gameReleaseDate = "" }
 
         SaveGame -GameName $GameName -GameExeName $GameExeName -GameIconPath $GameIconPath `
-            -GamePlayTime $GamePlayTime -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus $GameCompleteStatus -GamePlatform $GamePlatform -GameSessionCount $gameSessionCount -GameStatus $GameStatus -GameGamingPCName $GameGamingPCName -GameReleaseDate $gameReleaseDate
+            -GamePlayTime $GamePlayTime -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus $GameCompleteStatus -GameSessionCount $gameSessionCount -GameStatus $GameStatus -GameGamingPCName $GameGamingPCName -GameReleaseDate $gameReleaseDate
 
         $updateSessionHistoryQuery = "UPDATE session_history SET game_name = @NewGameName WHERE game_name LIKE '{0}'" -f $gameNamePattern
         Log "Updating session history references from $OriginalGameName to $GameName"

@@ -25,7 +25,6 @@ function renderGamesList(filteredGames = null) {
       <div class="game-info">
         <div class="game-name">${game.game_name}</div>
         <div class="game-meta">
-          <span class="platform">${game.platform}</span>
           <span class="stats">${game.session_count} ${sessionsText} • ${game.days_count} ${daysText} • ${hours} h</span>
         </div>
       </div>
@@ -153,7 +152,6 @@ function selectGame(gameName) {
     `${gameName}<img src="${gameData.icon}" class="selected-game-icon" alt="${gameName}">`;
 
   // Populate individual stats
-  document.getElementById("stat-platform").textContent = gameData.platform;
   document.getElementById("stat-sessions").textContent = `${gameData.session_count}`;
   document.getElementById("stat-days").textContent = `${gameData.days_count}`;
   document.getElementById("stat-hours").textContent = `${hours} hours`;
@@ -164,10 +162,8 @@ function selectGame(gameName) {
   // Group sessions by day
   sessionsByDay = groupSessionsByDay(gameSessions);
 
-  // Initialize date selection for specific date view
   initializeDateSelection();
 
-  // Update last played date
   if (sessionsByDay.length > 0) {
     const lastPlayedDate = sessionsByDay[sessionsByDay.length - 1].date;
     document.getElementById("stat-last-played").textContent = lastPlayedDate;
@@ -329,7 +325,7 @@ function updateAllTimeChart() {
           anchor: "end",
           align: "top",
           formatter: function (value) {
-            return value != 0 ? value : "";
+            return value !== 0 ? value : "";
           },
           color: getChartTextColor(),
           font: {
@@ -596,7 +592,7 @@ function updateSpecificDateChart() {
   const sortedSessions = [...dayData.sessions].sort((a, b) => a.start_time - b.start_time);
   const timelineData = [];
 
-  sortedSessions.forEach((session, index) => {
+  sortedSessions.forEach((session) => {
     const startDate = new Date(session.start_time * 1000);
     const hour = startDate.getHours();
     const minute = startDate.getMinutes();
@@ -656,7 +652,7 @@ function updateSpecificDateChart() {
           offset: 35,
 		      rotation: -45,
           formatter: function (value) {
-            return value.duration != 0 ? value.duration + "h" : "";
+            return value.duration !== 0 ? value.duration + "h" : "";
           },
           color: getChartTextColor(),
           font: {

@@ -47,10 +47,9 @@ function parseSessionsData() {
     return {
       id: row.cells[0].textContent,
       game_name: row.cells[1].textContent,
-      platform: row.cells[2].textContent,
-      session_date: row.cells[3].textContent,
-      start_time: parseInt(row.cells[4].textContent),
-      duration: parseFloat(row.cells[5].textContent)
+      session_date: row.cells[2].textContent,
+      start_time: parseInt(row.cells[3].textContent),
+      duration: parseFloat(row.cells[4].textContent)
     };
   });
 
@@ -66,10 +65,9 @@ function parseGamesData() {
   gamesList = Array.from(rows).map((row) => {
     return {
       game_name: row.cells[0].textContent,
-      platform: row.cells[1].textContent,
-      icon: row.cells[2].textContent,
-      session_count: parseInt(row.cells[3].textContent),
-      total_duration: parseFloat(row.cells[4].textContent)
+      icon: row.cells[1].textContent,
+      session_count: parseInt(row.cells[2].textContent),
+      total_duration: parseFloat(row.cells[3].textContent)
     };
   });
 
@@ -151,7 +149,6 @@ function aggregateGamesBySessions(sessions) {
       const gameInfo = gamesList.find(g => g.game_name === session.game_name);
       gameMap[session.game_name] = {
         game_name: session.game_name,
-        platform: session.platform,
         icon: gameInfo ? gameInfo.icon : '',
         sessions: [],
         sessionCount: 0,
