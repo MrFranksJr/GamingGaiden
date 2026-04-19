@@ -122,7 +122,7 @@ function RenderGameList() {
             $statusUri = "<div>Dropped</div><img class=`"game-status-icon icon-dropped`" title=`"Utter Garbage!!`" src=`".\resources\images\dropped.svg`">"
         }
         if ($gameRecord.status -eq 'hold') {
-            $statusUri = "<div>Pick Later</div><img class=`"game-status-icon icon-onhold`" src=`".\resources\images\hold.svg`">"
+            $statusUri = "<div>On Hold</div><img class=`"game-status-icon icon-onhold`" src=`".\resources\images\hold.svg`">"
         }
         if ($gameRecord.status -eq 'forever') {
             $statusUri = "<div>Forever</div><img class=`"game-status-icon icon-forever`" src=`".\resources\images\forever.svg`">"
