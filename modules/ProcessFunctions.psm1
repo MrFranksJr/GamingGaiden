@@ -125,10 +125,14 @@ function MonitorGame($DetectedExe) {
     }
 
     if ($null -ne $gameName) {
-        RecordPlaytimOnDate($currentPlayTime)
+        $splits = Get-SessionSplits $processStartTime $currentPlayTime
+        foreach ($split in $splits) {
+            RecordPlaytimeOnDate $split.Duration $split.Date
 
-        # Record individual session history
-        RecordSessionHistory -GameName $gameName -StartTime $sessionStartTimeUnix -Duration $currentPlayTime
+            # Convert segment start time to Unix UTC for session history
+            $splitStartTimeUnix = [int]((Get-Date ($split.StartTime.ToUniversalTime()) -UFormat %s).Split('.,')[0])
+            RecordSessionHistory -GameName $gameName -StartTime $splitStartTimeUnix -Duration $split.Duration
+        }
 
         # Update current PC playtime
         $currentPC = Read-Setting "current_pc"

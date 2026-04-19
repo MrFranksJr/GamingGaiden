@@ -265,22 +265,27 @@ function RemovePC($PCName) {
     RunDBQuery $removePCQuery
 }
 
-function RecordPlaytimOnDate($PlayTime) {
-    $existingPlayTimeQuery = "SELECT play_time FROM daily_playtime WHERE play_date like DATE('now')"
+function RecordPlaytimeOnDate($PlayTime, $Date = $null) {
+    $dateString = "DATE('now')"
+    if ($null -ne $Date) {
+        $dateString = "'$($Date.ToString('yyyy-MM-dd'))'"
+    }
+
+    $existingPlayTimeQuery = "SELECT play_time FROM daily_playtime WHERE play_date like $dateString"
 
     $existingPlayTime = (RunDBQuery $existingPlayTimeQuery).play_time
 
     $recordPlayTimeQuery = ""
     if ($null -eq $existingPlayTime) {
-        $recordPlayTimeQuery = "INSERT INTO daily_playtime(play_date, play_time) VALUES (DATE('now'), {0})" -f $PlayTime
+        $recordPlayTimeQuery = "INSERT INTO daily_playtime(play_date, play_time) VALUES ($dateString, {0})" -f $PlayTime
     }
     else {
         $updatedPlayTime = $PlayTime + $existingPlayTime
 
-        $recordPlayTimeQuery = "UPDATE daily_playtime SET play_time = {0} WHERE play_date like DATE('now')" -f $updatedPlayTime
+        $recordPlayTimeQuery = "UPDATE daily_playtime SET play_time = {0} WHERE play_date like $dateString" -f $updatedPlayTime
     }
 
-    Log "Updating playTime for today in database"
+    Log "Updating playTime for $dateString in database"
     RunDBQuery $recordPlayTimeQuery
 }
 
@@ -305,6 +310,55 @@ VALUES (@GameName, @StartTime, @Duration)
     catch {
         Log "Error recording session history: $($_.Exception.Message)"
     }
+}
+
+function Repair-HistoricSessionData() {
+    Log "Starting historic session data repair"
+    
+    $sessions = RunDBQuery "SELECT id, game_name, start_time, duration FROM session_history"
+    
+    if ($null -eq $sessions) {
+        Log "No session history found to repair."
+        return
+    }
+
+    if ($sessions -isnot [array]) {
+        $sessions = @($sessions)
+    }
+
+    foreach ($session in $sessions) {
+        # Convert Unix timestamp (UTC) to local DateTime
+        $startTime = [DateTimeOffset]::FromUnixTimeSeconds($session.start_time).LocalDateTime
+        $endTime = $startTime.AddMinutes($session.duration)
+
+        if ($startTime.Date -lt $endTime.Date) {
+            Log "Session ID $($session.id) for $($session.game_name) spans across midnight ($startTime to $endTime). Repairing..."
+            
+            $splits = Get-SessionSplits $startTime $session.duration
+            
+            $overflowDuration = $session.duration - $splits[0].Duration
+            
+            # Subtract overflow from original day in daily_playtime
+            RecordPlaytimeOnDate (-$overflowDuration) $startTime.Date
+            
+            # Remove original session from session_history
+            RunDBQuery "DELETE FROM session_history WHERE id = $($session.id)"
+            
+            # Add new split sessions and add their duration to daily_playtime (except the first one which we already adjusted)
+            $first = $true
+            foreach ($split in $splits) {
+                # Convert back to Unix UTC
+                $splitStartTimeUnix = [int]((Get-Date ($split.StartTime.ToUniversalTime()) -UFormat %s).Split('.,')[0])
+                RecordSessionHistory -GameName $session.game_name -StartTime $splitStartTimeUnix -Duration $split.Duration
+                
+                if (-not $first) {
+                    RecordPlaytimeOnDate $split.Duration $split.Date
+                }
+                $first = $false
+            }
+        }
+    }
+    Log "Historic session data repair completed."
 }
 
 function Read-Setting($Key) {

@@ -74,9 +74,9 @@ function CreateMenuItem($Text) {
 
 function OpenFileDialog($Title, $Filters, $DirectoryPath = [Environment]::GetFolderPath('Desktop')) {
     $fileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{
-        InitialDirectory = $DirectoryPath
-        Filter           = $Filters
-        Title            = $Title
+        'InitialDirectory' = $DirectoryPath
+        'Filter'           = $Filters
+        'Title'            = $Title
     }
     return $fileBrowser
 }
@@ -185,4 +185,41 @@ function Get-AppVersion {
     $versionInfo = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($exePath)
     $version = "{0}.{1}.{2}" -f $versionInfo.FileMajorPart, $versionInfo.FileMinorPart, $versionInfo.FileBuildPart
     return "v" + $version + "-F"
+}
+
+function Get-SessionSplits {
+    param($StartTime, $Duration)
+    
+    $endTime = $StartTime.AddMinutes($Duration)
+    $splits = @()
+
+    $currentStart = $StartTime
+    while ($currentStart.Date -lt $endTime.Date) {
+        $midnight = $currentStart.Date.AddDays(1)
+        
+        $diff = $midnight - $currentStart
+        $dayDuration = [int]$diff.TotalMinutes
+        
+        if ($dayDuration -gt 0) {
+            $split = New-Object PSObject
+            $split | Add-Member -MemberType NoteProperty -Name "StartTime" -Value $currentStart
+            $split | Add-Member -MemberType NoteProperty -Name "Duration" -Value $dayDuration
+            $split | Add-Member -MemberType NoteProperty -Name "Date" -Value $currentStart.Date
+            $splits += $split
+        }
+        
+        $currentStart = $midnight
+    }
+
+    $diff = $endTime - $currentStart
+    $remainingDuration = [int]$diff.TotalMinutes
+    if ($remainingDuration -gt 0) {
+        $split = New-Object PSObject
+        $split | Add-Member -MemberType NoteProperty -Name "StartTime" -Value $currentStart
+        $split | Add-Member -MemberType NoteProperty -Name "Duration" -Value $remainingDuration
+        $split | Add-Member -MemberType NoteProperty -Name "Date" -Value $currentStart.Date
+        $splits += $split
+    }
+
+    return $splits
 }
