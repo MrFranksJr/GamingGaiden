@@ -138,16 +138,15 @@
         }
         # End Migration 11
 
-        # Migration 12 - Repair historic session data (split sessions spanning across midnight)
-        $isRepaired = Read-Setting "historic_data_repaired"
-        if ($isRepaired -ne "true") {
-            Repair-HistoricSessionData
-            Write-Setting "historic_data_repaired" "true"
-        }
-        # End Migration 12
-
         $dbConnection.Close()
         $dbConnection.Dispose()
+
+        # Migration 12 - Repair historic session data (split sessions spanning across midnight)
+        $isRepaired = Read-Setting "historic_data_repaired_v2"
+        if ($isRepaired -ne "true") {
+            Repair-HistoricSessionData
+            Write-Setting "historic_data_repaired_v2" "true"
+        }
     }
     catch {
         [System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')    | out-null

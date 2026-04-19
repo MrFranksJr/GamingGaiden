@@ -43,18 +43,17 @@ function parseSessionsData() {
   const table = document.getElementById("sessions-data").querySelector("table");
   const rows = table.querySelectorAll("tbody tr");
 
-  allSessions = Array.from(rows).map((row) => {
-    return {
-      id: row.cells[0].textContent,
-      game_name: row.cells[1].textContent,
-      session_date: row.cells[2].textContent,
-      start_time: parseInt(row.cells[3].textContent),
-      duration: parseFloat(row.cells[4].textContent)
-    };
-  });
-
-  // Remove header row
-  allSessions.shift();
+  allSessions = Array.from(rows)
+    .filter((row) => row.querySelector("td")) // Skip header rows
+    .map((row) => {
+      return {
+        id: row.cells[0].textContent,
+        game_name: row.cells[1].textContent,
+        session_date: row.cells[2].textContent,
+        start_time: parseInt(row.cells[3].textContent),
+        duration: parseFloat(row.cells[4].textContent),
+      };
+    });
 }
 
 // Parse games list data
@@ -62,17 +61,16 @@ function parseGamesData() {
   const table = document.getElementById("games-data").querySelector("table");
   const rows = table.querySelectorAll("tbody tr");
 
-  gamesList = Array.from(rows).map((row) => {
-    return {
-      game_name: row.cells[0].textContent,
-      icon: row.cells[1].textContent,
-      session_count: parseInt(row.cells[2].textContent),
-      total_duration: parseFloat(row.cells[3].textContent)
-    };
-  });
-
-  // Remove header row
-  gamesList.shift();
+  gamesList = Array.from(rows)
+    .filter((row) => row.querySelector("td")) // Skip header rows
+    .map((row) => {
+      return {
+        game_name: row.cells[0].textContent,
+        icon: row.cells[1].textContent,
+        session_count: parseInt(row.cells[2].textContent),
+        total_duration: parseFloat(row.cells[3].textContent),
+      };
+    });
 }
 
 // Add days count in gameList

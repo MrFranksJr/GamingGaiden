@@ -331,34 +331,57 @@ function Repair-HistoricSessionData() {
         $startTime = [DateTimeOffset]::FromUnixTimeSeconds($session.start_time).LocalDateTime
         $endTime = $startTime.AddMinutes($session.duration)
 
-        if ($startTime.Date -lt $endTime.Date) {
+        $splits = Get-SessionSplits $startTime $session.duration
+
+        if ($splits.Count -gt 1) {
             Log "Session ID $($session.id) for $($session.game_name) spans across midnight ($startTime to $endTime). Repairing..."
-            
-            $splits = Get-SessionSplits $startTime $session.duration
-            
-            $overflowDuration = $session.duration - $splits[0].Duration
-            
-            # Subtract overflow from original day in daily_playtime
-            RecordPlaytimeOnDate (-$overflowDuration) $startTime.Date
             
             # Remove original session from session_history
             RunDBQuery "DELETE FROM session_history WHERE id = $($session.id)"
             
-            # Add new split sessions and add their duration to daily_playtime (except the first one which we already adjusted)
-            $first = $true
+            # Add new split sessions to session_history
             foreach ($split in $splits) {
                 # Convert back to Unix UTC
                 $splitStartTimeUnix = [int]((Get-Date ($split.StartTime.ToUniversalTime()) -UFormat %s).Split('.,')[0])
                 RecordSessionHistory -GameName $session.game_name -StartTime $splitStartTimeUnix -Duration $split.Duration
-                
-                if (-not $first) {
-                    RecordPlaytimeOnDate $split.Duration $split.Date
-                }
-                $first = $false
             }
         }
     }
     Log "Historic session data repair completed."
+
+    Log "Rebuilding daily_playtime table for consistency..."
+    RunDBQuery "DELETE FROM daily_playtime"
+    
+    # Verify the table is empty
+    $count = (RunDBQuery "SELECT COUNT(*) as count FROM daily_playtime").count
+    if ($count -gt 0) {
+        Log "Error: Failed to clear daily_playtime table. Database might be locked. Rebuild aborted."
+        return
+    }
+
+    $rebuildQuery = @"
+INSERT INTO daily_playtime (play_date, play_time)
+SELECT date(start_time, 'unixepoch', 'localtime') as d, SUM(duration)
+FROM session_history
+GROUP BY d;
+"@
+    
+    try {
+        RunDBQuery $rebuildQuery
+        Log "Daily playtime table rebuild completed successfully using SQL aggregation."
+    }
+    catch {
+        Log "Error during SQL-based rebuild: $($_.Exception.Message). Falling back to manual re-recording..."
+        $finalSessions = RunDBQuery "SELECT start_time, duration FROM session_history"
+        if ($null -ne $finalSessions) {
+            if ($finalSessions -isnot [array]) { $finalSessions = @($finalSessions) }
+            Log "Re-recording $($finalSessions.Count) session segments into daily_playtime..."
+            foreach ($session in $finalSessions) {
+                $startTime = [DateTimeOffset]::FromUnixTimeSeconds($session.start_time).LocalDateTime
+                RecordPlaytimeOnDate $session.duration $startTime.Date
+            }
+        }
+    }
 }
 
 function Read-Setting($Key) {

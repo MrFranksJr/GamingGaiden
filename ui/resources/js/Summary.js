@@ -142,30 +142,28 @@ function loadSummaryDataFromTable() {
   const summaryTable = $("#summary-table").find("table");
   const summaryRows = summaryTable.find("tbody tr");
 
-  gamingData = Array.from(summaryRows).map((row) => {
-    const name = row.cells[0].textContent;
-    const playtime = (parseFloat(row.cells[1].textContent) / 60).toFixed(1);
-    const sessions = parseFloat(row.cells[2].textContent);
-    const completed = row.cells[3].textContent;
-    const status = row.cells[4].textContent;
+  gamingData = Array.from(summaryRows)
+    .filter((row) => row.querySelector("td")) // Skip header rows
+    .map((row) => {
+      const name = row.cells[0].textContent;
+      const playtime = (parseFloat(row.cells[1].textContent) / 60).toFixed(1);
+      const sessions = parseFloat(row.cells[2].textContent);
+      const completed = row.cells[3].textContent;
+      const status = row.cells[4].textContent;
 
-    completed === "FALSE" ? inProgressCount++ : finishedCount++;
-    if (status === "hold") {
-      holdCount++;
-    }
-    if (status === "forever") {
-      foreverCount++;
-    }
-    if (status === "dropped") {
-      droppedCount++;
-    }
+      completed === "FALSE" ? inProgressCount++ : finishedCount++;
+      if (status === "hold") {
+        holdCount++;
+      }
+      if (status === "forever") {
+        foreverCount++;
+      }
+      if (status === "dropped") {
+        droppedCount++;
+      }
 
-    return { name, playtime, sessions, completed, status };
-  });
-
-  // Remove header row data, deduct one extra game added to finished count due to header row
-  gamingData.shift();
-  finishedCount--;
+      return { name, playtime, sessions, completed, status };
+    });
 
   let gameProgressMsg = inProgressCount > 1 ? " Games In Progress" : " Game In Progress";
   let gameFinishedMsg = finishedCount > 1 ? " Games Finished" : " Game Finished";
@@ -188,8 +186,10 @@ function loadPCDataFromTable() {
     return
   }
 
-  pcData = Array.from(pcRows).map((row) => {
-    const iconUri = DOMPurify.sanitize(row.cells[0].innerHTML);
+  pcData = Array.from(pcRows)
+    .filter((row) => row.querySelector("td")) // Skip header rows
+    .map((row) => {
+      const iconUri = DOMPurify.sanitize(row.cells[0].innerHTML);
     const name = row.cells[1].textContent;
     const current = row.cells[2].textContent;
     const cost = row.cells[3].textContent;
@@ -234,8 +234,7 @@ function loadPCDataFromTable() {
     };
   });
 
-  // Remove header row data
-  pcData.shift();
+  // Data is now correctly filtered to exclude header rows
 }
 
 function updatePCStatsSection(pcData) {

@@ -89,11 +89,14 @@ function updateChart(
     ) {
       labels.push(date.getDate());
       const gamingEntry = gamingData.find((item) => {
-        const itemDate = new Date(item.date);
+        const parts = item.date.split('-');
+        const itemYear = parseInt(parts[0]);
+        const itemMonth = parseInt(parts[1]) - 1;
+        const itemDay = parseInt(parts[2]);
         return (
-          itemDate.getFullYear() === selectedYear &&
-          itemDate.getMonth() === selectedMonth &&
-          itemDate.getDate() === date.getDate()
+          itemYear === selectedYear &&
+          itemMonth === selectedMonth &&
+          itemDay === date.getDate()
         );
       });
       data.push(gamingEntry ? (gamingEntry.time / 60).toFixed(1) : 0);
@@ -123,11 +126,13 @@ function updateChart(
 
     for (let month = 0; month <= 11; month = month + 1) {
       let monthPlayTime = 0;
-      gamingData.find((item) => {
-        const itemDate = new Date(item.date);
+      gamingData.forEach((item) => {
+        const parts = item.date.split('-');
+        const itemYear = parseInt(parts[0]);
+        const itemMonth = parseInt(parts[1]) - 1;
         if (
-          itemDate.getFullYear() === selectedYear &&
-          itemDate.getMonth() === month
+          itemYear === selectedYear &&
+          itemMonth === month
         ) {
           monthPlayTime = monthPlayTime + item.time;
         }
@@ -267,9 +272,9 @@ function updateChart(
 function initializeCalendar() {
   // Build availableMonths and availableYears sets from gamingData
   gamingData.forEach(item => {
-    const date = new Date(item.date);
-    const year = date.getFullYear();
-    const month = date.getMonth();
+    const parts = item.date.split('-');
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]) - 1;
     const monthStr = formatMonthString(year, month);
     availableMonths.add(monthStr);
     availableYears.add(year);
