@@ -8,6 +8,7 @@
 }
 
 function SQLEscapedMatchPattern($pattern) {
+    if ($null -eq $pattern) { return "" }
     return $pattern -replace "'", "''"
 }
 
@@ -86,13 +87,23 @@ function ShowMessage($Msg, $Buttons, $Type) {
 }
 
 function CalculateFileHash ($FilePath) {
-    $fileName = (Get-Item $FilePath).Name
-    Copy-Item $FilePath "$env:TEMP\$fileName"
-
-    $fileHash = Get-FileHash "$env:TEMP\$fileName"
-    Remove-Item "$env:TEMP\$fileName"
-
-    return $fileHash.Hash
+    $fileStream = $null
+    try {
+        $resolvedPath = (Resolve-Path $FilePath).Path
+        $fileStream = [System.IO.File]::OpenRead($resolvedPath)
+        $sha256 = [System.Security.Cryptography.SHA256]::Create()
+        $hashBytes = $sha256.ComputeHash($fileStream)
+        $hashString = [System.BitConverter]::ToString($hashBytes) -replace '-'
+        return $hashString
+    } catch {
+        Log "Error calculating hash for $FilePath : $($_.Exception.Message)"
+        return ""
+    } finally {
+        if ($null -ne $fileStream) {
+            $fileStream.Close()
+            $fileStream.Dispose()
+        }
+    }
 }
 
 function BackupDatabase {

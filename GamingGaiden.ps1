@@ -122,10 +122,8 @@ try {
             }
         }
         catch {
-            $timestamp = (Get-date -f %d-%M-%y`|%H:%m:%s)
-            Write-Output "$timestamp : Error: A user or system error has caused an exception. Check log for details." >> ".\GamingGaiden.log"
-            Write-Output "$timestamp : Exception: $($_.Exception.Message)" >> ".\GamingGaiden.log"
-            Write-Output "$timestamp : Error: Tracker job has failed. Please restart from app menu to continue detection." >> ".\GamingGaiden.log"
+            $timestamp = Get-Date -f "dd-MM-yyyy HH:mm:ss"
+            Log "Error: Tracker job has failed. Exception: $($_.Exception.Message)"
             exit 1;
         }
     }
@@ -439,11 +437,9 @@ try {
     [void][System.Windows.Forms.Application]::Run($appContext)
 }
 catch {
-    [System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')    | out-null
+    [System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') | Out-Null
     [System.Windows.Forms.MessageBox]::Show("Exception: $($_.Exception.Message). Check log for details", 'Gaming Gaiden', "OK", "Error")
 
-    $timestamp = Get-date -f s
-    Write-Output "$timestamp : Error: A user or system error has caused an exception. Check log for details." >> ".\GamingGaiden.log"
-    Write-Output "$timestamp : Exception: $($_.Exception.Message)" >> ".\GamingGaiden.log"
+    Log "Error: A fatal error has caused an exception. Exception: $($_.Exception.Message)"
     exit 1;
 }

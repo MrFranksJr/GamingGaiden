@@ -4,7 +4,12 @@
     # Fetch games in order of most recent to least recent
     $getGameExesQuery = "SELECT exe_name FROM games ORDER BY last_play_date DESC"
 
-    $exeList = [string[]] @((RunDBQuery $getGameExesQuery).exe_name)
+    $queryResult = RunDBQuery $getGameExesQuery
+    if ($null -eq $queryResult) {
+        Log "No games found in database. Exiting detection."
+        return
+    }
+    $exeList = [string[]] @($queryResult.exe_name)
 
     # PERFORMANCE OPTIMIZATION: CPU & MEMORY
     # Process games in batches of 35 with most recent 10 games processed every batch. 5 sec wait b/w every batch.
@@ -16,7 +21,7 @@
         # If exeList is of size 35 or less. process whole list in every batch
         while ($true) {
             foreach ($exe in $exeList) {
-                if ($null = [System.Diagnostics.Process]::GetProcessesByName($exe)) {
+                if ($null -ne $exe -and $exe -ne "" -and [System.Diagnostics.Process]::GetProcessesByName($exe)) {
                     Log "Found $exe running. Exiting detection"
                     return $exe
                 }
@@ -30,18 +35,20 @@
         while ($true) {
             # Process most recent 10 games in every batch.
             for ($i = 0; $i -lt 10; $i++) {
-                if ($null = [System.Diagnostics.Process]::GetProcessesByName($exeList[$i])) {
-                    Log "Found $($exeList[$i]) running. Exiting detection"
-                    return $exeList[$i]
+                $exe = $exeList[$i]
+                if ($null -ne $exe -and $exe -ne "" -and [System.Diagnostics.Process]::GetProcessesByName($exe)) {
+                    Log "Found $exe running. Exiting detection"
+                    return $exe
                 }
             }
             # Rest of the games in incrementing way. 25 in each batch.
             $endIndex = [Math]::Min($startIndex + $batchSize, $exeList.length)
 
             for ($i = $startIndex; $i -lt $endIndex; $i++) {
-                if ($null = [System.Diagnostics.Process]::GetProcessesByName($exeList[$i])) {
-                    Log "Found $($exeList[$i]) running. Exiting detection"
-                    return $exeList[$i]
+                $exe = $exeList[$i]
+                if ($null -ne $exe -and $exe -ne "" -and [System.Diagnostics.Process]::GetProcessesByName($exe)) {
+                    Log "Found $exe running. Exiting detection"
+                    return $exe
                 }
             }
 
@@ -60,9 +67,13 @@
 function TimeTrackerLoop($DetectedExe) {
     $hwInfoSensorSession = 'HKCU:\SOFTWARE\HWiNFO64\Sensors\Custom\Gaming Gaiden\Other1'
     $playTimeForCurrentSession = 0
-    $exeStartTime = ($null = [System.Diagnostics.Process]::GetProcessesByName($DetectedExe)).StartTime | Sort-Object | Select-Object -First 1
+    $processes = [System.Diagnostics.Process]::GetProcessesByName($DetectedExe)
+    if ($null -eq $processes -or $processes.Length -eq 0) {
+        return 0
+    }
+    $exeStartTime = $processes.StartTime | Sort-Object | Select-Object -First 1
 
-    while ($null = [System.Diagnostics.Process]::GetProcessesByName($DetectedExe)) {
+    while ([System.Diagnostics.Process]::GetProcessesByName($DetectedExe)) {
         $playTimeForCurrentSession = [int16] (New-TimeSpan -Start $exeStartTime).TotalMinutes
         Set-Itemproperty -path $hwInfoSensorSession -Name 'Value' -value $playTimeForCurrentSession
         Start-Sleep -s 5
@@ -74,6 +85,7 @@ function TimeTrackerLoop($DetectedExe) {
 }
 
 function MonitorGame($DetectedExe) {
+    if ($null -eq $DetectedExe) { return }
     Log "Starting monitoring for $DetectedExe"
 
     $databaseFileHashBefore = CalculateFileHash '.\GamingGaiden.db'
@@ -82,10 +94,15 @@ function MonitorGame($DetectedExe) {
     $gameName = $null
     $entityFound = $null
     $updatedPlayTime = 0
-    $updatedLastPlayDate = (Get-Date ([datetime]::UtcNow) -UFormat %s).Split('.').Get(0)
+    $updatedLastPlayDate = [int]((Get-Date ([datetime]::UtcNow) -UFormat %s).Split('.,')[0])
 
     # Capture process start time for session history
-    $processStartTime = ($null = [System.Diagnostics.Process]::GetProcessesByName($DetectedExe)).StartTime | Sort-Object | Select-Object -First 1
+    $processes = [System.Diagnostics.Process]::GetProcessesByName($DetectedExe)
+    if ($null -eq $processes -or $processes.Length -eq 0) {
+        Log "Process $DetectedExe no longer found. Aborting monitoring."
+        return
+    }
+    $processStartTime = $processes.StartTime | Sort-Object | Select-Object -First 1
     # Strips the decimal/comma first, then casts the clean string to an integer, fixes for non-US locales
     $sessionStartTimeUnix = [int]((Get-Date ($processStartTime.ToUniversalTime()) -UFormat %s).Split('.,')[0])
 

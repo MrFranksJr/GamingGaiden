@@ -498,7 +498,7 @@ function RenderAddGameForm() {
             $gameExeFile = Get-Item $textExe.Text
             $gameExeName = $gameExeFile.BaseName
             $gameIconPath = $pictureBoxImagePath.Text
-            $gameLastPlayDate = (Get-Date ([datetime]::UtcNow) -UFormat "%s").Split('.').Get(0)
+            $gameLastPlayDate = [int]((Get-Date ([datetime]::UtcNow) -UFormat "%s").Split('.,')[0])
             $gameGamingPCName = if ($dropdownGamingPC.SelectedItem -eq "") { "" } else { $dropdownGamingPC.SelectedItem }
 
             SaveGame -GameName $gameName -GameExeName $gameExeName -GameIconPath $gameIconPath `
@@ -749,7 +749,7 @@ function RenderGamingPCForm($PCList) {
                 }
                 return
             }
-            $PCStartDate = (Get-Date ($startDatePicker.Value) -UFormat %s).Split('.').Get(0)
+            $PCStartDate = [int]((Get-Date ($startDatePicker.Value) -UFormat %s).Split('.,')[0])
 
             $PCCurrency = $textCurrency.Text
             if ( -Not ($PCCurrency -match '\D{1,3}') ) {
@@ -785,7 +785,7 @@ function RenderGamingPCForm($PCList) {
                 $PCCurrentStatus = "TRUE";
             }
             else {
-                $PCEndDate = (Get-Date ($endDatePicker.Value) -UFormat %s).Split('.').Get(0)
+                $PCEndDate = [int]((Get-Date ($endDatePicker.Value) -UFormat %s).Split('.,')[0])
                 $PCCurrentStatus = "FALSE";
                 if ( $endDatePicker.Value -gt [DateTime]::Today -or $PCStartDate -gt $PCEndDate) {
                     ShowMessage "End Date Cannot be in Future or before Start Date'." "OK" "Error"
