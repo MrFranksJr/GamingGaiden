@@ -31,11 +31,11 @@
   --accent-link-hover: #06e;
 
   /* Status Colors */
-  --status-finished: #059b27;       /* Green - Finished games */
-  --status-finished-alt: #4CAF50;
-  --status-hold: #d78f34;           /* Orange - On hold */
-  --status-forever: #94979c;        /* Gray - Forever games */
-  --status-dropped: #662f13;        /* Brown - Dropped games */
+  --status-finished: #16a34a;       /* Green - Finished games */
+  --status-finished-alt: #4ade80;
+  --status-hold: #f59e0b;           /* Orange - On hold */
+  --status-forever: #6366f1;        /* Indigo - Forever games */
+  --status-dropped: #dc2626;        /* Red - Dropped games */
   --status-error: #d32f2f;          /* Red - Error states */
   --status-error-dark: #b71c1c;
   --status-error-light: #ef9a9a;

@@ -41,41 +41,41 @@ function updateSummayChart() {
           borderWidth: 2,
           pointBackgroundColor: function (context) {
             var valueCompleted = context.raw.completed;
-            if (valueCompleted == "FALSE") {
-              return "#a6cbf5";
+            if (valueCompleted === "FALSE") {
+              return "#60a5fa";
             } else {
               var valueStatus = context.raw.status;
-              if (valueStatus == "") {
-                return "#59eb8a";
+              if (valueStatus === "") {
+                return "#4ade80";
               }
-              if (valueStatus == "hold") {
-                return "#f5c37d";
+              if (valueStatus === "hold") {
+                return "#fbbf24";
               }
-              if (valueStatus == "forever") {
-                return "#d0d3db";
+              if (valueStatus === "forever") {
+                return "#a78bfa";
               }
-              if (valueStatus == "dropped") {
-                return "#deb297";
+              if (valueStatus === "dropped") {
+                return "#f87171";
               }
             }
           },
           pointBorderColor: function (context) {
             var valueCompleted = context.raw.completed;
-            if (valueCompleted == "FALSE") {
-              return "#1f9afe";
+            if (valueCompleted === "FALSE") {
+              return "#2563eb";
             } else {
               var valueStatus = context.raw.status;
-              if (valueStatus == "") {
-                return "#059b27";
+              if (valueStatus === "") {
+                return "#16a34a";
               }
-              if (valueStatus == "hold") {
-                return "#d78f34";
+              if (valueStatus === "hold") {
+                return "#f59e0b";
               }
-              if (valueStatus == "forever") {
-                return "#94979c";
+              if (valueStatus === "forever") {
+                return "#6366f1";
               }
-              if (valueStatus == "dropped") {
-                return "#662f13";
+              if (valueStatus === "dropped") {
+                return "#dc2626";
               }
             }
           },
@@ -149,14 +149,14 @@ function loadSummaryDataFromTable() {
     const completed = row.cells[3].textContent;
     const status = row.cells[4].textContent;
 
-    completed == "FALSE" ? inProgressCount++ : finishedCount++;
-    if (status == "hold") {
+    completed === "FALSE" ? inProgressCount++ : finishedCount++;
+    if (status === "hold") {
       holdCount++;
     }
-    if (status == "forever") {
+    if (status === "forever") {
       foreverCount++;
     }
-    if (status == "dropped") {
+    if (status === "dropped") {
       droppedCount++;
     }
 
@@ -204,7 +204,7 @@ function loadPCDataFromTable() {
     });
 
     let end_date = "";
-    if (current != "TRUE") {
+    if (current !== "TRUE") {
       let utcSecondsEndDate = parseInt(row.cells[6].textContent);
       let e_date = new Date(0);
       e_date.setUTCSeconds(utcSecondsEndDate);

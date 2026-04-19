@@ -84,28 +84,8 @@ h1 {
 .legend-icon {
   width: 20px;
   height: 20px;
-  border-radius: 50%;
+  border-radius: 6px;
   margin-right: -20px;
-}
-
-#finished-icon {
-  background: var(--status-finished);
-}
-
-#progress-icon {
-  background: var(--accent-blue);
-}
-
-#hold-icon {
-  background: var(--status-hold);
-}
-
-#forever-icon {
-  background: var(--status-forever);
-}
-
-#dropped-icon {
-  background: var(--status-dropped);
 }
 
 #pc-section-title {

@@ -31,11 +31,11 @@
   --accent-link-hover: #64b5f6;
 
   /* Status Colors (adjusted for dark mode visibility) */
-  --status-finished: #06c930;       /* Brighter green for dark mode */
-  --status-finished-alt: #66BB6A;
-  --status-hold: #ffa726;           /* Brighter orange */
-  --status-forever: #b0b3b8;        /* Lighter gray */
-  --status-dropped: #a1694f;        /* Lighter brown */
+  --status-finished: #4ade80;       /* Brighter green for dark mode */
+  --status-finished-alt: #16a34a;
+  --status-hold: #fbbf24;           /* Brighter orange */
+  --status-forever: #a78bfa;        /* Lighter indigo */
+  --status-dropped: #f87171;        /* Lighter red */
   --status-error: #ef5350;          /* Brighter red */
   --status-error-dark: #c62828;
   --status-error-light: #e57373;

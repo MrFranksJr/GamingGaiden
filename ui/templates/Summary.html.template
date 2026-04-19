@@ -35,18 +35,18 @@
     <div id="top-row">
       <div id="summary-chart-legend">
         <div id="legend">
-          <div id="progress-icon" class="legend-icon"></div>
-          <div id="progress-count" style="color: #1f9afe"></div>
-          <div id="finished-icon" class="legend-icon"></div>
-          <div id="finished-count" style="color: #059b27"></div>
+          <div id="progress-icon" class="legend-icon icon-playing game-status-icon"></div>
+          <div id="progress-count" style="color: #2563eb"></div>
+          <div id="finished-icon" class="legend-icon icon-finished game-status-icon"></div>
+          <div id="finished-count" style="color: #16a34a"></div>
         </div>
         <div id="sub-legend">
-          <div id="hold-icon" class="legend-icon"></div>
-          <div id="hold-count" style="color: #d78f34"></div>
-          <div id="forever-icon" class="legend-icon"></div>
-          <div id="forever-count" style="color: #94979c"></div>
-          <div id="dropped-icon" class="legend-icon"></div>
-          <div id="dropped-count" style="color: #662f13"></div>
+          <div id="hold-icon" class="legend-icon icon-onhold game-status-icon"></div>
+          <div id="hold-count" style="color: #f59e0b"></div>
+          <div id="forever-icon" class="legend-icon icon-forever game-status-icon"></div>
+          <div id="forever-count" style="color: #6366f1"></div>
+          <div id="dropped-icon" class="legend-icon icon-dropped game-status-icon"></div>
+          <div id="dropped-count" style="color: #dc2626"></div>
         </div>
       </div>
       <div id="pc-title-column">
