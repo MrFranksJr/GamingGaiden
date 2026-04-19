@@ -114,18 +114,18 @@ function RenderGameList() {
             $gamingPCs = $pcArray -join '<br/>'
         }
 
-        $statusUri = "<div>Finished</div><img src=`".\resources\images\finished.png`">"
+        $statusUri = "<div>Finished</div><img src=`".\resources\images\finished.svg`">"
         if ($gameRecord.completed -eq 'FALSE') {
-            $statusUri = "<div>Playing</div><img src=`".\resources\images\playing.png`">"
+            $statusUri = "<div>Playing</div><img src=`".\resources\images\playing.svg`">"
         }
         if ($gameRecord.status -eq 'dropped') {
-            $statusUri = "<div>Dropped</div><img title=`"Utter Garbage!!`" src=`".\resources\images\dropped.png`">"
+            $statusUri = "<div>Dropped</div><img title=`"Utter Garbage!!`" src=`".\resources\images\dropped.svg`">"
         }
         if ($gameRecord.status -eq 'hold') {
-            $statusUri = "<div>Pick Later</div><img src=`".\resources\images\hold.png`">"
+            $statusUri = "<div>Pick Later</div><img src=`".\resources\images\hold.svg`">"
         }
         if ($gameRecord.status -eq 'forever') {
-            $statusUri = "<div>Forever</div><img src=`".\resources\images\forever.png`">"
+            $statusUri = "<div>Forever</div><img src=`".\resources\images\forever.svg`">"
         }
 
         $currentGame = [Game]::new($iconUri, $name, $gameRecord.play_time, $gameRecord.session_count, $statusUri, $gameRecord.last_play_date, $gamingPCs)
