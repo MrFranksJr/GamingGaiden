@@ -1,0 +1,56 @@
+/* Gaming Gaiden - Light Theme */
+
+:root {
+  /* Background Colors */
+  --bg-primary: #f5f5f5;           /* Main body background */
+  --bg-panel: white;                /* Panels, cards, secondary surfaces */
+  --bg-tertiary: #fafafa;          /* Calendar columns, game items, tertiary areas */
+  --bg-button: #fcfcfd;            /* Button default background */
+  --bg-button-hover: #e8e8e8;      /* Button hover state */
+  --bg-table-stripe: #cddbe7;      /* Table row striping */
+
+  /* Text Colors */
+  --text-primary: #333;             /* Primary text (headings, body, buttons) */
+  --text-secondary: #666;           /* Secondary text (game details, labels, stats) */
+  --text-inverse: #fff;             /* Text on dark backgrounds */
+
+  /* Border Colors */
+  --border-primary: #333;           /* Table headers, strong dividers */
+  --border-light: #ddd;            /* All other borders, dividers, inputs */
+
+  /* Shadow Colors */
+  --shadow-primary: rgba(45, 35, 66, 0.4);    /* Outer shadow (short) */
+  --shadow-secondary: rgba(45, 35, 66, 0.3);  /* Outer shadow (diffused) */
+  --shadow-inset: #d6d6e7;                     /* Button inset (purple-tinged) */
+  --shadow-image: gray;                        /* Image drop shadows */
+
+  /* Accent Colors - Blue */
+  --accent-blue: #2196F3;
+  --accent-blue-dark: #1976D2;
+  --accent-blue-light: #e3f2fd;
+  --accent-link-hover: #06e;
+
+  /* Status Colors */
+  --status-finished: #16a34a;       /* Green - Finished games */
+  --status-finished-alt: #4ade80;
+  --status-hold: #f59e0b;           /* Orange - On hold */
+  --status-forever: #6366f1;        /* Indigo - Forever games */
+  --status-dropped: #dc2626;        /* Red - Dropped games */
+  --status-error: #d32f2f;          /* Red - Error states */
+  --status-error-dark: #b71c1c;
+  --status-error-light: #ef9a9a;
+  --status-error-pale: #ffebee;
+
+  /* Chart Colors */
+  --chart-blue: rgba(55, 162, 235, 0.5);
+  --chart-grid: rgba(0, 0, 0, 0.1); /* Chart grid lines */
+
+  /* Table Specific */
+  --table-header-bg: #333;
+  --table-header-text: #fff;
+
+  /* Scrollbar Colors */
+  --scrollbar-track: #f1f1f1;
+  --scrollbar-thumb: #888;
+  --scrollbar-thumb-hover: #555;
+}

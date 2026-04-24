@@ -1,0 +1,56 @@
+/* Gaming Gaiden - Dark Theme */
+
+:root {
+  /* Background Colors */
+  --bg-primary: #1a1a1a;           /* Main body background */
+  --bg-panel: #2a2a2a;              /* Panels, cards, secondary surfaces */
+  --bg-tertiary: #222222;          /* Calendar columns, game items, tertiary areas */
+  --bg-button: #3a3a3a;            /* Button default background */
+  --bg-button-hover: #4a4a4a;      /* Button hover state */
+  --bg-table-stripe: #2d3a47;      /* Table row striping */
+
+  /* Text Colors */
+  --text-primary: #e0e0e0;          /* Primary text (headings, body, buttons) */
+  --text-secondary: #b0b0b0;        /* Secondary text (game details, labels, stats) */
+  --text-inverse: #1a1a1a;          /* Text on light backgrounds */
+
+  /* Border Colors */
+  --border-primary: #555;           /* Table headers, strong dividers */
+  --border-light: #4a4a4a;         /* All other borders, dividers, inputs */
+
+  /* Shadow Colors */
+  --shadow-primary: rgba(0, 0, 0, 0.6);    /* Outer shadow (short) */
+  --shadow-secondary: rgba(0, 0, 0, 0.4);  /* Outer shadow (diffused) */
+  --shadow-inset: #1a1a2a;                  /* Button inset */
+  --shadow-image: rgba(0, 0, 0, 0.8);      /* Image drop shadows */
+
+  /* Accent Colors - Blue (adjusted for dark mode visibility) */
+  --accent-blue: #42a5f5;
+  --accent-blue-dark: #1e88e5;
+  --accent-blue-light: #1e3a5f;
+  --accent-link-hover: #64b5f6;
+
+  /* Status Colors (adjusted for dark mode visibility) */
+  --status-finished: #4ade80;       /* Brighter green for dark mode */
+  --status-finished-alt: #16a34a;
+  --status-hold: #fbbf24;           /* Brighter orange */
+  --status-forever: #a78bfa;        /* Lighter indigo */
+  --status-dropped: #f87171;        /* Lighter red */
+  --status-error: #ef5350;          /* Brighter red */
+  --status-error-dark: #c62828;
+  --status-error-light: #e57373;
+  --status-error-pale: #4a2424;
+
+  /* Chart Colors */
+  --chart-blue: rgba(66, 165, 245, 0.5);
+  --chart-grid: rgba(255, 255, 255, 0.1); /* Chart grid lines */
+
+  /* Table Specific */
+  --table-header-bg: #1a1a1a;
+  --table-header-text: #e0e0e0;
+
+  /* Scrollbar Colors */
+  --scrollbar-track: #2a2a2a;
+  --scrollbar-thumb: #555;
+  --scrollbar-thumb-hover: #777;
+}

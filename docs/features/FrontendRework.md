@@ -2,33 +2,40 @@
 Rework the existing static UI into a more scalable, dynamic interface that uses client-side rendering with JSON data exports.
 
 ## Phase 0: Modular Architecture & Testing Setup
-- [ ] **Design DataExport Module**: Following hexagonal principles, separate the data-fetching adapter (SQL) from the domain logic (data transformation).
+  - [x] **MANDATORY CHECK-IN: Do not proceed until user approval.**
+- [x] **Design DataExport Module**: Following hexagonal principles, separate the data-fetching adapter (SQL) from the domain logic (data transformation).
   - Create `modules\DataExport.psm1` for JSON-specific business logic.
-- [ ] **Initialize Backend Unit Tests**: Set up Pester for the new PowerShell module.
+- [x] **Initialize Backend Unit Tests**: Set up Pester for the new PowerShell module.
   - Location: `tests\backend\DataExport.Tests.ps1`.
-- [ ] **Initialize Frontend Unit Tests**: Set up Vitest for the new frontend module.
-  - Location: `tests\frontend\`.
+- [x] **Initialize Frontend Unit Tests**: Set up Vitest for the new frontend module.
+  - Location: `frontend\tests\`.
   - Focus on component rendering and data mapping logic.
 
 ## Phase 1: Data Export Module
-- [ ] Implement `Export-GameDataToJson` in the new `DataExport` module.
+  - [x] **MANDATORY CHECK-IN: Do not proceed until user approval.**
+- [x] Implement `Export-GameDataToJson` in the new `DataExport` module.
   - Export `games`, `session_history`, and `gaming_pcs` tables into a structured `data.json` file.
-- [ ] Integrate JSON export into `UpdateAllStatsInBackground` in `UIFunctions.psm1`.
+- [x] Integrate JSON export into `UpdateAllStatsInBackground` in `UIFunctions.psm1`.
   - Ensure export happens only when changes are detected (performance optimization).
 
 ## Phase 2: Parallel Frontend Architecture
-- [ ] Create `ui\index.html` as the entry point for the new SPA (Single Page Application).
-- [ ] Implement a basic JS router (using URL hashes like `#all-games`, `#summary`).
-- [ ] Create template components for: All Games List, Summary Dashboard, Game Details.
+  - [x] **MANDATORY CHECK-IN: Do not proceed until user approval.**
+- [x] Create `frontend\index.html` as the entry point for the new SPA (Single Page Application).
+- [x] Implement a basic JS router (using URL hashes like `#all-games`, `#summary`).
+- [x] Create template components for: All Games List, Summary Dashboard, Session History.
+- [x] **Fresh Start Cleanup**: Removed all legacy JS/CSS to ensure a clean base.
 
 ## Phase 3: Dynamic Rendering
-- [ ] Implement `fetch()` call in `ui\resources\js\app.js` to load `data.json`.
-- [ ] Replace server-side HTML generation with client-side DOM manipulation.
-- [ ] Integrate the "Game Detail Page" logic into the SPA.
+  - [x] **MANDATORY CHECK-IN: Do not proceed until user approval.**
+- [x] Implement `fetch()` call in `frontend\resources\js\app.js` to load `data.json`.
+- [x] Replace server-side HTML generation with client-side DOM manipulation.
+- [x] Implement remaining components: Gaming Time, Game Detail Page.
+- [x] Integrate the "Game Detail Page" logic into the SPA.
 
 ## Phase 4: Integration & "Flip the Switch"
+  - [ ] **MANDATORY CHECK-IN: Do not proceed until user approval.**
 - [ ] Add a "Developer Mode" toggle to switch between the old static UI and new dynamic UI.
-- [ ] Once stable, update the main app launch logic to point to `ui\index.html`.
+- [ ] Once stable, update the main app launch logic to point to `frontend\index.html`.
 - [ ] Clean up legacy static rendering functions in `UIFunctions.psm1`.
 
 ## Developer Notes for Agents

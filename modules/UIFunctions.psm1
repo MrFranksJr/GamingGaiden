@@ -52,6 +52,9 @@ function UpdateAllStatsInBackground() {
     RenderGamesPerPC -InBackground $true
     RenderMostPlayed -InBackground $true
     RenderSessionHistory -InBackground $true
+
+    # Phase 1: Export data to JSON
+    Export-GameDataToJson
 }
 
 function RenderGameList() {

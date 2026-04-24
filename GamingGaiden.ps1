@@ -19,6 +19,7 @@ try {
     Import-Module ".\modules\SettingsFunctions.psm1"
     Import-Module ".\modules\SetupDatabase.psm1"
     Import-Module ".\modules\StorageFunctions.psm1"
+    Import-Module ".\modules\DataExport.psm1"
     Import-Module ".\modules\UIFunctions.psm1"
 
     #------------------------------------------
@@ -106,6 +107,7 @@ try {
     $TrackerJobInitializationScript = {
         Import-Module ".\modules\PSSQLite";
         Import-Module ".\modules\HelperFunctions.psm1";
+        Import-Module ".\modules\DataExport.psm1";
         Import-Module ".\modules\UIFunctions.psm1";
         Import-Module ".\modules\ProcessFunctions.psm1";
         Import-Module ".\modules\QueryFunctions.psm1";
