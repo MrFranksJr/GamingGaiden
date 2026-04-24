@@ -915,16 +915,18 @@
       "duration": 199
     }
   ],
-  "gaming_pcs": {
-    "name": "MINWU",
-    "cost": "2500",
-    "currency": "€ ",
-    "start_date": 1605063600,
-    "end_date": 0,
-    "in_use": "TRUE",
-    "total_play_time": 9199,
-    "icon_path": "resources/images/cache/MINWU.jpg"
-  },
+  "gaming_pcs": [
+    {
+      "name": "MINWU",
+      "cost": "2500",
+      "currency": "€ ",
+      "start_date": 1605063600,
+      "end_date": 0,
+      "in_use": "TRUE",
+      "total_play_time": 9199,
+      "icon_path": "resources/images/cache/MINWU.jpg"
+    }
+  ],
   "daily_playtime": [
     {
       "play_date": "2026-02-21",
