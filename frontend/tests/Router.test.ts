@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { Router } from '../resources/js/app'
-import { SummaryComponent } from '../resources/js/components/SummaryComponent'
-import { AllGamesComponent } from '../resources/js/components/AllGamesComponent'
-import { GameDetailComponent } from '../resources/js/components/GameDetailComponent'
-import { mockData } from './test-utils'
+import {beforeEach, describe, expect, it, vi} from 'vitest'
+import {Router} from '../resources/js/app'
+import {SummaryComponent} from '../resources/js/components/SummaryComponent'
+import {AllGamesComponent} from '../resources/js/components/AllGamesComponent'
+import {GameDetailComponent} from '../resources/js/components/GameDetailComponent'
+import {mockData} from './test-utils'
 
 describe('Router', () => {
     let container: HTMLElement
@@ -14,16 +14,16 @@ describe('Router', () => {
         container = document.getElementById('view-container')!
         window.location.hash = ''
 
-        // Mock fetch
-        global.fetch = vi.fn().mockResolvedValue({
+        // Mock fetch using Vitest's stubGlobal
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
             ok: true,
             json: () => Promise.resolve(mockData)
-        })
+        }))
     })
 
     it('should load data and render default route', async () => {
         const routes = {
-            '#summary': { name: 'summary', component: SummaryComponent }
+            '#summary': {name: 'summary', component: SummaryComponent}
         }
 
         router = new Router(routes)
@@ -34,8 +34,8 @@ describe('Router', () => {
 
     it('should handle route change', async () => {
         const routes = {
-            '#summary': { name: 'summary', component: SummaryComponent },
-            '#all-games': { name: 'all-games', component: AllGamesComponent }
+            '#summary': {name: 'summary', component: SummaryComponent},
+            '#all-games': {name: 'all-games', component: AllGamesComponent}
         }
 
         router = new Router(routes)
@@ -49,8 +49,8 @@ describe('Router', () => {
 
     it('should handle dynamic routes with params', async () => {
         const routes = {
-            '#summary': { name: 'summary', component: SummaryComponent },
-            '#game-detail': { name: 'game-detail', component: GameDetailComponent }
+            '#summary': {name: 'summary', component: SummaryComponent},
+            '#game-detail': {name: 'game-detail', component: GameDetailComponent}
         }
 
         router = new Router(routes)

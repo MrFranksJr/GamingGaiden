@@ -14,7 +14,7 @@ Describe "DataExport Module" {
                 param($Query)
                 if ($Query -like "*FROM games*") {
                     return @(
-                        [PSCustomObject]@{ name = "Game 1"; play_time = 100; session_count = 5; completed = "TRUE"; last_play_date = "2023-01-01"; status = "finished"; gaming_pc_name = "PC1" },
+                        [PSCustomObject]@{ name = "Game 1"; icon = [byte[]](255, 216, 255); play_time = 100; session_count = 5; completed = "TRUE"; last_play_date = "2023-01-01"; status = "finished"; gaming_pc_name = "PC1" },
                         [PSCustomObject]@{ name = "Game 2"; play_time = 50; session_count = 2; completed = "FALSE"; last_play_date = "2023-01-02"; status = "playing"; gaming_pc_name = "PC1,PC2" }
                     )
                 }
@@ -26,7 +26,7 @@ Describe "DataExport Module" {
                 }
                 if ($Query -like "*FROM gaming_pcs*") {
                     return @(
-                        [PSCustomObject]@{ name = "PC1"; in_use = "TRUE" },
+                        [PSCustomObject]@{ name = "PC1"; in_use = "TRUE"; icon = [byte[]](255, 216, 255) },
                         [PSCustomObject]@{ name = "PC2"; in_use = "FALSE" }
                     )
                 }

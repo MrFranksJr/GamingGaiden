@@ -5,6 +5,7 @@ export interface Game {
     status: string;
     completed: string;
     last_play_date?: string;
+    icon_path?: string;
     gaming_pc_name?: string;
 }
 
@@ -22,6 +23,7 @@ export interface DailyPlaytime {
 export interface GamingPC {
     name: string;
     in_use: string;
+    icon_path?: string;
 }
 
 export interface GameData {

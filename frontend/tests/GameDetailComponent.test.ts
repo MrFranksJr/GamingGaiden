@@ -1,12 +1,11 @@
-import { describe, it, expect } from 'vitest'
-import { GameDetailComponent } from '../resources/js/components/GameDetailComponent'
-import { mockData } from './test-utils'
+import {describe, expect, it} from 'vitest'
+import {GameDetailComponent} from '../resources/js/components/GameDetailComponent'
+import {mockData} from './test-utils'
 
 describe('GameDetailComponent', () => {
     it('should render details for a specific game', () => {
         const component = new GameDetailComponent()
-        const html = component.render(mockData, 'Game A')
-        document.body.innerHTML = html
+        document.body.innerHTML = component.render(mockData, 'Game A')
 
         expect(document.getElementById('detail-game-name')?.textContent).toBe('Game A')
         expect(document.getElementById('detail-playtime')?.textContent).toBe('2 Hr 0 Min')

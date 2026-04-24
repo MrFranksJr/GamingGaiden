@@ -1,12 +1,11 @@
-import { describe, it, expect } from 'vitest'
-import { SummaryComponent } from '../resources/js/components/SummaryComponent'
-import { mockData } from './test-utils'
+import {describe, expect, it} from 'vitest'
+import {SummaryComponent} from '../resources/js/components/SummaryComponent'
+import {mockData} from './test-utils'
 
 describe('SummaryComponent', () => {
     it('should correctly calculate summary stats', () => {
         const component = new SummaryComponent()
-        const html = component.render(mockData)
-        document.body.innerHTML = html
+        document.body.innerHTML = component.render(mockData)
 
         expect(document.getElementById('total-games-value')?.textContent).toBe('2')
         expect(document.getElementById('total-playtime-value')?.textContent).toBe('3 Hr 0 Min')

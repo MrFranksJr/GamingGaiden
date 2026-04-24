@@ -1,12 +1,11 @@
-import { describe, it, expect } from 'vitest'
-import { SessionHistoryComponent } from '../resources/js/components/SessionHistoryComponent'
-import { mockData } from './test-utils'
+import {describe, expect, it} from 'vitest'
+import {SessionHistoryComponent} from '../resources/js/components/SessionHistoryComponent'
+import {mockData} from './test-utils'
 
 describe('SessionHistoryComponent', () => {
     it('should render recent sessions', () => {
         const component = new SessionHistoryComponent()
-        const html = component.render(mockData)
-        document.body.innerHTML = html
+        document.body.innerHTML = component.render(mockData)
 
         const rows = document.querySelectorAll('.session-row')
         expect(rows.length).toBe(2)
