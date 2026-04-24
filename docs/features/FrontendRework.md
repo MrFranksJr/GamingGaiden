@@ -27,10 +27,15 @@ Rework the existing static UI into a more scalable, dynamic interface that uses 
 
 ## Phase 3: Dynamic Rendering
   - [x] **MANDATORY CHECK-IN: Do not proceed until user approval.**
-- [x] Implement `fetch()` call in `frontend\resources\js\app.js` to load `data.json`.
+- [x] Implement `fetch()` call in `frontend\resources\js\app.ts` to load `data.json`.
 - [x] Replace server-side HTML generation with client-side DOM manipulation.
 - [x] Implement remaining components: Gaming Time, Game Detail Page.
 - [x] Integrate the "Game Detail Page" logic into the SPA.
+- [x] **Comprehensive Frontend Unit Tests**: Added Vitest tests for all new components and the router.
+- [x] **Typed Architecture**:
+  - Defined `GameData` interfaces in `frontend\resources\js\types\`.
+  - Converted all components and router to Vanilla TypeScript.
+  - Implemented modular directory structure (`types/`, `components/`).
 
 ## Phase 4: Integration & "Flip the Switch"
   - [ ] **MANDATORY CHECK-IN: Do not proceed until user approval.**
@@ -39,10 +44,13 @@ Rework the existing static UI into a more scalable, dynamic interface that uses 
 - [ ] Clean up legacy static rendering functions in `UIFunctions.psm1`.
 
 ## Developer Notes for Agents
+- **Don't do stupid shit**: Do not create empty or unused folders (like `models`). Keep the workspace clean.
 - **Technology Stack**: Vanilla TypeScript. Keep it simple, but as modular as possible using a Component pattern or ES6 Classes.
+- **Centralized Utilities**: Keep utility functions (like time formatting) in `frontend/resources/js/utils/` and ensure they are strictly typed. Avoid duplicating logic across components.
 - **Single Responsibility Principle**: Ensure each module/component has one specific job (e.g., data fetching, list rendering, detail view).
 - **TDD (Test-Driven Development)**: Follow a TDD approach: write a failing test first, then implement the minimal code to pass the test, and finally refactor.
 - **Modular/Hexagonal Design**: Keep domain logic (e.g., transforming game stats) separate from infrastructure logic (SQL, File I/O). This allows for easy mocking in unit tests.
+- **Data Validation & Error Handling**: Always assume exported data might be malformed (e.g., arrays containing nulls). UI components must validate/filter data before rendering, and the Router must handle errors gracefully to avoid hanging 'Loading...' states.
 - **Test Separation**:
   - **Backend**: Use **Pester** for PowerShell logic. Tests reside in `tests\backend\`.
   - **Frontend**: Use **Vitest** for JavaScript logic and UI components. Tests reside in `tests\frontend\`.
