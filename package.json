@@ -1,0 +1,30 @@
+{
+  "name": "gaminggaiden",
+  "version": "1.0.0",
+  "description": "<div style=\"text-align: center;\">",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrFranksJr/GamingGaiden.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MrFranksJr/GamingGaiden/issues"
+  },
+  "homepage": "https://github.com/MrFranksJr/GamingGaiden#readme",
+  "devDependencies": {
+    "jsdom": "^29.0.2",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
+  }
+}
