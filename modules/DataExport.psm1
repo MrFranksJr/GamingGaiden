@@ -3,7 +3,7 @@ function Export-GameDataToJson {
     .SYNOPSIS
         Exports game data to a JSON file.
     #>
-    param(
+    param( [string]$DatabasePath = ".\GamingGaiden.db",
         [string]$OutputPath = ".\frontend\resources\data.json",
         [switch]$Force = $false
     )
@@ -14,10 +14,10 @@ function Export-GameDataToJson {
 
     Log "Checking if JSON export is needed: $fullPath"
 
-    $games = @(RunDBQuery "SELECT * FROM games")
-    $sessionHistory = @(RunDBQuery "SELECT * FROM session_history")
-    $gamingPCs = @(RunDBQuery "SELECT * FROM gaming_pcs")
-    $dailyPlaytime = @(RunDBQuery "SELECT * FROM daily_playtime")
+    $games = @(RunDBQuery "SELECT * FROM games" -DatabasePath $DatabasePath)
+    $sessionHistory = @(RunDBQuery "SELECT * FROM session_history" -DatabasePath $DatabasePath)
+    $gamingPCs = @(RunDBQuery "SELECT * FROM gaming_pcs" -DatabasePath $DatabasePath)
+    $dailyPlaytime = @(RunDBQuery "SELECT * FROM daily_playtime" -DatabasePath $DatabasePath)
 
     $data = [PSCustomObject]@{
         games           = $games

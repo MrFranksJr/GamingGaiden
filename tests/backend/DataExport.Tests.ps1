@@ -82,4 +82,5 @@ Describe "DataExport Module" {
             Remove-Item $lastHashFile
         }
     }
-}
+    Context "Real Data Export" { It "Should export data from the provided DB copy" { $dbPath = Join-Path $PSScriptRoot "..\..\frontend\resources\GamingGaidenCopy.db"; $outputPath = Join-Path $PSScriptRoot "data_from_copy.json"; if (Test-Path $outputPath) { Remove-Item $outputPath }; if (Test-Path "$outputPath.last") { Remove-Item "$outputPath.last" }; if (Test-Path $dbPath) { Export-GameDataToJson -DatabasePath $dbPath -OutputPath $outputPath -Force; Test-Path $outputPath | Should -Be $true; $content = Get-Content $outputPath | ConvertFrom-Json; $content.games.Count | Should -BeGreaterThan 0; Remove-Item $outputPath; Remove-Item "$outputPath.last" } } }}
+
