@@ -42,9 +42,27 @@ if (Get-Command "pandoc.exe" -ErrorAction SilentlyContinue) {
     }
 }
 
+# Build Frontend
+if (Get-Command "npm" -ErrorAction SilentlyContinue)
+{
+    Write-Host "Building Frontend..." -ForegroundColor Cyan
+    Push-Location .\frontend
+    npm run build
+    Pop-Location
+}
+else
+{
+    Write-Warning "npm not found. Skipping Frontend build. Ensure .js files are up to date."
+}
+
 # Copy source files
-$SourceFiles = ".\Install.bat", ".\Uninstall.bat", ".\modules", ".\icons", ".\ui"
-Copy-Item -Recurse -Path $SourceFiles -Destination .\build\GamingGaiden\ -Force
+$FilesToCopy = ".\Install.bat", ".\Uninstall.bat"
+Copy-Item $FilesToCopy -Destination .\build\GamingGaiden\ -Force
+$FoldersToCopy = "modules", "icons", "ui", "frontend"
+foreach ($folder in $FoldersToCopy)
+{
+    robocopy ".\$folder" ".\build\GamingGaiden\$folder" /MIR /NP /NDL /NJH /NJS /XD "node_modules" "tests" | Out-Null
+}
 
 # Add 404 pages
 $templateFiles = Get-ChildItem .\ui\templates\*.template -File

@@ -1,0 +1,33 @@
+{
+  "name": "gaminggaiden",
+  "version": "1.0.0",
+  "description": "<div style=\"text-align: center;\">",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "esbuild src/app.ts --bundle --outfile=resources/js/app.js --platform=browser --format=iife",
+    "pretest": "npm run build",
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrFranksJr/GamingGaiden.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MrFranksJr/GamingGaiden/issues"
+  },
+  "homepage": "https://github.com/MrFranksJr/GamingGaiden#readme",
+  "devDependencies": {
+    "esbuild": "^0.28.1",
+    "jsdom": "^29.0.2",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
+  }
+}

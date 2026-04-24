@@ -52,6 +52,31 @@ function UpdateAllStatsInBackground() {
     RenderGamesPerPC -InBackground $true
     RenderMostPlayed -InBackground $true
     RenderSessionHistory -InBackground $true
+
+    # Phase 1: Export data to JSON
+    Export-GameDataToJson
+}
+
+function Invoke-SPA
+{
+    param([string]$Hash)
+    $workingDirectory = (Get-Location).Path
+    $spaPath = Join-Path $workingDirectory "frontend\index.html"
+    if (Test-Path $spaPath)
+    {
+        $fullPath = (Get-Item $spaPath).FullName
+        $url = "file:///$($fullPath.Replace('\', '/') )"
+        if ($Hash)
+        {
+            $url += "#$Hash"
+        }
+        Start-Process $url
+    }
+    else
+    {
+        Log "Error: SPA not found at $spaPath"
+        ShowMessage "Error: SPA not found at $spaPath" "Ok" "Error"
+    }
 }
 
 function RenderGameList() {

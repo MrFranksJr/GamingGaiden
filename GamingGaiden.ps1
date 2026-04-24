@@ -19,6 +19,7 @@ try {
     Import-Module ".\modules\SettingsFunctions.psm1"
     Import-Module ".\modules\SetupDatabase.psm1"
     Import-Module ".\modules\StorageFunctions.psm1"
+    Import-Module ".\modules\DataExport.psm1"
     Import-Module ".\modules\UIFunctions.psm1"
 
     #------------------------------------------
@@ -95,10 +96,21 @@ try {
 
     #------------------------------------------
     # Initialize theme.css on startup (default to light theme)
-    $themePath = ".\ui\resources\css\theme.css"
-    if (-not (Test-Path $themePath)) {
-        $defaultThemePath = ".\ui\resources\css\theme-light.css"
-        Copy-Item -Path $defaultThemePath -Destination $themePath -Force
+    $themePaths = @(".\ui\resources\css\theme.css", ".\frontend\resources\css\theme.css")
+    foreach ($themePath in $themePaths)
+    {
+        if (-not (Test-Path $themePath))
+        {
+            $dir = Split-Path $themePath
+            if (Test-Path $dir)
+            {
+                $defaultThemePath = Join-Path $dir "theme-light.css"
+                if (Test-Path $defaultThemePath)
+                {
+                    Copy-Item -Path $defaultThemePath -Destination $themePath -Force
+                }
+            }
+        }
     }
 
     #------------------------------------------
@@ -106,6 +118,7 @@ try {
     $TrackerJobInitializationScript = {
         Import-Module ".\modules\PSSQLite";
         Import-Module ".\modules\HelperFunctions.psm1";
+        Import-Module ".\modules\DataExport.psm1";
         Import-Module ".\modules\UIFunctions.psm1";
         Import-Module ".\modules\ProcessFunctions.psm1";
         Import-Module ".\modules\QueryFunctions.psm1";
@@ -245,12 +258,20 @@ try {
     $openInstallDirectoryMenuItem = CreateMenuItem "Open Install Directory"
     $lightThemeMenuItem = CreateMenuItem "Light Theme"
     $darkThemeMenuItem = CreateMenuItem "Dark Theme"
+
+    $developerModeMenuItem = CreateMenuItem "Developer Mode: OFF"
+    if ((Read-Setting "developer_mode") -eq "true")
+    {
+        $developerModeMenuItem.Text = "Developer Mode: ON"
+    }
     $settingsSubMenuItem.DropDownItems.Add($addGameMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($editGameMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($menuItemSeparator1)
     $settingsSubMenuItem.DropDownItems.Add($lightThemeMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($darkThemeMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($menuItemSeparator7)
+    $settingsSubMenuItem.DropDownItems.Add($developerModeMenuItem)
+    $settingsSubMenuItem.DropDownItems.Add($menuItemSeparator8)
     $settingsSubMenuItem.DropDownItems.Add($gamingPCMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($openInstallDirectoryMenuItem)
     
@@ -287,10 +308,18 @@ try {
     #------------------------------------------
     # Setup Tray Icon Context Menu Actions
     $allGamesMenuItem.Add_Click({
+        if ((Read-Setting "developer_mode") -eq "true")
+        {
+            Invoke-SPA "all-games"
+        }
+        else
+        {
             $gamesCheckResult = RenderGameList
-            if ($gamesCheckResult -ne $false) {
+            if ($gamesCheckResult -ne $false)
+            {
                 Invoke-Item ".\ui\AllGames.html"
             }
+        }
         })
 
     $StartTrackerMenuItem.Add_Click({
@@ -323,17 +352,33 @@ try {
     #------------------------------------------
     # Statistics Sub Menu Actions
     $summaryItem.Add_Click({
+        if ((Read-Setting "developer_mode") -eq "true")
+        {
+            Invoke-SPA "summary"
+        }
+        else
+        {
             $sessionVsPlaytimeCheckResult = RenderSummary
-            if ($sessionVsPlaytimeCheckResult -ne $false) {
+            if ($sessionVsPlaytimeCheckResult -ne $false)
+            {
                 Invoke-Item ".\ui\Summary.html"
             }
+        }
         })
 
     $gamingTimeMenuItem.Add_Click({
+        if ((Read-Setting "developer_mode") -eq "true")
+        {
+            Invoke-SPA "gaming-time"
+        }
+        else
+        {
             $gameTimeCheckResult = RenderGamingTime
-            if ($gameTimeCheckResult -ne $false) {
+            if ($gameTimeCheckResult -ne $false)
+            {
                 Invoke-Item ".\ui\GamingTime.html"
             }
+        }
         })
 
     $gamesPerPCMenuItem.Add_Click({
@@ -352,10 +397,18 @@ try {
 
 
     $sessionHistoryMenuItem.Add_Click({
+        if ((Read-Setting "developer_mode") -eq "true")
+        {
+            Invoke-SPA "session-history"
+        }
+        else
+        {
             $sessionHistoryCheckResult = RenderSessionHistory
-            if ($sessionHistoryCheckResult -ne $false) {
+            if ($sessionHistoryCheckResult -ne $false)
+            {
                 Invoke-Item ".\ui\SessionHistory.html"
             }
+        }
         })
 
     #------------------------------------------
@@ -413,6 +466,23 @@ try {
             ShowMessage "Dark Theme applied. Refresh pages for effect." "Ok" "Info"
         })
 
+    $developerModeMenuItem.Add_Click({
+        $currentMode = Read-Setting "developer_mode"
+        if ($currentMode -eq "true")
+        {
+            Write-Setting "developer_mode" "false"
+            $developerModeMenuItem.Text = "Developer Mode: OFF"
+            ShowMessage "Developer Mode disabled. Switched to legacy UI." "Ok" "Info"
+        }
+        else
+        {
+            Write-Setting "developer_mode" "true"
+            $developerModeMenuItem.Text = "Developer Mode: ON"
+            Export-GameDataToJson
+            ShowMessage "Developer Mode enabled. Switched to dynamic UI." "Ok" "Info"
+        }
+    })
+
     #------------------------------------------
     # Launch Application
     Log "Starting tracker on app boot"
@@ -443,3 +513,4 @@ catch {
     Log "Error: A fatal error has caused an exception. Exception: $($_.Exception.Message)"
     exit 1;
 }
+

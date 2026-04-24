@@ -1,0 +1,49 @@
+/* Common Navigation Bar Styles */
+#navigation-bar {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1840px;
+  margin: 0 auto;
+  flex-shrink: 0;
+  gap: 10px;
+}
+
+#navigation-bar .custom-button {
+  flex: 1;
+  min-width: 0;
+  margin: 0 5px;
+}
+
+.help-button {
+  flex: 0 0 50px !important;
+  background-color: var(--accent-blue) !important;
+  color: var(--text-inverse) !important;
+  font-weight: bold;
+  font-size: 20px !important;
+}
+
+.game-status-icon {
+  border-radius: 6px;
+  width: 80%;
+}
+
+.icon-finished {
+  background: linear-gradient(135deg, #4ade80, #16a34a);
+}
+
+.icon-forever {
+  background: linear-gradient(135deg, #a78bfa, #6366f1);
+}
+
+.icon-onhold {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+
+.icon-dropped {
+  background: linear-gradient(135deg, #f87171, #dc2626);
+}
+
+.icon-playing {
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+}
