@@ -57,6 +57,7 @@ Write-Host "Syncing source files (modules, icons, ui)..." -ForegroundColor Cyan
 # Sync modules and icons (complete mirror)
 robocopy (Join-Path $SourceDirectory "modules") (Join-Path $InstallDirectory "modules") /MIR /R:3 /W:5 /NP /NDL /NJH /NJS | Out-Null
 robocopy (Join-Path $SourceDirectory "icons") (Join-Path $InstallDirectory "icons") /MIR /R:3 /W:5 /NP /NDL /NJH /NJS | Out-Null
+robocopy (Join-Path $SourceDirectory "frontend") (Join-Path $InstallDirectory "frontend") /MIR /R:3 /W:5 /NP /NDL /NJH /NJS /XD "node_modules" "tests" | Out-Null
 
 # Sync UI folder but protect the generated HTML files from being purged!
 # We mirror resources but exclude purging of .html files because they are generated in the build step

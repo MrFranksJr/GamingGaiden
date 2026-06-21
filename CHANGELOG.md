@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.06.21] - 2026-06-21
+
+### Added
+
+- Integrated `esbuild` to bundle the Phase 4 Frontend Rework into a single IIFE for better browser compatibility on
+  `file:///` URIs.
+- Added a `data.js` export fallback to ensure the SPA can load data when `fetch` is restricted by local file security.
+
+### Fixed
+
+- Resolved "CORS policy" and "Unsafe attempt to load URL" errors in Chromium-based browsers (Chrome, Brave, Edge) when
+  running the new SPA from disk.
+
 ## [2026.03.21] - 2026-03-21
 
 ### Added

@@ -1,4 +1,4 @@
-﻿function Log($MSG) {
+function Log($MSG) {
     $mutex = New-Object System.Threading.Mutex($false, "LogFileLock")
 
     if ($mutex.WaitOne(500)) {
@@ -120,12 +120,12 @@ function BackupDatabase {
     Get-ChildItem -Path .\backups -File | Sort-Object -Property CreationTime | Select-Object -SkipLast 5 | Remove-Item
 }
 
-function RunDBQuery ($Query, $SQLParameters = $null) {
+function RunDBQuery ($Query, $SQLParameters = $null, $DatabasePath = ".\GamingGaiden.db") {
     if ($null -eq $SQLParameters) {
-        $result = Invoke-SqliteQuery -Query $Query -DataBase ".\GamingGaiden.db"
+        $result = Invoke-SqliteQuery -Query $Query -DataBase $DatabasePath
     }
     else {
-        $result = Invoke-SqliteQuery -Query $Query -DataBase ".\GamingGaiden.db" -SqlParameters $SQLParameters
+        $result = Invoke-SqliteQuery -Query $Query -DataBase $DatabasePath -SqlParameters $SQLParameters
     }
     return $result
 }
