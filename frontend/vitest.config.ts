@@ -5,4 +5,9 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['tests/**/*.test.ts'],
   },
+  server: {
+    fs: {
+      allow: ['..'],
+    },
+  },
 })

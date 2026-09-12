@@ -205,6 +205,19 @@ td:nth-child(5):has(.icon-dropped)::after { content: "Dropped"; }
 td:nth-child(5):has(.icon-onhold)::after { content: "On Hold"; }
 td:nth-child(5):has(.icon-forever)::after { content: "Forever"; }
 
+/* Keep the status text available to DataTables and assistive technology without showing it beside the icon. */
+.status-sort-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Define specific styles for the Gaming PC column */
 td:nth-child(6) {
   width: auto;

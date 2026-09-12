@@ -139,18 +139,18 @@ function RenderGameList() {
             $gamingPCs = $pcArray -join '<br/>'
         }
 
-        $statusUri = "<img class=`"game-status-icon icon-finished`" src=`".\resources\images\finished.svg`">"
+        $statusUri = "<img class=`"game-status-icon icon-finished`" src=`".\resources\images\finished.svg`" alt=`"Finished`"><span class=`"status-sort-label`">Finished</span>"
         if ($gameRecord.completed -eq 'FALSE') {
-            $statusUri = "<img class=`"game-status-icon icon-playing`" src=`".\resources\images\playing.svg`">"
+            $statusUri = "<img class=`"game-status-icon icon-playing`" src=`".\resources\images\playing.svg`" alt=`"Playing`"><span class=`"status-sort-label`">Playing</span>"
         }
         if ($gameRecord.status -eq 'dropped') {
-            $statusUri = "<img class=`"game-status-icon icon-dropped`" src=`".\resources\images\dropped.svg`">"
+            $statusUri = "<img class=`"game-status-icon icon-dropped`" src=`".\resources\images\dropped.svg`" alt=`"Dropped`"><span class=`"status-sort-label`">Dropped</span>"
         }
         if ($gameRecord.status -eq 'hold') {
-            $statusUri = "<img class=`"game-status-icon icon-onhold`" src=`".\resources\images\hold.svg`">"
+            $statusUri = "<img class=`"game-status-icon icon-onhold`" src=`".\resources\images\hold.svg`" alt=`"On Hold`"><span class=`"status-sort-label`">On Hold</span>"
         }
         if ($gameRecord.status -eq 'forever') {
-            $statusUri = "<img class=`"game-status-icon icon-forever`" src=`".\resources\images\forever.svg`">"
+            $statusUri = "<img class=`"game-status-icon icon-forever`" src=`".\resources\images\forever.svg`" alt=`"Forever`"><span class=`"status-sort-label`">Forever</span>"
         }
 
         $currentGame = [Game]::new($iconUri, $name, $gameRecord.play_time, $gameRecord.session_count, $statusUri, $gameRecord.last_play_date, $gamingPCs)
