@@ -9,6 +9,7 @@ export interface Game {
     icon_path?: string | null;
     gaming_pc_name?: string | null;
     release_date?: string | null;
+    finish_date?: string | null;
 }
 
 export interface Session {

@@ -9,18 +9,20 @@
         [string]$GameSessionCount,
         [string]$GameStatus = "",
         [string]$GameGamingPCName = "",
-        [string]$GameReleaseDate = ""
+        [string]$GameReleaseDate = "",
+        [string]$GameFinishDate = ""
     )
 
     $gameIconBytes = (Get-Content -Path $GameIconPath -Encoding byte -Raw);
 
-    $addGameQuery = "INSERT INTO games (name, exe_name, icon, play_time, last_play_date, completed, session_count, status, gaming_pc_name, release_date)" +
-    "VALUES (@GameName, @GameExeName, @gameIconBytes, @GamePlayTime, @GameLastPlayDate, @GameCompleteStatus, @GameSessionCount, @GameStatus, @GameGamingPCName, @GameReleaseDate)"
+    $addGameQuery = "INSERT INTO games (name, exe_name, icon, play_time, last_play_date, completed, session_count, status, gaming_pc_name, release_date, finish_date)" +
+            "VALUES (@GameName, @GameExeName, @gameIconBytes, @GamePlayTime, @GameLastPlayDate, @GameCompleteStatus, @GameSessionCount, @GameStatus, @GameGamingPCName, @GameReleaseDate, @GameFinishDate)"
 
     $gameNamePattern = SQLEscapedMatchPattern($GameName.Trim())
     $setGameStatusNull = "UPDATE games SET status = @GameStatus WHERE name LIKE '{0}'" -f $gameNamePattern
     $setGamingPCNameNull = "UPDATE games SET gaming_pc_name = @GameGamingPCName WHERE name LIKE '{0}'" -f $gameNamePattern
     $setReleaseDateNull = "UPDATE games SET release_date = @GameReleaseDate WHERE name LIKE '{0}'" -f $gameNamePattern
+    $setFinishDateNull = "UPDATE games SET finish_date = @GameFinishDate WHERE name LIKE '{0}'" -f $gameNamePattern
 
     Log "Adding $GameName in Database"
 
@@ -35,6 +37,7 @@
         GameStatus         = $GameStatus
         GameGamingPCName   = $GameGamingPCName.Trim()
         GameReleaseDate    = $GameReleaseDate
+        GameFinishDate = $GameFinishDate
     }
 
     # Have to set Null Values after the Save for clean code, bcause the following doesn't work
@@ -62,6 +65,13 @@
     if ($GameReleaseDate -eq "") {
         RunDBQuery $setReleaseDateNull @{
             GameReleaseDate = [System.DBNull]::Value
+        }
+    }
+
+    if ($GameFinishDate -eq "")
+    {
+        RunDBQuery $setFinishDateNull @{
+            GameFinishDate = [System.DBNull]::Value
         }
     }
 
@@ -142,7 +152,8 @@ function UpdateGameOnEdit() {
         [string]$GameCompleteStatus,
         [string]$GameStatus,
         [string]$GameGamingPCName = "",
-        [string]$GameReleaseDate = ""
+        [string]$GameReleaseDate = "",
+        [string]$GameFinishDate = ""
     )
 
     $gameIconBytes = (Get-Content -Path $GameIconPath -Encoding byte -Raw);
@@ -150,10 +161,11 @@ function UpdateGameOnEdit() {
     $gameNamePattern = SQLEscapedMatchPattern($OriginalGameName.Trim())
 
     if ( $OriginalGameName -eq $GameName) {
-        $updateGameQuery = "UPDATE games SET exe_name = @GameExeName, icon = @gameIconBytes, play_time = @GamePlayTime, completed = @GameCompleteStatus, status = @GameStatus, gaming_pc_name = @GameGamingPCName, release_date = @GameReleaseDate WHERE name LIKE '{0}'" -f $gameNamePattern
+        $updateGameQuery = "UPDATE games SET exe_name = @GameExeName, icon = @gameIconBytes, play_time = @GamePlayTime, completed = @GameCompleteStatus, status = @GameStatus, gaming_pc_name = @GameGamingPCName, release_date = @GameReleaseDate, finish_date = @GameFinishDate WHERE name LIKE '{0}'" -f $gameNamePattern
         
         $setGamingPCNameNull = "UPDATE games SET gaming_pc_name = @GameGamingPCName WHERE name LIKE '{0}'" -f $gameNamePattern
         $setReleaseDateNull = "UPDATE games SET release_date = @GameReleaseDate WHERE name LIKE '{0}'" -f $gameNamePattern
+        $setFinishDateNull = "UPDATE games SET finish_date = @GameFinishDate WHERE name LIKE '{0}'" -f $gameNamePattern
 
         Log "Editing $GameName in database"
         RunDBQuery $updateGameQuery @{
@@ -164,6 +176,7 @@ function UpdateGameOnEdit() {
             GameStatus         = $GameStatus
             GameGamingPCName   = $GameGamingPCName.Trim()
             GameReleaseDate    = $GameReleaseDate
+            GameFinishDate = $GameFinishDate
         }
 
         if ($GameGamingPCName -eq "") {
@@ -175,6 +188,13 @@ function UpdateGameOnEdit() {
         if ($GameReleaseDate -eq "") {
             RunDBQuery $setReleaseDateNull @{
                 GameReleaseDate = [System.DBNull]::Value
+            }
+        }
+
+        if ($GameFinishDate -eq "")
+        {
+            RunDBQuery $setFinishDateNull @{
+                GameFinishDate = [System.DBNull]::Value
             }
         }
     }
@@ -192,7 +212,7 @@ function UpdateGameOnEdit() {
         if ($null -eq $gameReleaseDate) { $gameReleaseDate = "" }
 
         SaveGame -GameName $GameName -GameExeName $GameExeName -GameIconPath $GameIconPath `
-            -GamePlayTime $GamePlayTime -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus $GameCompleteStatus -GameSessionCount $gameSessionCount -GameStatus $GameStatus -GameGamingPCName $GameGamingPCName -GameReleaseDate $gameReleaseDate
+            -GamePlayTime $GamePlayTime -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus $GameCompleteStatus -GameSessionCount $gameSessionCount -GameStatus $GameStatus -GameGamingPCName $GameGamingPCName -GameReleaseDate $gameReleaseDate -GameFinishDate $GameFinishDate
 
         $updateSessionHistoryQuery = "UPDATE session_history SET game_name = @NewGameName WHERE game_name LIKE '{0}'" -f $gameNamePattern
         Log "Updating session history references from $OriginalGameName to $GameName"

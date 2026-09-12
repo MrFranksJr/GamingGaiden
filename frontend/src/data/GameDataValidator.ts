@@ -58,7 +58,8 @@ function parseGame(value: unknown): Game | null {
         last_play_date: optionalDateValue(value.last_play_date),
         icon_path: optionalString(value.icon_path),
         gaming_pc_name: optionalString(value.gaming_pc_name),
-        release_date: optionalString(value.release_date)
+        release_date: optionalString(value.release_date),
+        finish_date: optionalString(value.finish_date)
     };
 }
 

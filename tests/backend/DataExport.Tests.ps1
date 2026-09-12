@@ -42,7 +42,7 @@ Describe "DataExport Module" {
                 param($Query)
                 if ($Query -like "*FROM games*") {
                     return @(
-                        [PSCustomObject]@{ name = "Game 1"; icon = [byte[]](255, 216, 255); play_time = 100; session_count = 5; completed = "TRUE"; last_play_date = "2023-01-01"; status = "finished"; gaming_pc_name = "PC1" },
+                        [PSCustomObject]@{ name = "Game 1"; icon = [byte[]](255, 216, 255); play_time = 100; session_count = 5; completed = "TRUE"; last_play_date = "2023-01-01"; finish_date = "2023-01-03"; status = "finished"; gaming_pc_name = "PC1" },
                         [PSCustomObject]@{ name = "Game 2"; play_time = 50; session_count = 2; completed = "FALSE"; last_play_date = "2023-01-02"; status = "playing"; gaming_pc_name = "PC1,PC2" }
                     )
                 }
@@ -102,6 +102,7 @@ Describe "DataExport Module" {
             $jsData.hash | Should Be $content.hash
             $content.games.Count | Should Be 2
             $content.games[0].name | Should Be "Game 1"
+            $content.games[0].finish_date | Should Be "2023-01-03"
             $content.session_history.Count | Should Be 2
             $content.gaming_pcs.Count | Should Be 2
 

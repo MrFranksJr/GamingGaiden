@@ -41,3 +41,6 @@ Core entry requirements:
 
 Adding optional fields does not require a schema bump. Removing or renaming fields, changing their meaning, or making
 previously valid data invalid requires a new schema version and an explicit compatibility path in the validator.
+
+`Game.finish_date` is an optional ISO calendar date (`yyyy-MM-dd`) recording when a game was finished. It is separate
+from `last_play_date`, which is updated by tracked play sessions.

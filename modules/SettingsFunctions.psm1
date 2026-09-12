@@ -41,7 +41,7 @@ function RefreshPCListBox {
 
 function RenderEditGameForm($GamesList) {
 
-    $editGameForm = CreateForm "Gaming Gaiden: Edit Game" 865 385 ".\icons\running.ico"
+    $editGameForm = CreateForm "Gaming Gaiden: Edit Game" 865 445 ".\icons\running.ico"
 
     $imagePath = "./icons/default.png"
 
@@ -106,16 +106,29 @@ function RenderEditGameForm($GamesList) {
 
     $editGameForm.Controls.Add($listboxGamingPC)
 
+    $labelStatus = Createlabel "Status:" 170 270;$editGameForm.Controls.Add($labelStatus)
+
     $checkboxCompleted = New-Object Windows.Forms.CheckBox
     $checkboxCompleted.Text = "Finished"
-    $checkboxCompleted.Top = 215
-    $checkboxCompleted.Left = 470
+    $checkboxCompleted.Top = 270
+    $checkboxCompleted.Left = 245
     $editGameForm.Controls.Add($checkboxCompleted)
+
+    $labelFinishDate = Createlabel "Finished Date:" 355 275; $labelFinishDate.Visible = $false;$editGameForm.Controls.Add($labelFinishDate)
+    $datePickerFinishDate = New-Object System.Windows.Forms.DateTimePicker
+    $datePickerFinishDate.Location = New-Object System.Drawing.Point(435, 275)
+    $datePickerFinishDate.Size = New-Object System.Drawing.Size(140, 20)
+    $datePickerFinishDate.Format = [System.Windows.Forms.DateTimePickerFormat]::Short
+    $datePickerFinishDate.ShowCheckBox = $true
+    $datePickerFinishDate.Checked = $false
+    $datePickerFinishDate.Enabled = $false
+    $datePickerFinishDate.Visible = $false
+    $editGameForm.Controls.Add($datePickerFinishDate)
 
     $checkboxDropped = New-Object Windows.Forms.CheckBox
     $checkboxDropped.Text = "Dropped"
-    $checkboxDropped.Top = 235
-    $checkboxDropped.Left = 470
+    $checkboxDropped.Top = 290
+    $checkboxDropped.Left = 245
     $checkboxDropped.Add_CheckedChanged({
             if ($checkboxDropped.Checked) {
                 $checkboxCompleted.Checked = $true
@@ -133,8 +146,8 @@ function RenderEditGameForm($GamesList) {
 
     $checkboxHold = New-Object Windows.Forms.CheckBox
     $checkboxHold.Text = "Pick Up Later"
-    $checkboxHold.Top = 255
-    $checkboxHold.Left = 470
+    $checkboxHold.Top = 310
+    $checkboxHold.Left = 245
     $checkboxHold.Add_CheckedChanged({
             if ($checkboxHold.Checked) {
                 $checkboxCompleted.Checked = $true
@@ -152,8 +165,8 @@ function RenderEditGameForm($GamesList) {
 
     $checkboxForever = New-Object Windows.Forms.CheckBox
     $checkboxForever.Text = "Forever Game"
-    $checkboxForever.Top = 275
-    $checkboxForever.Left = 470
+    $checkboxForever.Top = 330
+    $checkboxForever.Left = 245
     $checkboxForever.Add_CheckedChanged({
             if ($checkboxForever.Checked) {
                 $checkboxCompleted.Checked = $true
@@ -168,6 +181,17 @@ function RenderEditGameForm($GamesList) {
             }
         })
     $editGameForm.Controls.Add($checkboxForever)
+
+    $updateFinishDatePickerState = {
+        $showFinishDate = $checkboxCompleted.Checked -and -not ($checkboxDropped.Checked -or $checkboxHold.Checked -or $checkboxForever.Checked)
+        $labelFinishDate.Visible = $showFinishDate
+        $datePickerFinishDate.Visible = $showFinishDate
+        $datePickerFinishDate.Enabled = $showFinishDate
+    }
+    $checkboxCompleted.Add_CheckedChanged($updateFinishDatePickerState)
+    $checkboxDropped.Add_CheckedChanged($updateFinishDatePickerState)
+    $checkboxHold.Add_CheckedChanged($updateFinishDatePickerState)
+    $checkboxForever.Add_CheckedChanged($updateFinishDatePickerState)
 
     $labelPictureBox = Createlabel "Game Icon" 57 200; $editGameForm.Controls.Add($labelPictureBox)
     $pictureBox = CreatePictureBox $imagePath 15 40 140 140
@@ -185,6 +209,22 @@ function RenderEditGameForm($GamesList) {
             } else {
                 $datePickerReleaseDate.Checked = $false
             }
+            if ($null -ne $selectedGame.finish_date -and $selectedGame.finish_date -ne "")
+            {
+                try
+                {
+                    $datePickerFinishDate.Value = [datetime]::ParseExact($selectedGame.finish_date, "yyyy-MM-dd", $null)
+                    $datePickerFinishDate.Checked = $true
+                }
+                catch
+                {
+                    $datePickerFinishDate.Checked = $false
+                }
+            }
+            else
+            {
+                $datePickerFinishDate.Checked = $false
+            }
             $checkboxCompleted.Checked = ($selectedGame.completed -eq 'TRUE')
             $checkboxDropped.Checked = ($selectedGame.status -eq 'dropped')
             $checkboxHold.Checked = ($selectedGame.status -eq 'hold')
@@ -193,6 +233,7 @@ function RenderEditGameForm($GamesList) {
             if ($checkboxForever.Checked -or $checkboxHold.Checked -or $checkboxDropped.Checked) {
                 $checkboxCompleted.Enabled = $false
             }
+            & $updateFinishDatePickerState
 
             $textPlayTime.Text = PlayTimeMinsToString $selectedGame.play_time
 
@@ -297,7 +338,7 @@ function RenderEditGameForm($GamesList) {
         })
     $editGameForm.Controls.Add($buttonRemove)
 
-    $buttonOK = CreateButton "OK" 245 310
+    $buttonOK = CreateButton "OK" 245 370
     $buttonOK.Add_Click({
             $currentlySelectedIndex = $listBox.SelectedIndex
 
@@ -308,6 +349,14 @@ function RenderEditGameForm($GamesList) {
             }
 
             $gameReleaseDate = if ($datePickerReleaseDate.Checked) { $datePickerReleaseDate.Value.ToString("yyyy-MM-dd") } else { "" }
+            $gameFinishDate = if ($datePickerFinishDate.Checked)
+            {
+                $datePickerFinishDate.Value.ToString("yyyy-MM-dd")
+            }
+            else
+            {
+                ""
+            }
 
             $gameName = $textName.Text
 
@@ -335,7 +384,7 @@ function RenderEditGameForm($GamesList) {
             }
             $gameGamingPCName = $selectedPCs -join ','
 
-            UpdateGameOnEdit -OriginalGameName $textOriginalGameName.Text -GameName $gameName -GameExeName $gameExeName -GameIconPath $pictureBoxImagePath.Text -GamePlayTime $playTimeInMin -GameCompleteStatus $gameCompleteStatus -GameStatus $gameStatus -GameGamingPCName $gameGamingPCName -GameReleaseDate $gameReleaseDate
+            UpdateGameOnEdit -OriginalGameName $textOriginalGameName.Text -GameName $gameName -GameExeName $gameExeName -GameIconPath $pictureBoxImagePath.Text -GamePlayTime $playTimeInMin -GameCompleteStatus $gameCompleteStatus -GameStatus $gameStatus -GameGamingPCName $gameGamingPCName -GameReleaseDate $gameReleaseDate -GameFinishDate $gameFinishDate
 
             ShowMessage "Updated '$gameName' in Database." "OK" "Asterisk"
 
@@ -352,7 +401,7 @@ function RenderEditGameForm($GamesList) {
         })
     $editGameForm.Controls.Add($buttonOK)
 
-    $buttonCancel = CreateButton "Cancel" 370 310;
+    $buttonCancel = CreateButton "Cancel" 370 370;
     $buttonCancel.Add_Click({
             $textSearch.Remove_TextChanged({})
             $listBox.Remove_SelectedIndexChanged({})

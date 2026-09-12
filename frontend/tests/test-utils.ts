@@ -15,6 +15,7 @@ export const mockData: GameData = {
         session_count: 2,
         status: "finished",
         completed: "TRUE",
+        finish_date: "2026-09-01",
         icon_path: "resources/images/cache/Game_B.jpg"
     }],
     session_history: [{game_name: "Game A", start_time: "2023-01-01 10:00", duration: 30}, {

@@ -101,6 +101,14 @@
         }
         # End Migration 7
 
+        # Migration 13 - Add an optional, date-only completion date
+        if (-Not $gamesTableSchema.name.Contains("finish_date"))
+        {
+            $addFinishDateColumnQuery = "ALTER TABLE games ADD COLUMN finish_date TEXT"
+            Invoke-SqliteQuery -Query $addFinishDateColumnQuery -SQLiteConnection $dbConnection
+        }
+        # End Migration 13
+
         # Migration 8 - Merge idle_time into play_time before removing idle time feature
         $gamesTableSchema = Invoke-SqliteQuery -query "PRAGMA table_info('games')" -SQLiteConnection $dbConnection
         if ($gamesTableSchema.name.Contains("idle_time")) {

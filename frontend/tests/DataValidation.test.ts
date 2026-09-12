@@ -36,6 +36,12 @@ describe("Data Validation", () => {
         expect(result.warnings).toEqual([]);
     });
 
+    it("accepts an optional finish date", () => {
+        const result = validateGameData(mockData);
+
+        expect(result.data.games[1].finish_date).toBe("2026-09-01");
+    });
+
     it("accepts exports created before schema versioning", () => {
         const legacyData = {...mockData} as Partial<GameData>;
         delete legacyData.schema_version;
