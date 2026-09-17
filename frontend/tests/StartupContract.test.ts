@@ -21,6 +21,21 @@ describe("local-file startup contract", () => {
         ]);
     });
 
+    it("renders the controller logo next to the title in the sidebar header", () => {
+        const html = readFileSync(resolve("index.html"), "utf8");
+        const document = new DOMParser().parseFromString(html, "text/html");
+        const header = document.querySelector(".sidebar-header");
+        expect(header).not.toBeNull();
+
+        const logo = header?.querySelector<HTMLImageElement>("img.app-logo");
+        expect(logo).not.toBeNull();
+        expect(logo?.getAttribute("src")).toBe("./resources/images/favicon.ico");
+
+        const title = header?.querySelector(".app-title");
+        expect(title).not.toBeNull();
+        expect(title?.textContent?.trim()).toBe("Gaming Gaiden");
+    });
+
     it("ships a classic bundled script without browser module imports", () => {
         const bundle = readFileSync(resolve("resources/js/app.js"), "utf8");
 
