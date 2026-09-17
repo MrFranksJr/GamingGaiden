@@ -9,16 +9,15 @@
     ],
     "strict": true,
     "types": [
-      "vitest/globals"
-    ],
-    "rootDir": "src",
-    "outDir": "resources/js"
+      "vitest/globals",
+      "node"
+    ]
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "tests/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "tests"
+    "node_modules"
   ]
 }

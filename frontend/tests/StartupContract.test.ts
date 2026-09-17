@@ -1,6 +1,7 @@
 import {readFileSync} from "node:fs";
 import {resolve} from "node:path";
 import {afterEach, describe, expect, it} from "vitest";
+import "../src/types/GameData";
 
 describe("local-file startup contract", () => {
     afterEach(() => {
@@ -34,6 +35,43 @@ describe("local-file startup contract", () => {
         const title = header?.querySelector(".app-title");
         expect(title).not.toBeNull();
         expect(title?.textContent?.trim()).toBe("Gaming Gaiden");
+    });
+
+    it("includes font-awesome stylesheet and bars icon for sidebar toggle", () => {
+        const html = readFileSync(resolve("index.html"), "utf8");
+        const document = new DOMParser().parseFromString(html, "text/html");
+        const stylesheets = Array.from(document.querySelectorAll("link[rel='stylesheet']")).map(link => link.getAttribute("href"));
+        expect(stylesheets).toContain("./resources/fontawesome/css/all.min.css");
+
+        const toggleBtn = document.getElementById("sidebar-toggle");
+        expect(toggleBtn).not.toBeNull();
+        const icon = toggleBtn?.querySelector("i.fa-solid.fa-bars");
+        expect(icon).not.toBeNull();
+    });
+
+    it("uses font-awesome icons for all sidebar navigation items", () => {
+        const html = readFileSync(resolve("index.html"), "utf8");
+        const document = new DOMParser().parseFromString(html, "text/html");
+
+        expect(document.querySelector("a[href='#summary'] .nav-icon i.fa-solid.fa-clipboard-list")).not.toBeNull();
+        expect(document.querySelector("a[href='#all-games'] .nav-icon i.fa-solid.fa-gamepad")).not.toBeNull();
+        expect(document.querySelector("a[href='#gaming-time'] .nav-icon i.fa-solid.fa-stopwatch")).not.toBeNull();
+        expect(document.querySelector("a[href='#session-history'] .nav-icon i.fa-solid.fa-calendar")).not.toBeNull();
+    });
+
+    it("defines playstation button colors and active sidebar icon rules", () => {
+        const themeCss = readFileSync(resolve("resources/css/theme.css"), "utf8");
+        const commonCss = readFileSync(resolve("resources/css/common.css"), "utf8");
+
+        expect(themeCss).toContain("--ps-triangle-green");
+        expect(themeCss).toContain("--ps-circle-red");
+        expect(themeCss).toContain("--ps-cross-blue");
+        expect(themeCss).toContain("--ps-square-pink");
+
+        expect(commonCss).toContain('.nav-link[href="#summary"].active .nav-icon');
+        expect(commonCss).toContain('.nav-link[href="#all-games"].active .nav-icon');
+        expect(commonCss).toContain('.nav-link[href="#gaming-time"].active .nav-icon');
+        expect(commonCss).toContain('.nav-link[href="#session-history"].active .nav-icon');
     });
 
     it("ships a classic bundled script without browser module imports", () => {

@@ -24,6 +24,12 @@
     --accent-blue-dark: #1976D2;
     --accent-blue-light: #e3f2fd;
     --accent-link-hover: #0066ee;
+
+    /* PlayStation Button Colors */
+    --ps-triangle-green: #00b060;
+    --ps-circle-red: #f03c47;
+    --ps-cross-blue: #0070d1;
+    --ps-square-pink: #e02475;
 }
 
 * {
@@ -106,7 +112,7 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     padding: 0;
     flex-shrink: 0;
     transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
@@ -216,6 +222,28 @@ body {
     justify-content: center;
     width: 20px;
     flex-shrink: 0;
+    transition: color 0.15s ease;
+}
+
+/* Active PlayStation Icon Colors */
+.sidebar-menu .nav-link[data-route="#summary"].active .nav-icon,
+.sidebar-menu .nav-link[href="#summary"].active .nav-icon {
+    color: var(--ps-triangle-green);
+}
+
+.sidebar-menu .nav-link[data-route="#all-games"].active .nav-icon,
+.sidebar-menu .nav-link[href="#all-games"].active .nav-icon {
+    color: var(--ps-circle-red);
+}
+
+.sidebar-menu .nav-link[data-route="#gaming-time"].active .nav-icon,
+.sidebar-menu .nav-link[href="#gaming-time"].active .nav-icon {
+    color: var(--ps-cross-blue);
+}
+
+.sidebar-menu .nav-link[data-route="#session-history"].active .nav-icon,
+.sidebar-menu .nav-link[href="#session-history"].active .nav-icon {
+    color: var(--ps-square-pink);
 }
 
 .sidebar-menu .nav-label {

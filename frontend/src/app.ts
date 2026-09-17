@@ -57,14 +57,10 @@ export function initSidebarToggle(): () => void {
             sidebar.classList.add("collapsed");
             toggleBtn.setAttribute("aria-expanded", "false");
             toggleBtn.setAttribute("title", "Expand sidebar");
-            const icon = toggleBtn.querySelector(".toggle-icon");
-            if (icon) icon.textContent = "▶";
         } else {
             sidebar.classList.remove("collapsed");
             toggleBtn.setAttribute("aria-expanded", "true");
             toggleBtn.setAttribute("title", "Collapse sidebar");
-            const icon = toggleBtn.querySelector(".toggle-icon");
-            if (icon) icon.textContent = "◀";
         }
         updateNavIndicatorPosition();
         if (typeof requestAnimationFrame !== "undefined") {

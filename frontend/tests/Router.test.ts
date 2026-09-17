@@ -18,17 +18,17 @@ describe('Router', () => {
                         <img src="./resources/images/favicon.ico" alt="Gaming Gaiden Logo" class="app-logo"/>
                         <h1 class="app-title">Gaming Gaiden</h1>
                         <button id="sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle navigation sidebar" aria-expanded="true" title="Collapse sidebar">
-                            <span class="toggle-icon">◀</span>
+                            <i class="fa-solid fa-bars"></i>
                         </button>
                     </div>
                     <nav class="sidebar-menu" id="sidebar-menu">
                         <div class="nav-indicator" id="nav-indicator"></div>
                         <a href="#summary" class="nav-link" data-route="#summary" title="Summary Dashboard">
-                            <span class="nav-icon">📊</span>
+                            <span class="nav-icon"><i class="fa-solid fa-clipboard-list"></i></span>
                             <span class="nav-label">Summary</span>
                         </a>
                         <a href="#all-games" class="nav-link" data-route="#all-games" title="All Games">
-                            <span class="nav-icon">🎮</span>
+                            <span class="nav-icon"><i class="fa-solid fa-gamepad"></i></span>
                             <span class="nav-label">All Games</span>
                             <span class="nav-badge games-count" id="sidebar-games-count">0</span>
                         </a>
@@ -219,12 +219,12 @@ describe('Router', () => {
 
         const sidebar = document.getElementById('sidebar-nav')!
         const toggleBtn = document.getElementById('sidebar-toggle')!
-        const toggleIcon = toggleBtn.querySelector('.toggle-icon')!
+        const toggleIcon = toggleBtn.querySelector('.fa-bars')!
 
         expect(sidebar.classList.contains('collapsed')).toBe(false)
         expect(toggleBtn.getAttribute('aria-expanded')).toBe('true')
         expect(toggleBtn.getAttribute('title')).toBe('Collapse sidebar')
-        expect(toggleIcon.textContent).toBe('◀')
+        expect(toggleIcon).not.toBeNull()
 
         // Click to collapse
         toggleBtn.click()
@@ -232,7 +232,7 @@ describe('Router', () => {
         expect(sidebar.classList.contains('collapsed')).toBe(true)
         expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')
         expect(toggleBtn.getAttribute('title')).toBe('Expand sidebar')
-        expect(toggleIcon.textContent).toBe('▶')
+        expect(toggleBtn.querySelector('.fa-bars')).not.toBeNull()
         expect(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)).toBe('true')
 
         // Click to expand again
@@ -241,7 +241,7 @@ describe('Router', () => {
         expect(sidebar.classList.contains('collapsed')).toBe(false)
         expect(toggleBtn.getAttribute('aria-expanded')).toBe('true')
         expect(toggleBtn.getAttribute('title')).toBe('Collapse sidebar')
-        expect(toggleIcon.textContent).toBe('◀')
+        expect(toggleBtn.querySelector('.fa-bars')).not.toBeNull()
         expect(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)).toBe('false')
     })
 
@@ -257,12 +257,12 @@ describe('Router', () => {
 
         const sidebar = document.getElementById('sidebar-nav')!
         const toggleBtn = document.getElementById('sidebar-toggle')!
-        const toggleIcon = toggleBtn.querySelector('.toggle-icon')!
+        const toggleIcon = toggleBtn.querySelector('.fa-bars')!
 
         expect(sidebar.classList.contains('collapsed')).toBe(true)
         expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')
         expect(toggleBtn.getAttribute('title')).toBe('Expand sidebar')
-        expect(toggleIcon.textContent).toBe('▶')
+        expect(toggleIcon).not.toBeNull()
     })
 
     it('should preserve title tooltip attributes on navigation links for collapsed mode', async () => {

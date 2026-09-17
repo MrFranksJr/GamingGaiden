@@ -8,7 +8,8 @@
     "test": "tests"
   },
   "scripts": {
-    "build": "esbuild src/app.ts --bundle --outfile=resources/js/app.js --platform=browser --format=iife",
+    "sync:fontawesome": "node scripts/sync-fontawesome.js",
+    "build": "npm run sync:fontawesome && esbuild src/app.ts --bundle --outfile=resources/js/app.js --platform=browser --format=iife",
     "pretest": "npm run build",
     "test": "vitest run"
   },
@@ -25,9 +26,13 @@
   },
   "homepage": "https://github.com/MrFranksJr/GamingGaiden#readme",
   "devDependencies": {
+    "@types/node": "^22.20.3",
     "esbuild": "^0.28.1",
     "jsdom": "^29.0.2",
     "typescript": "^6.0.3",
     "vitest": "^4.1.5"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "latest"
   }
 }

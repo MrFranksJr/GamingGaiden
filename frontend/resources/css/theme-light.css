@@ -48,6 +48,12 @@
   --status-error-light: #ef9a9a;
   --status-error-pale: #ffebee;
 
+    /* PlayStation Button Colors */
+    --ps-triangle-green: #00b060; /* Green - Triangle (Summary) */
+    --ps-circle-red: #f03c47; /* Red - Circle (All Games) */
+    --ps-cross-blue: #0070d1; /* Blue - Cross (Gaming Time) */
+    --ps-square-pink: #e02475; /* Pink - Square (Sessions) */
+
   /* Chart Colors */
   --chart-blue: rgba(55, 162, 235, 0.5);
   --chart-grid: rgba(0, 0, 0, 0.1); /* Chart grid lines */
