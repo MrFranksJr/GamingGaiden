@@ -2,11 +2,11 @@
 
 :root {
   /* Background Colors */
-  --bg-primary: #1a1a1a;           /* Main body background */
-  --bg-panel: #2a2a2a;              /* Panels, cards, secondary surfaces */
-  --bg-tertiary: #222222;          /* Calendar columns, game items, tertiary areas */
-  --bg-button: #3a3a3a;            /* Button default background */
-  --bg-button-hover: #4a4a4a;      /* Button hover state */
+    --bg-primary: #18181b; /* Main body canvas */
+    --bg-panel: #242428; /* Panels, cards, sidebar, secondary surfaces */
+    --bg-tertiary: #1e1e22; /* Calendar columns, game items, tertiary areas */
+    --bg-button: #333338; /* Button default background */
+    --bg-button-hover: #424248; /* Button hover state */
   --bg-table-stripe: #2d3a47;      /* Table row striping */
 
   /* Text Colors */
@@ -16,13 +16,20 @@
 
   /* Border Colors */
   --border-primary: #555;           /* Table headers, strong dividers */
-  --border-light: #4a4a4a;         /* All other borders, dividers, inputs */
+    --border-light: #3a3a40; /* All other borders, dividers, inputs */
 
-  /* Shadow Colors */
+    /* Shadow Colors & Tokens */
   --shadow-primary: rgba(0, 0, 0, 0.6);    /* Outer shadow (short) */
   --shadow-secondary: rgba(0, 0, 0, 0.4);  /* Outer shadow (diffused) */
   --shadow-inset: #1a1a2a;                  /* Button inset */
   --shadow-image: rgba(0, 0, 0, 0.8);      /* Image drop shadows */
+    --shadow-elevation-nav: 2px 0 12px var(--shadow-secondary);
+
+    /* Border Radius Tokens */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
 
   /* Accent Colors - Blue (adjusted for dark mode visibility) */
   --accent-blue: #42a5f5;

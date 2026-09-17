@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
-import {Router} from '../src/app'
+import {Router, SIDEBAR_COLLAPSED_STORAGE_KEY} from '../src/app'
 import {SummaryComponent} from '../src/components/SummaryComponent'
 import {AllGamesComponent} from '../src/components/AllGamesComponent'
 import {GameDetailComponent} from '../src/components/GameDetailComponent'
@@ -10,13 +10,27 @@ describe('Router', () => {
     let router: Router
 
     beforeEach(() => {
+        localStorage.clear()
         document.body.innerHTML = `
             <div id="app">
                 <aside id="sidebar-nav">
-                    <nav class="sidebar-menu">
-                        <a href="#summary" class="nav-link" data-route="#summary">Summary</a>
-                        <a href="#all-games" class="nav-link" data-route="#all-games">
-                            All Games <span class="nav-badge games-count" id="sidebar-games-count">0</span>
+                    <div class="sidebar-header">
+                        <img src="./resources/images/favicon.ico" alt="Gaming Gaiden Logo" class="app-logo"/>
+                        <h1 class="app-title">Gaming Gaiden</h1>
+                        <button id="sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle navigation sidebar" aria-expanded="true" title="Collapse sidebar">
+                            <span class="toggle-icon">◀</span>
+                        </button>
+                    </div>
+                    <nav class="sidebar-menu" id="sidebar-menu">
+                        <div class="nav-indicator" id="nav-indicator"></div>
+                        <a href="#summary" class="nav-link" data-route="#summary" title="Summary Dashboard">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-label">Summary</span>
+                        </a>
+                        <a href="#all-games" class="nav-link" data-route="#all-games" title="All Games">
+                            <span class="nav-icon">🎮</span>
+                            <span class="nav-label">All Games</span>
+                            <span class="nav-badge games-count" id="sidebar-games-count">0</span>
                         </a>
                     </nav>
                 </aside>
@@ -37,6 +51,7 @@ describe('Router', () => {
 
     afterEach(() => {
         router?.destroy()
+        localStorage.clear()
         delete window.gamingGaidenData
         delete window.gamingGaidenInitialRoute
         vi.unstubAllGlobals()
@@ -192,5 +207,123 @@ describe('Router', () => {
         router.handleRoute()
 
         expect(container.textContent).toContain('No game was selected.')
+    })
+
+    it('should toggle sidebar collapsed state and update aria attributes on button click', async () => {
+        const routes = {
+            '#summary': {name: 'summary', component: SummaryComponent}
+        }
+
+        router = new Router(routes)
+        await new Promise(resolve => setTimeout(resolve, 0))
+
+        const sidebar = document.getElementById('sidebar-nav')!
+        const toggleBtn = document.getElementById('sidebar-toggle')!
+        const toggleIcon = toggleBtn.querySelector('.toggle-icon')!
+
+        expect(sidebar.classList.contains('collapsed')).toBe(false)
+        expect(toggleBtn.getAttribute('aria-expanded')).toBe('true')
+        expect(toggleBtn.getAttribute('title')).toBe('Collapse sidebar')
+        expect(toggleIcon.textContent).toBe('◀')
+
+        // Click to collapse
+        toggleBtn.click()
+
+        expect(sidebar.classList.contains('collapsed')).toBe(true)
+        expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')
+        expect(toggleBtn.getAttribute('title')).toBe('Expand sidebar')
+        expect(toggleIcon.textContent).toBe('▶')
+        expect(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)).toBe('true')
+
+        // Click to expand again
+        toggleBtn.click()
+
+        expect(sidebar.classList.contains('collapsed')).toBe(false)
+        expect(toggleBtn.getAttribute('aria-expanded')).toBe('true')
+        expect(toggleBtn.getAttribute('title')).toBe('Collapse sidebar')
+        expect(toggleIcon.textContent).toBe('◀')
+        expect(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)).toBe('false')
+    })
+
+    it('should restore collapsed sidebar state from localStorage upon initialization', async () => {
+        localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, 'true')
+
+        const routes = {
+            '#summary': {name: 'summary', component: SummaryComponent}
+        }
+
+        router = new Router(routes)
+        await new Promise(resolve => setTimeout(resolve, 0))
+
+        const sidebar = document.getElementById('sidebar-nav')!
+        const toggleBtn = document.getElementById('sidebar-toggle')!
+        const toggleIcon = toggleBtn.querySelector('.toggle-icon')!
+
+        expect(sidebar.classList.contains('collapsed')).toBe(true)
+        expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')
+        expect(toggleBtn.getAttribute('title')).toBe('Expand sidebar')
+        expect(toggleIcon.textContent).toBe('▶')
+    })
+
+    it('should preserve title tooltip attributes on navigation links for collapsed mode', async () => {
+        const routes = {
+            '#summary': {name: 'summary', component: SummaryComponent},
+            '#all-games': {name: 'all-games', component: AllGamesComponent}
+        }
+
+        router = new Router(routes)
+        await new Promise(resolve => setTimeout(resolve, 0))
+
+        const summaryLink = document.querySelector<HTMLAnchorElement>('a[href="#summary"]')!
+        const allGamesLink = document.querySelector<HTMLAnchorElement>('a[href="#all-games"]')!
+
+        expect(summaryLink.getAttribute('title')).toBe('Summary Dashboard')
+        expect(allGamesLink.getAttribute('title')).toBe('All Games')
+    })
+
+    it('should synchronize animated active indicator transform on route transitions', async () => {
+        const routes = {
+            '#summary': {name: 'summary', component: SummaryComponent},
+            '#all-games': {name: 'all-games', component: AllGamesComponent}
+        }
+
+        router = new Router(routes)
+        await new Promise(resolve => setTimeout(resolve, 0))
+
+        const indicator = document.getElementById('nav-indicator')!
+        const allGamesLink = document.querySelector<HTMLAnchorElement>('a[href="#all-games"]')!
+        Object.defineProperty(allGamesLink, 'offsetTop', {configurable: true, value: 44})
+        Object.defineProperty(allGamesLink, 'offsetHeight', {configurable: true, value: 36})
+
+        expect(indicator.style.opacity).toBe('1')
+
+        window.location.hash = '#all-games'
+        router.handleRoute()
+
+        expect(indicator.style.transform).toBe('translateY(44px)')
+        expect(indicator.style.height).toBe('36px')
+        expect(indicator.style.opacity).toBe('1')
+    })
+
+    it('should re-synchronize indicator position and height on transitionend events', async () => {
+        const routes = {
+            '#summary': {name: 'summary', component: SummaryComponent}
+        }
+
+        router = new Router(routes)
+        await new Promise(resolve => setTimeout(resolve, 0))
+
+        const sidebar = document.getElementById('sidebar-nav')!
+        const indicator = document.getElementById('nav-indicator')!
+        const summaryLink = document.querySelector<HTMLAnchorElement>('a[href="#summary"]')!
+
+        Object.defineProperty(summaryLink, 'offsetTop', {configurable: true, value: 0})
+        Object.defineProperty(summaryLink, 'offsetHeight', {configurable: true, value: 38})
+
+        const transitionEvent = new Event('transitionend') as any
+        transitionEvent.propertyName = 'width'
+        sidebar.dispatchEvent(transitionEvent)
+
+        expect(indicator.style.height).toBe('38px')
     })
 })

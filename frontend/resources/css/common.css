@@ -1,3 +1,31 @@
+:root {
+    /* Fallback design tokens (overridden by active theme.css) */
+    --bg-primary: #f0f2f5;
+    --bg-panel: #ffffff;
+    --bg-tertiary: #f8f9fa;
+    --bg-button: #fcfcfd;
+    --bg-button-hover: #e8e8e8;
+    --bg-table-stripe: #cddbe7;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-inverse: #ffffff;
+    --border-primary: #333333;
+    --border-light: #e0e3e8;
+    --shadow-primary: rgba(45, 35, 66, 0.4);
+    --shadow-secondary: rgba(0, 0, 0, 0.08);
+    --shadow-inset: #d6d6e7;
+    --shadow-image: gray;
+    --shadow-elevation-nav: 4px 0 16px rgba(0, 0, 0, 0.08), 1px 0 4px rgba(0, 0, 0, 0.04);
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
+    --accent-blue: #2196F3;
+    --accent-blue-dark: #1976D2;
+    --accent-blue-light: #e3f2fd;
+    --accent-link-hover: #0066ee;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -22,57 +50,150 @@ body {
 
 /* Sidebar Navigation */
 #sidebar-nav {
-    width: 240px;
+    position: relative;
+    width: 256px;
     flex-shrink: 0;
     background-color: var(--bg-panel);
     border-right: 1px solid var(--border-light);
+    box-shadow: var(--shadow-elevation-nav, 4px 0 16px rgba(0, 0, 0, 0.08), 1px 0 4px rgba(0, 0, 0, 0.04));
+    z-index: 10;
     display: flex;
     flex-direction: column;
     padding: 16px 12px;
     overflow-y: auto;
+    overflow-x: hidden;
     user-select: none;
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 12px 16px 12px;
+    gap: 8px;
+    padding: 4px 4px 14px 4px;
     border-bottom: 1px solid var(--border-light);
     margin-bottom: 12px;
 }
 
 .sidebar-header .app-logo {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     object-fit: contain;
     flex-shrink: 0;
 }
 
 .sidebar-header .app-title {
     margin: 0;
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
     color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar-toggle-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.sidebar-toggle-btn:hover {
+    background-color: var(--bg-button-hover);
+    color: var(--text-primary);
+    border-color: var(--border-light);
+}
+
+.sidebar-toggle-btn:focus-visible {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 2px;
+}
+
+/* Collapsed Sidebar */
+#sidebar-nav.collapsed {
+    width: 68px;
+    padding: 16px 8px;
+}
+
+#sidebar-nav.collapsed .sidebar-header {
+    justify-content: center;
+    padding: 4px 0 14px 0;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#sidebar-nav.collapsed .app-title,
+#sidebar-nav.collapsed .nav-label,
+#sidebar-nav.collapsed .nav-badge {
+    display: none;
+}
+
+#sidebar-nav.collapsed .nav-link {
+    justify-content: center;
+    padding: 8px 0;
+    min-height: 38px;
+    gap: 0;
+}
+
+#sidebar-nav.collapsed .nav-icon {
+    width: 24px;
+    font-size: 1.25rem;
+}
+
+#sidebar-nav.collapsed .nav-indicator {
+    left: 0;
 }
 
 .sidebar-menu {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
+.nav-indicator {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 38px;
+    background-color: var(--accent-blue);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 2;
+    transform: translateY(0);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), height 0.2s ease, opacity 0.2s ease;
+}
+
 .sidebar-menu .nav-link {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 8px 12px;
-    border-radius: 8px;
+    min-height: 38px;
+    border-radius: var(--radius-md);
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 0.95rem;
     font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
     transition: background-color 0.15s ease, color 0.15s ease;
 }
 
@@ -82,8 +203,8 @@ body {
 }
 
 .sidebar-menu .nav-link.active {
-    background-color: var(--accent-blue-light);
-    color: var(--accent-blue);
+    background-color: var(--bg-button-hover);
+    color: var(--text-primary);
     font-weight: 600;
 }
 
@@ -94,10 +215,14 @@ body {
     align-items: center;
     justify-content: center;
     width: 20px;
+    flex-shrink: 0;
 }
 
 .sidebar-menu .nav-label {
     flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sidebar-menu .nav-badge {
@@ -106,7 +231,7 @@ body {
     font-size: 0.75rem;
     font-weight: 600;
     padding: 2px 8px;
-    border-radius: 10px;
+    border-radius: var(--radius-full);
     border: 1px solid var(--border-light);
 }
 
@@ -141,7 +266,7 @@ body {
     flex-direction: column;
     text-decoration: none;
     color: var(--text-primary);
-    border-radius: 10px;
+    border-radius: var(--radius-lg);
     overflow: hidden;
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
     background-color: transparent;
@@ -161,7 +286,7 @@ body {
     position: relative;
     width: 100%;
     aspect-ratio: 2 / 3;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     overflow: hidden;
     background-color: var(--bg-tertiary);
     box-shadow: 0 4px 12px var(--shadow-secondary);
@@ -254,7 +379,7 @@ body {
 }
 
 .game-status-icon {
-  border-radius: 6px;
+    border-radius: var(--radius-sm);
   width: 80%;
 }
 

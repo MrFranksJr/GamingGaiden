@@ -2,33 +2,40 @@
 
 :root {
   /* Background Colors */
-  --bg-primary: #f5f5f5;           /* Main body background */
-  --bg-panel: white;                /* Panels, cards, secondary surfaces */
-  --bg-tertiary: #fafafa;          /* Calendar columns, game items, tertiary areas */
+    --bg-primary: #f0f2f5; /* Main body canvas */
+    --bg-panel: #ffffff; /* Panels, cards, sidebar, secondary surfaces */
+    --bg-tertiary: #f8f9fa; /* Calendar columns, game items, tertiary areas */
   --bg-button: #fcfcfd;            /* Button default background */
   --bg-button-hover: #e8e8e8;      /* Button hover state */
   --bg-table-stripe: #cddbe7;      /* Table row striping */
 
   /* Text Colors */
-  --text-primary: #333;             /* Primary text (headings, body, buttons) */
-  --text-secondary: #666;           /* Secondary text (game details, labels, stats) */
-  --text-inverse: #fff;             /* Text on dark backgrounds */
+    --text-primary: #333333; /* Primary text (headings, body, buttons) */
+    --text-secondary: #666666; /* Secondary text (game details, labels, stats) */
+    --text-inverse: #ffffff; /* Text on dark backgrounds */
 
   /* Border Colors */
-  --border-primary: #333;           /* Table headers, strong dividers */
-  --border-light: #ddd;            /* All other borders, dividers, inputs */
+    --border-primary: #333333; /* Table headers, strong dividers */
+    --border-light: #e0e3e8; /* All other borders, dividers, inputs */
 
-  /* Shadow Colors */
+    /* Shadow Colors & Tokens */
   --shadow-primary: rgba(45, 35, 66, 0.4);    /* Outer shadow (short) */
-  --shadow-secondary: rgba(45, 35, 66, 0.3);  /* Outer shadow (diffused) */
+    --shadow-secondary: rgba(0, 0, 0, 0.08); /* Outer shadow (diffused) */
   --shadow-inset: #d6d6e7;                     /* Button inset (purple-tinged) */
   --shadow-image: gray;                        /* Image drop shadows */
+    --shadow-elevation-nav: 4px 0 16px rgba(0, 0, 0, 0.08), 1px 0 4px rgba(0, 0, 0, 0.04);
+
+    /* Border Radius Tokens */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
 
   /* Accent Colors - Blue */
   --accent-blue: #2196F3;
   --accent-blue-dark: #1976D2;
   --accent-blue-light: #e3f2fd;
-  --accent-link-hover: #06e;
+    --accent-link-hover: #0066ee;
 
   /* Status Colors */
   --status-finished: #16a34a;       /* Green - Finished games */
@@ -46,11 +53,11 @@
   --chart-grid: rgba(0, 0, 0, 0.1); /* Chart grid lines */
 
   /* Table Specific */
-  --table-header-bg: #333;
-  --table-header-text: #fff;
+    --table-header-bg: #333333;
+    --table-header-text: #ffffff;
 
   /* Scrollbar Colors */
   --scrollbar-track: #f1f1f1;
-  --scrollbar-thumb: #888;
-  --scrollbar-thumb-hover: #555;
+    --scrollbar-thumb: #888888;
+    --scrollbar-thumb-hover: #555555;
 }

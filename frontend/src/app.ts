@@ -21,11 +21,99 @@ export interface RouteDefinition {
 
 export type RouteTable = Record<string, RouteDefinition>;
 
+export const SIDEBAR_COLLAPSED_STORAGE_KEY = "gaming_gaiden_sidebar_collapsed";
+
+export function updateNavIndicatorPosition(activeElement?: HTMLElement | null): void {
+    if (typeof document === "undefined") return;
+    const indicator = document.getElementById("nav-indicator");
+    if (!indicator) return;
+
+    const active = activeElement || document.querySelector<HTMLElement>("#sidebar-nav .nav-link.active");
+    if (active) {
+        indicator.style.opacity = "1";
+        indicator.style.transform = `translateY(${active.offsetTop}px)`;
+        if (active.offsetHeight > 0) {
+            indicator.style.height = `${active.offsetHeight}px`;
+        }
+    } else {
+        indicator.style.opacity = "0";
+    }
+}
+
+export function initSidebarToggle(): () => void {
+    if (typeof document === "undefined") {
+        return () => {
+        };
+    }
+    const sidebar = document.getElementById("sidebar-nav");
+    const toggleBtn = document.getElementById("sidebar-toggle");
+    if (!sidebar || !toggleBtn) {
+        return () => {
+        };
+    }
+
+    const setCollapsed = (collapsed: boolean) => {
+        if (collapsed) {
+            sidebar.classList.add("collapsed");
+            toggleBtn.setAttribute("aria-expanded", "false");
+            toggleBtn.setAttribute("title", "Expand sidebar");
+            const icon = toggleBtn.querySelector(".toggle-icon");
+            if (icon) icon.textContent = "▶";
+        } else {
+            sidebar.classList.remove("collapsed");
+            toggleBtn.setAttribute("aria-expanded", "true");
+            toggleBtn.setAttribute("title", "Collapse sidebar");
+            const icon = toggleBtn.querySelector(".toggle-icon");
+            if (icon) icon.textContent = "◀";
+        }
+        updateNavIndicatorPosition();
+        if (typeof requestAnimationFrame !== "undefined") {
+            requestAnimationFrame(() => updateNavIndicatorPosition());
+        }
+    };
+
+    const onTransitionEnd = (e: TransitionEvent) => {
+        if (e.target === sidebar && (e.propertyName === "width" || e.propertyName === "padding")) {
+            updateNavIndicatorPosition();
+        }
+    };
+    sidebar.addEventListener("transitionend", onTransitionEnd as EventListener);
+
+    // Restore saved state
+    try {
+        const savedState = localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY);
+        if (savedState === "true") {
+            setCollapsed(true);
+        } else {
+            setCollapsed(false);
+        }
+    } catch {
+        // Ignore localStorage access errors
+    }
+
+    const onToggleClick = () => {
+        const isCollapsed = !sidebar.classList.contains("collapsed");
+        setCollapsed(isCollapsed);
+        try {
+            localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(isCollapsed));
+        } catch {
+            // Ignore storage write error
+        }
+    };
+
+    toggleBtn.addEventListener("click", onToggleClick);
+    return () => {
+        toggleBtn.removeEventListener("click", onToggleClick);
+        sidebar.removeEventListener("transitionend", onTransitionEnd as EventListener);
+    };
+}
+
 export class Router {
     private routes: RouteTable;
     private container: HTMLElement | null;
     private data: GameData | null;
     private readonly onHashChange: () => void;
+    private sidebarCleanup: (() => void) | null;
 
     constructor(routes: RouteTable) {
         this.routes = routes;
@@ -33,11 +121,13 @@ export class Router {
         this.data = null;
         this.onHashChange = () => this.handleRoute();
         window.addEventListener("hashchange", this.onHashChange);
+        this.sidebarCleanup = initSidebarToggle();
         void this.init();
     }
 
     destroy() {
         window.removeEventListener("hashchange", this.onHashChange);
+        this.sidebarCleanup?.();
     }
 
     async init() {
@@ -83,14 +173,17 @@ export class Router {
     private updateActiveNavigation(routeKey: string) {
         if (typeof document === "undefined") return;
         const navLinks = document.querySelectorAll<HTMLAnchorElement>("#sidebar-nav .nav-link");
+        let activeElement: HTMLAnchorElement | null = null;
         navLinks.forEach(link => {
             const href = link.getAttribute("href") || link.dataset.route;
             if (href === routeKey) {
                 link.classList.add("active");
+                activeElement = link;
             } else {
                 link.classList.remove("active");
             }
         });
+        updateNavIndicatorPosition(activeElement);
     }
 
     private displayError(message: string) {
