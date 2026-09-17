@@ -27,9 +27,8 @@ describe("HTML rendering safety", () => {
 
         expect(document.getElementById("injected")).toBeNull();
         expect(document.querySelector("script")).toBeNull();
-        expect(document.querySelector(".game-icon")).toBeNull();
-        expect(document.querySelector(".game-name")?.textContent).toContain(hostileName);
-        expect(document.querySelector(".game-status")?.textContent).toBe("<script>unsafe()</script>");
+        expect(document.querySelector(".game-poster-img")).toBeNull();
+        expect(document.querySelector(".game-card-title")?.textContent).toBe(hostileName);
     });
 
     it("renders detail and session fields without creating injected elements", () => {

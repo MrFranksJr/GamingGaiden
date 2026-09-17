@@ -10,7 +10,21 @@ describe('Router', () => {
     let router: Router
 
     beforeEach(() => {
-        document.body.innerHTML = '<div id="view-container"></div>'
+        document.body.innerHTML = `
+            <div id="app">
+                <aside id="sidebar-nav">
+                    <nav class="sidebar-menu">
+                        <a href="#summary" class="nav-link" data-route="#summary">Summary</a>
+                        <a href="#all-games" class="nav-link" data-route="#all-games">
+                            All Games <span class="nav-badge games-count" id="sidebar-games-count">0</span>
+                        </a>
+                    </nav>
+                </aside>
+                <main id="main-content">
+                    <div id="view-container"></div>
+                </main>
+            </div>
+        `
         container = document.getElementById('view-container')!
         window.location.hash = ''
 
@@ -24,8 +38,25 @@ describe('Router', () => {
     afterEach(() => {
         router?.destroy()
         delete window.gamingGaidenData
+        delete window.gamingGaidenInitialRoute
         vi.unstubAllGlobals()
         vi.restoreAllMocks()
+    })
+
+    it('should render initial route from window.gamingGaidenInitialRoute when hash is empty', async () => {
+        const routes = {
+            '#summary': {name: 'summary', component: SummaryComponent},
+            '#all-games': {name: 'all-games', component: AllGamesComponent}
+        }
+        window.gamingGaidenInitialRoute = '#all-games'
+
+        router = new Router(routes)
+        await new Promise(resolve => setTimeout(resolve, 0))
+
+        expect(container.innerHTML).toContain('id="all-games-grid"')
+        expect(container.querySelectorAll('.game-card')).toHaveLength(2)
+        const allGamesLink = document.querySelector<HTMLAnchorElement>('a[href="#all-games"]')!
+        expect(allGamesLink.classList.contains('active')).toBe(true)
     })
 
     it('should load data and render default route', async () => {
@@ -64,7 +95,32 @@ describe('Router', () => {
         window.location.hash = '#all-games'
         router.handleRoute()
 
-        expect(container.innerHTML).toContain('Name</th>')
+        expect(container.innerHTML).toContain('id="all-games-grid"')
+        expect(container.querySelectorAll('.game-card')).toHaveLength(2)
+    })
+
+    it('should synchronize active class on sidebar navigation and update game count', async () => {
+        const routes = {
+            '#summary': {name: 'summary', component: SummaryComponent},
+            '#all-games': {name: 'all-games', component: AllGamesComponent}
+        }
+
+        router = new Router(routes)
+        await new Promise(resolve => setTimeout(resolve, 0))
+
+        const summaryLink = document.querySelector<HTMLAnchorElement>('a[href="#summary"]')!
+        const allGamesLink = document.querySelector<HTMLAnchorElement>('a[href="#all-games"]')!
+        const badge = document.getElementById('sidebar-games-count')
+
+        expect(badge?.textContent).toBe('2')
+        expect(summaryLink.classList.contains('active')).toBe(true)
+        expect(allGamesLink.classList.contains('active')).toBe(false)
+
+        window.location.hash = '#all-games'
+        router.handleRoute()
+
+        expect(summaryLink.classList.contains('active')).toBe(false)
+        expect(allGamesLink.classList.contains('active')).toBe(true)
     })
 
     it('should handle dynamic routes with params', async () => {

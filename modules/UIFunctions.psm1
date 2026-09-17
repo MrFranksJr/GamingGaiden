@@ -62,13 +62,46 @@ function Invoke-SPA
     param([string]$Hash)
     $workingDirectory = (Get-Location).Path
     $spaPath = Join-Path $workingDirectory "frontend\index.html"
+    $routeJsPath = Join-Path $workingDirectory "frontend\resources\route.js"
+    $normalizedHash = if ($Hash)
+    {
+        if ( $Hash.StartsWith("#"))
+        {
+            $Hash
+        }
+        else
+        {
+            "#$Hash"
+        }
+    }
+    else
+    {
+        "#summary"
+    }
+
+    try
+    {
+        "window.gamingGaidenInitialRoute = '$normalizedHash';" | Set-Content -Path $routeJsPath -Encoding UTF8 -ErrorAction SilentlyContinue
+    }
+    catch
+    {
+        # Best effort writing route.js
+    }
+
     if (Test-Path $spaPath)
     {
         $fullPath = (Get-Item $spaPath).FullName
         $url = "file:///$($fullPath.Replace('\', '/') )"
         if ($Hash)
         {
-            $url += "#$Hash"
+            $url += if ( $Hash.StartsWith("#"))
+            {
+                $Hash
+            }
+            else
+            {
+                "#$Hash"
+            }
         }
         Start-Process $url
     }

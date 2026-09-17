@@ -63,11 +63,34 @@ export class Router {
             const validated = validateGameData(rawData);
             this.data = validated.data;
             validated.warnings.forEach(warning => console.warn(warning));
+            this.updateSidebarGameCount();
         } catch (error) {
             console.error("Failed to load game data:", error);
             const message = error instanceof Error ? error.message : "Unknown data error.";
             this.displayError(`Failed to load data: ${message}`);
         }
+    }
+
+    private updateSidebarGameCount() {
+        if (this.data && typeof document !== "undefined") {
+            const badge = document.getElementById("sidebar-games-count") || document.querySelector(".games-count");
+            if (badge) {
+                badge.textContent = String(this.data.games.length);
+            }
+        }
+    }
+
+    private updateActiveNavigation(routeKey: string) {
+        if (typeof document === "undefined") return;
+        const navLinks = document.querySelectorAll<HTMLAnchorElement>("#sidebar-nav .nav-link");
+        navLinks.forEach(link => {
+            const href = link.getAttribute("href") || link.dataset.route;
+            if (href === routeKey) {
+                link.classList.add("active");
+            } else {
+                link.classList.remove("active");
+            }
+        });
     }
 
     private displayError(message: string) {
@@ -80,8 +103,34 @@ export class Router {
         if (!this.data && this.container) {
             return;
         }
-        const hash = window.location.hash || "#summary";
+        const initialRoute = (typeof window !== "undefined" && window.gamingGaidenInitialRoute)
+            ? window.gamingGaidenInitialRoute
+            : null;
+        let hash = window.location.hash;
+        if (!hash && typeof window !== "undefined" && window.location.search) {
+            const params = new URLSearchParams(window.location.search);
+            const routeParam = params.get("route") || params.get("page") || params.get("view");
+            if (routeParam) {
+                hash = routeParam.startsWith("#") ? routeParam : `#${routeParam}`;
+            }
+        }
+        if (!hash && initialRoute) {
+            hash = initialRoute.startsWith("#") ? initialRoute : `#${initialRoute}`;
+            if (typeof window !== "undefined" && !window.location.hash) {
+                try {
+                    window.location.hash = hash;
+                } catch {
+                    // Ignore if modifying hash fails
+                }
+            }
+        }
+        if (!hash) {
+            hash = "#summary";
+        }
+
         const [routeKey, query = ""] = hash.split("?", 2);
+        this.updateActiveNavigation(routeKey);
+
         const route = this.routes[routeKey];
         if (!route) {
             this.displayError(`Page not found: ${routeKey}`);

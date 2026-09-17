@@ -24,7 +24,7 @@ describe("deterministic component ordering", () => {
 
     it("sorts the games list by name", () => {
         document.body.innerHTML = new AllGamesComponent().render(shuffledData);
-        const names = Array.from(document.querySelectorAll(".game-name a"), element => element.textContent);
+        const names = Array.from(document.querySelectorAll(".game-card-title"), element => element.textContent);
         expect(names).toEqual(["Game A", "Game B"]);
     });
 

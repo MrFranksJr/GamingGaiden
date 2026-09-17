@@ -25,10 +25,15 @@ Describe "UIFunctions Module" {
                 Mock Get-Item { return [PSCustomObject]@{ FullName = "C:\GamingGaiden\frontend\index.html" } }
                 Mock Start-Process { }
                 Mock Log { }
+                Mock Set-Content { }
 
-                Invoke-SPA -Hash "summary"
+                Invoke-SPA -Hash "all-games"
 
                 Assert-MockCalled Start-Process
+                Assert-MockCalled Set-Content -ParameterFilter {
+                    $Value -eq "window.gamingGaidenInitialRoute = '#all-games';" -and
+                            $Path -like "*route.js"
+                }
             }
 
             It "Constructs correct file:/// URL for the SPA without hash" {

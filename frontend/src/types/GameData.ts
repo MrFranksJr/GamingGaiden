@@ -47,5 +47,6 @@ export interface GameData {
 declare global {
     interface Window {
         gamingGaidenData?: unknown;
+        gamingGaidenInitialRoute?: string;
     }
 }

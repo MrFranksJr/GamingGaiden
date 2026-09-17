@@ -16,6 +16,7 @@ describe("local-file startup contract", () => {
 
         expect(scripts).toEqual([
             "./resources/data.js",
+            "./resources/route.js",
             "./resources/js/app.js"
         ]);
     });
@@ -43,9 +44,9 @@ describe("local-file startup contract", () => {
         window.location.hash = "#all-games";
         window.dispatchEvent(new HashChangeEvent("hashchange"));
         expect(document.getElementById("all-games-view")).not.toBeNull();
-        expect(document.querySelectorAll(".game-row")).toHaveLength(10);
+        expect(document.querySelectorAll(".game-card")).toHaveLength(10);
 
-        const firstGameLink = document.querySelector<HTMLAnchorElement>(".game-name a");
+        const firstGameLink = document.querySelector<HTMLAnchorElement>(".game-card");
         expect(firstGameLink?.hash).toMatch(/^#game-detail\?name=/);
         window.location.hash = firstGameLink!.hash;
         window.dispatchEvent(new HashChangeEvent("hashchange"));
