@@ -194,7 +194,7 @@ function RenderEditGameForm($GamesList) {
     $checkboxForever.Add_CheckedChanged($updateFinishDatePickerState)
 
     $labelPictureBox = Createlabel "Game Icon" 57 200; $editGameForm.Controls.Add($labelPictureBox)
-    $pictureBox = CreatePictureBox $imagePath 15 40 140 140
+    $pictureBox = CreatePictureBox $imagePath 15 40 140 140 "zoom"
     $editGameForm.Controls.Add($pictureBox)
 
     $listBox.Add_SelectedIndexChanged({
@@ -296,7 +296,7 @@ function RenderEditGameForm($GamesList) {
             $openFileDialog = OpenFileDialog "Select Game Icon File" 'Image (*.png, *.jpg, *.jpeg)|*.png;*.jpg;*.jpeg' $downloadsDirectoryPath
             $result = $openFileDialog.ShowDialog()
             if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
-                $imagePath = ResizeImage $openFileDialog.FileName $textName.name
+                $imagePath = ResizeImage $openFileDialog.FileName $textName.Text -HD $true
                 $pictureBoxImagePath.Text = $imagePath
                 $pictureBox.Image.Dispose()
                 $pictureBox.Image = [System.Drawing.Image]::FromFile($imagePath)
@@ -481,7 +481,7 @@ function RenderAddGameForm() {
     $imagePath = "./icons/default.png"
     $pictureBoxImagePath = CreateTextBox $imagePath 579 334 1 1; $pictureBoxImagePath.hide(); $addGameForm.Controls.Add($pictureBoxImagePath)
 
-    $pictureBox = CreatePictureBox $imagePath 15 20 147 147
+    $pictureBox = CreatePictureBox $imagePath 15 20 147 147 "zoom"
     $addGameForm.Controls.Add($pictureBox)
 
     $labelPictureBox = Createlabel "Game Icon" 62 167; $addGameForm.Controls.Add($labelPictureBox)
@@ -493,7 +493,7 @@ function RenderAddGameForm() {
             $openFileDialog = OpenFileDialog "Select Game Icon File" 'Image (*.png, *.jpg, *.jpeg)|*.png;*.jpg;*.jpeg' $downloadsDirectoryPath
             $result = $openFileDialog.ShowDialog()
             if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
-                $imagePath = ResizeImage $openFileDialog.FileName "GG-NEW_GAME"
+                $imagePath = ResizeImage $openFileDialog.FileName "GG-NEW_GAME" -HD $true
                 $pictureBoxImagePath.Text = $imagePath
                 $pictureBox.Image.Dispose()
                 $pictureBox.Image = [System.Drawing.Image]::FromFile($imagePath)

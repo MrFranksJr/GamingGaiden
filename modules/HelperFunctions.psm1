@@ -26,7 +26,7 @@ function ResizeImage() {
     param(
         [string]$ImagePath,
         [string]$EntityName,
-        [bool]$HD = $false
+        [bool]$HD = $true
     )
 
     $imageFileName = ToBase64 $EntityName
