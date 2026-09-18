@@ -4,8 +4,9 @@ import {escapeHtml} from "../../utils/HtmlUtils";
 export class GameStatusDonut {
     public static render(breakdown: GameStatusBreakdown): string {
         const total = breakdown.totalGames;
-        const size = 180;
-        const strokeWidth = 18;
+        const size = 200;
+        // Donut stroke width increased by an additional 50% (from 25 to 38 in 200x200 viewBox)
+        const strokeWidth = 38;
         const radius = (size - strokeWidth) / 2;
         const center = size / 2;
         const circumference = 2 * Math.PI * radius;
@@ -72,13 +73,13 @@ export class GameStatusDonut {
                 </div>
                 <div class="donut-container">
                     <div class="donut-chart-wrapper">
-                        <svg class="donut-svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+                        <svg class="donut-svg" viewBox="0 0 ${size} ${size}" preserveAspectRatio="xMidYMid meet">
                             ${segmentsHtml.join("")}
+                            <g class="donut-center-group">
+                                <text class="donut-center-value" x="${center}" y="${center - 6}" text-anchor="middle" dominant-baseline="central" id="status-donut-total">${total}</text>
+                                <text class="donut-center-label" x="${center}" y="${center + 20}" text-anchor="middle" dominant-baseline="central">Games</text>
+                            </g>
                         </svg>
-                        <div class="donut-center-text">
-                            <span class="donut-center-value" id="status-donut-total">${total}</span>
-                            <span class="donut-center-label">Games</span>
-                        </div>
                     </div>
                     <div class="donut-legend">
                         ${legendItemsHtml}
