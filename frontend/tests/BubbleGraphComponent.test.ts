@@ -17,7 +17,7 @@ describe("BubbleGraphComponent", () => {
             playTimeMinutes: 15437,
             playTimeHours: 257.3,
             iconPath: "resources/images/cache/Helldivers_2.jpg",
-            status: "forever",
+            status: "Forever",
             initials: "H2",
             rank: 1,
             isTop10: true
@@ -27,7 +27,7 @@ describe("BubbleGraphComponent", () => {
             playTimeMinutes: 13892,
             playTimeHours: 231.5,
             iconPath: null,
-            status: "finished",
+            status: "Completed",
             initials: "C2",
             rank: 2,
             isTop10: true
@@ -149,11 +149,88 @@ describe("BubbleGraphComponent", () => {
         expect(tooltip.textContent).toContain("Helldivers 2");
         expect(tooltip.textContent).toContain("#1");
         expect(tooltip.textContent).toContain("257.3h");
-        expect(tooltip.textContent).toContain("forever");
+        expect(tooltip.textContent).toContain("Forever");
 
         // Mouse leave dismisses tooltip immediately
         firstNode.dispatchEvent(new MouseEvent("mouseleave", {bubbles: true}));
         expect(tooltip.style.display).toBe("none");
+
+        component.destroy();
+    });
+
+    it("displays tooltip status for all game categories (Completed, In Progress, On Hold, Forever, Dropped)", () => {
+        const testBubbles: GameBubble[] = [
+            {
+                name: "Game 1",
+                playTimeMinutes: 600,
+                playTimeHours: 10,
+                iconPath: null,
+                status: "Completed",
+                initials: "G1",
+                rank: 1,
+                isTop10: true
+            },
+            {
+                name: "Game 2",
+                playTimeMinutes: 500,
+                playTimeHours: 8.3,
+                iconPath: null,
+                status: "In Progress",
+                initials: "G2",
+                rank: 2,
+                isTop10: true
+            },
+            {
+                name: "Game 3",
+                playTimeMinutes: 400,
+                playTimeHours: 6.7,
+                iconPath: null,
+                status: "On Hold",
+                initials: "G3",
+                rank: 3,
+                isTop10: true
+            },
+            {
+                name: "Game 4",
+                playTimeMinutes: 300,
+                playTimeHours: 5,
+                iconPath: null,
+                status: "Forever",
+                initials: "G4",
+                rank: 4,
+                isTop10: true
+            },
+            {
+                name: "Game 5",
+                playTimeMinutes: 200,
+                playTimeHours: 3.3,
+                iconPath: null,
+                status: "Dropped",
+                initials: "G5",
+                rank: 5,
+                isTop10: true
+            }
+        ];
+
+        const component = new BubbleGraphComponent();
+        document.body.innerHTML = component.render(testBubbles);
+        component.mount(document.body, testBubbles);
+
+        const tooltip = document.getElementById("bubble-tooltip") as HTMLElement;
+        const nodes = document.querySelectorAll(".bubble-node");
+
+        const expectedStatuses = ["Completed", "In Progress", "On Hold", "Forever", "Dropped"];
+
+        nodes.forEach((node, index) => {
+            node.dispatchEvent(new MouseEvent("mouseenter", {bubbles: true}));
+            vi.advanceTimersByTime(1000);
+
+            expect(tooltip.style.display).toBe("block");
+            expect(tooltip.textContent).toContain(expectedStatuses[index]);
+
+            node.dispatchEvent(new MouseEvent("mouseleave", {bubbles: true}));
+            expect(tooltip.style.display).toBe("none");
+        });
 
         component.destroy();
     });
@@ -228,7 +305,7 @@ describe("BubbleGraphComponent", () => {
     it("correctly calculates tooltip coordinates relative to bubble-graph-container in a nested dashboard layout", () => {
         const component = new BubbleGraphComponent();
         document.body.innerHTML = `
-            <div id="view-container" style="position: absolute; left: 0px; top: 0px; width: 1400px; height: 900px;">
+            <div id="view-container" style="position: absolute; left: 0; top: 0; width: 1400px; height: 900px;">
                 <div class="summary-col-left" style="width: 350px;"></div>
                 <div class="summary-col-center" style="width: 700px;">
                     ${component.render(sampleBubbles)}

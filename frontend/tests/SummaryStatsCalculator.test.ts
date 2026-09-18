@@ -477,5 +477,28 @@ describe("SummaryStatsCalculator", () => {
             expect(metrics.topGames[14].rank).toBe(15);
             expect(metrics.topGames[14].isTop10).toBe(false);
         });
+
+        it("assigns categorized game status to each bubble node", () => {
+            const data: GameData = {
+                schema_version: 1,
+                games: [
+                    {name: "Game Forever", play_time: 500, session_count: 5, status: "forever", completed: "FALSE"},
+                    {name: "Game Dropped", play_time: 400, session_count: 4, status: "dropped", completed: "TRUE"},
+                    {name: "Game Hold", play_time: 300, session_count: 3, status: "hold", completed: "FALSE"},
+                    {name: "Game Finished", play_time: 200, session_count: 2, status: "", completed: "TRUE"},
+                    {name: "Game Active", play_time: 100, session_count: 1, status: "", completed: "FALSE"}
+                ],
+                session_history: [],
+                daily_playtime: [],
+                gaming_pcs: []
+            };
+
+            const metrics = SummaryStatsCalculator.compute(data);
+            expect(metrics.topGames.find(g => g.name === "Game Forever")?.status).toBe("Forever");
+            expect(metrics.topGames.find(g => g.name === "Game Dropped")?.status).toBe("Dropped");
+            expect(metrics.topGames.find(g => g.name === "Game Hold")?.status).toBe("On Hold");
+            expect(metrics.topGames.find(g => g.name === "Game Finished")?.status).toBe("Completed");
+            expect(metrics.topGames.find(g => g.name === "Game Active")?.status).toBe("In Progress");
+        });
     });
 });

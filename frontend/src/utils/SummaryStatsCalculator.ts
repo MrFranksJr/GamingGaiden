@@ -356,7 +356,7 @@ export class SummaryStatsCalculator {
                 playTimeMinutes: pt,
                 playTimeHours: Math.round((pt / 60) * 10) / 10,
                 iconPath: g.icon_path || null,
-                status: g.status || "",
+                status: categorizeGameStatus(g),
                 initials: getGameInitials(g.name),
                 rank,
                 isTop10: rank <= 10
