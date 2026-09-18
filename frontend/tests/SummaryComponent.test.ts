@@ -58,4 +58,30 @@ describe("SummaryComponent", () => {
         const component = new SummaryComponent();
         expect(component.render(null)).toContain("No data available");
     });
+
+    it("should mount all games as bubbles when library exceeds 10 games", () => {
+        const customData = {
+            ...mockData,
+            games: Array.from({length: 15}, (_, i) => ({
+                name: `Game ${i + 1}`,
+                play_time: (i + 1) * 60,
+                session_count: i + 1,
+                status: "in progress",
+                completed: "FALSE"
+            }))
+        };
+
+        const component = new SummaryComponent();
+        document.body.innerHTML = component.render(customData);
+        component.mount(document.body);
+
+        const nodes = document.querySelectorAll(".bubble-node");
+        expect(nodes.length).toBe(15);
+
+        // First 10 should have badges
+        const badges = document.querySelectorAll(".bubble-badge-group");
+        expect(badges.length).toBe(10);
+
+        component.destroy();
+    });
 });

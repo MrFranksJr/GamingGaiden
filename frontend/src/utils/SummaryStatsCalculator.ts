@@ -35,15 +35,19 @@ export interface GameStatusBreakdown {
     statuses: StatusCount[];
 }
 
-export interface TopGameBubble {
+export interface GameBubble {
     name: string;
     playTimeMinutes: number;
     playTimeHours: number;
     iconPath: string | null;
     status: string;
     initials: string;
+    rank: number;
+    isTop10: boolean;
     radius?: number;
 }
+
+export type TopGameBubble = GameBubble;
 
 export interface RecentSessionActivity {
     gameName: string;
@@ -337,23 +341,25 @@ export class SummaryStatsCalculator {
             };
         });
 
-        // 4. Top 10 Bubble Games
+        // 4. Game Bubbles (All library games, sorted descending by playtime)
         const gameIconMap = new Map<string, string | null>();
         validGames.forEach(g => {
             gameIconMap.set(g.name, g.icon_path || null);
         });
 
         const sortedGames = [...validGames].sort((a, b) => (b.play_time || 0) - (a.play_time || 0));
-        const top10 = sortedGames.slice(0, 10);
-        const topGames: TopGameBubble[] = top10.map(g => {
+        const topGames: GameBubble[] = sortedGames.map((g, index) => {
             const pt = Number.isFinite(g.play_time) ? Math.max(0, g.play_time) : 0;
+            const rank = index + 1;
             return {
                 name: g.name,
                 playTimeMinutes: pt,
                 playTimeHours: Math.round((pt / 60) * 10) / 10,
                 iconPath: g.icon_path || null,
                 status: g.status || "",
-                initials: getGameInitials(g.name)
+                initials: getGameInitials(g.name),
+                rank,
+                isTop10: rank <= 10
             };
         });
 

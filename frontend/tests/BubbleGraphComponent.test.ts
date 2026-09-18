@@ -1,16 +1,26 @@
-import {describe, expect, it} from "vitest";
+import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {BubbleGraphComponent} from "../src/components/summary/BubbleGraphComponent";
-import {TopGameBubble} from "../src/utils/SummaryStatsCalculator";
+import {GameBubble} from "../src/utils/SummaryStatsCalculator";
 
 describe("BubbleGraphComponent", () => {
-    const sampleBubbles: TopGameBubble[] = [
+    beforeEach(() => {
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    const sampleBubbles: GameBubble[] = [
         {
             name: "Helldivers 2",
             playTimeMinutes: 15437,
             playTimeHours: 257.3,
             iconPath: "resources/images/cache/Helldivers_2.jpg",
             status: "forever",
-            initials: "H2"
+            initials: "H2",
+            rank: 1,
+            isTop10: true
         },
         {
             name: "Cyberpunk 2077",
@@ -18,22 +28,25 @@ describe("BubbleGraphComponent", () => {
             playTimeHours: 231.5,
             iconPath: null,
             status: "finished",
-            initials: "C2"
+            initials: "C2",
+            rank: 2,
+            isTop10: true
         }
     ];
 
-    it("renders empty fallback when top games list is empty", () => {
+    it("renders empty fallback when games list is empty", () => {
         const component = new BubbleGraphComponent();
         const html = component.render([]);
         expect(html).toContain("No games played yet");
     });
 
-    it("renders SVG skeleton markup for games list", () => {
+    it("renders SVG skeleton markup and tooltip container for games list", () => {
         const component = new BubbleGraphComponent();
         const html = component.render(sampleBubbles);
         expect(html).toContain("bubble-graph-svg");
         expect(html).toContain("bubble-defs");
         expect(html).toContain("bubble-nodes-group");
+        expect(html).toContain("bubble-tooltip");
     });
 
     it("mounts SVG elements, patterns, and badges properly into DOM", () => {
@@ -57,13 +70,129 @@ describe("BubbleGraphComponent", () => {
         const initials = document.querySelector(".bubble-initials");
         expect(initials?.textContent).toBe("C2");
 
-        // Badges
+        // Badges for top 10
         const badges = document.querySelectorAll(".bubble-badge-text");
         expect(badges.length).toBe(2);
         expect(badges[0].textContent).toBe("257.3h");
         expect(badges[1].textContent).toBe("231.5h");
 
-        // Clean up
+        component.destroy();
+    });
+
+    it("applies dual-tier scaling: top 10 have badges and large radii, non-top-10 are compact with no badges", () => {
+        const fullLibrary: GameBubble[] = Array.from({length: 15}, (_, i) => {
+            const rank = i + 1;
+            const hours = (16 - rank) * 10;
+            return {
+                name: `Game ${rank}`,
+                playTimeMinutes: hours * 60,
+                playTimeHours: hours,
+                iconPath: null,
+                status: "in progress",
+                initials: `G${rank}`,
+                rank,
+                isTop10: rank <= 10
+            };
+        });
+
+        const component = new BubbleGraphComponent();
+        document.body.innerHTML = component.render(fullLibrary);
+        component.mount(document.body, fullLibrary);
+
+        const nodes = document.querySelectorAll(".bubble-node");
+        expect(nodes.length).toBe(15);
+
+        // First 10 nodes (top 10) must have badges
+        for (let i = 0; i < 10; i++) {
+            const badge = nodes[i].querySelector(".bubble-badge-group");
+            expect(badge).not.toBeNull();
+            const bgCircle = nodes[i].querySelector(".bubble-bg") as SVGCircleElement;
+            const r = parseFloat(bgCircle.getAttribute("r") || "0");
+            expect(r).toBeGreaterThanOrEqual(38);
+            expect(r).toBeLessThanOrEqual(78);
+        }
+
+        // Remaining 5 nodes (11-15) must NOT have badges and have compact radii (16-26px)
+        for (let i = 10; i < 15; i++) {
+            const badge = nodes[i].querySelector(".bubble-badge-group");
+            expect(badge).toBeNull();
+            const bgCircle = nodes[i].querySelector(".bubble-bg") as SVGCircleElement;
+            const r = parseFloat(bgCircle.getAttribute("r") || "0");
+            expect(r).toBeGreaterThanOrEqual(16);
+            expect(r).toBeLessThanOrEqual(26);
+        }
+
+        component.destroy();
+    });
+
+    it("displays tooltip after 1-second continuous hover and hides on mouseleave", () => {
+        const component = new BubbleGraphComponent();
+        document.body.innerHTML = component.render(sampleBubbles);
+        component.mount(document.body, sampleBubbles);
+
+        const tooltip = document.getElementById("bubble-tooltip") as HTMLElement;
+        expect(tooltip.style.display).toBe("none");
+
+        const firstNode = document.querySelector(".bubble-node") as SVGGElement;
+        expect(firstNode).not.toBeNull();
+
+        // Mouse enter starts timer
+        firstNode.dispatchEvent(new MouseEvent("mouseenter", {bubbles: true}));
+
+        // Advance 500ms - still hidden
+        vi.advanceTimersByTime(500);
+        expect(tooltip.style.display).toBe("none");
+
+        // Advance another 500ms (total 1000ms) - tooltip is displayed
+        vi.advanceTimersByTime(500);
+        expect(tooltip.style.display).toBe("block");
+        expect(tooltip.textContent).toContain("Helldivers 2");
+        expect(tooltip.textContent).toContain("#1");
+        expect(tooltip.textContent).toContain("257.3h");
+        expect(tooltip.textContent).toContain("forever");
+
+        // Mouse leave dismisses tooltip immediately
+        firstNode.dispatchEvent(new MouseEvent("mouseleave", {bubbles: true}));
+        expect(tooltip.style.display).toBe("none");
+
+        component.destroy();
+    });
+
+    it("cancels tooltip timer if mouse leaves before 1 second", () => {
+        const component = new BubbleGraphComponent();
+        document.body.innerHTML = component.render(sampleBubbles);
+        component.mount(document.body, sampleBubbles);
+
+        const tooltip = document.getElementById("bubble-tooltip") as HTMLElement;
+        const firstNode = document.querySelector(".bubble-node") as SVGGElement;
+
+        // Mouse enter, then leave after 600ms
+        firstNode.dispatchEvent(new MouseEvent("mouseenter", {bubbles: true}));
+        vi.advanceTimersByTime(600);
+        firstNode.dispatchEvent(new MouseEvent("mouseleave", {bubbles: true}));
+
+        // Advance another 1000ms
+        vi.advanceTimersByTime(1000);
+        expect(tooltip.style.display).toBe("none");
+
+        component.destroy();
+    });
+
+    it("triggers tactile bump class and glow filter on mouseenter and reverts on mouseleave", () => {
+        const component = new BubbleGraphComponent();
+        document.body.innerHTML = component.render(sampleBubbles);
+        component.mount(document.body, sampleBubbles);
+
+        const firstNode = document.querySelector(".bubble-node") as SVGGElement;
+
+        firstNode.dispatchEvent(new MouseEvent("mouseenter", {bubbles: true}));
+        expect(firstNode.classList.contains("bubble-bump")).toBe(true);
+        expect(firstNode.getAttribute("filter")).toBe("url(#bubble-glow)");
+
+        firstNode.dispatchEvent(new MouseEvent("mouseleave", {bubbles: true}));
+        expect(firstNode.classList.contains("bubble-bump")).toBe(false);
+        expect(firstNode.getAttribute("filter")).toBeNull();
+
         component.destroy();
     });
 

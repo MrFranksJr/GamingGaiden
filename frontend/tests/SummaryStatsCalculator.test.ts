@@ -442,7 +442,7 @@ describe("SummaryStatsCalculator", () => {
             expect(metrics.stats.avgSessionDelta?.text).toBe("2h avg this year");
         });
 
-        it("limits top games to 10 sorted by playtime", () => {
+        it("returns all games as bubbles sorted by playtime with rank and isTop10 flag", () => {
             const games = Array.from({length: 15}, (_, i) => ({
                 name: `Game ${i + 1}`,
                 play_time: (i + 1) * 10,
@@ -460,9 +460,22 @@ describe("SummaryStatsCalculator", () => {
             };
 
             const metrics = SummaryStatsCalculator.compute(data);
-            expect(metrics.topGames.length).toBe(10);
+            expect(metrics.topGames.length).toBe(15);
             expect(metrics.topGames[0].name).toBe("Game 15");
+            expect(metrics.topGames[0].rank).toBe(1);
+            expect(metrics.topGames[0].isTop10).toBe(true);
+
             expect(metrics.topGames[9].name).toBe("Game 6");
+            expect(metrics.topGames[9].rank).toBe(10);
+            expect(metrics.topGames[9].isTop10).toBe(true);
+
+            expect(metrics.topGames[10].name).toBe("Game 5");
+            expect(metrics.topGames[10].rank).toBe(11);
+            expect(metrics.topGames[10].isTop10).toBe(false);
+
+            expect(metrics.topGames[14].name).toBe("Game 1");
+            expect(metrics.topGames[14].rank).toBe(15);
+            expect(metrics.topGames[14].isTop10).toBe(false);
         });
     });
 });

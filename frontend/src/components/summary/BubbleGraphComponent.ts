@@ -1,9 +1,10 @@
 import * as d3Force from "d3-force";
 import * as d3Scale from "d3-scale";
 import * as d3Selection from "d3-selection";
-import {TopGameBubble} from "../../utils/SummaryStatsCalculator";
+import {GameBubble, TopGameBubble} from "../../utils/SummaryStatsCalculator";
+import {escapeHtml} from "../../utils/HtmlUtils";
 
-export interface BubbleNode extends d3Force.SimulationNodeDatum, TopGameBubble {
+export interface BubbleNode extends d3Force.SimulationNodeDatum, GameBubble {
     id: string;
     radius: number;
     color: string;
@@ -12,9 +13,10 @@ export interface BubbleNode extends d3Force.SimulationNodeDatum, TopGameBubble {
 export class BubbleGraphComponent {
     private simulation: d3Force.Simulation<BubbleNode, undefined> | null = null;
     private container: HTMLElement | null = null;
+    private hoverTimer: number | null = null;
 
     /**
-     * Renders the static SVG markup skeleton.
+     * Renders the static SVG markup skeleton with tooltip overlay.
      */
     public render(topGames: TopGameBubble[]): string {
         if (!topGames || topGames.length === 0) {
@@ -27,6 +29,7 @@ export class BubbleGraphComponent {
 
         return `
             <div class="bubble-graph-container" id="bubble-graph-container">
+                <div class="bubble-tooltip" id="bubble-tooltip" style="display: none; opacity: 0;" aria-hidden="true"></div>
                 <svg id="bubble-graph-svg" class="bubble-graph-svg" viewBox="0 0 760 620" preserveAspectRatio="xMidYMid meet">
                     <defs id="bubble-defs">
                         <filter id="bubble-glow" x="-50%" y="-50%" width="200%" height="200%">
@@ -44,7 +47,7 @@ export class BubbleGraphComponent {
     }
 
     /**
-     * Mounts the dynamic D3 physics simulation, nodes, patterns, and click bindings.
+     * Mounts the dynamic D3 physics simulation, nodes, patterns, hover tooltips, bump animations, and click bindings.
      */
     public mount(container: HTMLElement, topGames: TopGameBubble[]): void {
         this.container = container;
@@ -56,16 +59,28 @@ export class BubbleGraphComponent {
         const width = 760;
         const height = 620;
 
-        // Radii scale using square-root scaling
-        const minPlayTime = Math.min(...topGames.map(g => g.playTimeHours));
-        const maxPlayTime = Math.max(...topGames.map(g => g.playTimeHours));
+        // Dual-tier radius scaling: Top 10 (38-78px), Non-Top 10 (16-26px)
+        const top10Games = topGames.filter(g => g.isTop10);
+        const minorGames = topGames.filter(g => !g.isTop10);
 
-        // Radius ranges between 42px and 86px for balanced centerpiece filling
-        const minRadius = 42;
-        const maxRadius = 86;
-        const radiusScale = d3Scale.scaleSqrt()
-            .domain([Math.max(0.1, minPlayTime), Math.max(1, maxPlayTime)])
-            .range([minRadius, maxRadius]);
+        const minTop10Hours = top10Games.length ? Math.min(...top10Games.map(g => g.playTimeHours)) : 0;
+        const maxTop10Hours = top10Games.length ? Math.max(...top10Games.map(g => g.playTimeHours)) : 1;
+        const top10Scale = d3Scale.scaleSqrt()
+            .domain([Math.max(0, minTop10Hours), Math.max(0.1, maxTop10Hours)])
+            .range([38, 78]);
+
+        const minMinorHours = minorGames.length ? Math.min(...minorGames.map(g => g.playTimeHours)) : 0;
+        const maxMinorHours = minorGames.length ? Math.max(...minorGames.map(g => g.playTimeHours)) : 1;
+        const minorScale = d3Scale.scaleSqrt()
+            .domain([Math.max(0, minMinorHours), Math.max(0.1, maxMinorHours)])
+            .range([16, 26]);
+
+        const getRadius = (g: GameBubble): number => {
+            if (g.isTop10) {
+                return Math.round(top10Scale(Math.max(0, g.playTimeHours)));
+            }
+            return Math.round(minorScale(Math.max(0, g.playTimeHours)));
+        };
 
         const colorPalette = [
             "#6366f1", // Indigo
@@ -81,10 +96,13 @@ export class BubbleGraphComponent {
         ];
 
         const nodes: BubbleNode[] = topGames.map((g, index) => {
-            const r = Math.round(radiusScale(Math.max(0.1, g.playTimeHours)));
-            // Random organic spawn placement across the canvas
+            const r = getRadius(g);
+            // Spawn top 10 closer to center, remaining titles in wider orbital scatter
+            const isCore = g.isTop10;
             const randomAngle = Math.random() * 2 * Math.PI;
-            const randomDistance = 40 + Math.random() * (Math.min(width, height) / 2 - 100);
+            const minScatter = isCore ? 20 : 120;
+            const maxScatter = isCore ? 140 : 260;
+            const randomDistance = minScatter + Math.random() * (maxScatter - minScatter);
             const initialX = Math.round(width / 2 + Math.cos(randomAngle) * randomDistance);
             const initialY = Math.round(height / 2 + Math.sin(randomAngle) * randomDistance);
 
@@ -154,7 +172,7 @@ export class BubbleGraphComponent {
             .attr("text-anchor", "middle")
             .attr("dy", "0.35em")
             .attr("fill", "#ffffff")
-            .attr("font-size", d => `${Math.max(12, Math.round(d.radius * 0.45))}px`)
+            .attr("font-size", d => `${Math.max(9, Math.round(d.radius * 0.45))}px`)
             .attr("font-weight", "bold")
             .text(d => d.initials);
 
@@ -164,8 +182,8 @@ export class BubbleGraphComponent {
             .attr("r", d => d.radius)
             .attr("fill", "none")
             .attr("stroke", d => d.color)
-            .attr("stroke-width", 3)
-            .attr("stroke-opacity", 0.85);
+            .attr("stroke-width", d => d.isTop10 ? 3 : 1.5)
+            .attr("stroke-opacity", d => d.isTop10 ? 0.85 : 0.7);
 
         // Subtle dark gradient vignette overlay for readability
         nodeSelection.append("circle")
@@ -174,18 +192,19 @@ export class BubbleGraphComponent {
             .attr("fill", "rgba(0, 0, 0, 0.25)")
             .attr("pointer-events", "none");
 
-        // Playtime badge pill inside the bubble
-        const badgeGroup = nodeSelection.append("g")
+        // Playtime badge pill inside the bubble (Top 10 only)
+        const badgeGroup = nodeSelection.filter(d => d.isTop10)
+            .append("g")
             .attr("class", "bubble-badge-group")
             .attr("transform", d => `translate(0, ${Math.round(d.radius * 0.52)})`);
 
         badgeGroup.append("rect")
             .attr("class", "bubble-badge-bg")
-            .attr("x", -28)
-            .attr("y", -9)
-            .attr("width", 56)
-            .attr("height", 18)
-            .attr("rx", 9)
+            .attr("x", -24)
+            .attr("y", -8)
+            .attr("width", 48)
+            .attr("height", 16)
+            .attr("rx", 8)
             .attr("fill", "rgba(15, 23, 42, 0.85)")
             .attr("stroke", d => d.color)
             .attr("stroke-width", 1);
@@ -204,14 +223,57 @@ export class BubbleGraphComponent {
             window.location.hash = `#game-detail?name=${encodeURIComponent(d.name)}`;
         });
 
-        // Hover events for glow effect
-        nodeSelection.on("mouseenter", function (_event, _d) {
-            d3Selection.select(this)
+        // Hover events: 1s delayed tooltip, tactile bump animation & subtle physics nudge
+        const self = this;
+        nodeSelection.on("mouseenter", function (_event, d) {
+            const currentElement = this;
+            const currentSelection = d3Selection.select(currentElement);
+
+            // Tactile bump spring scale and glow filter
+            currentSelection
+                .classed("bubble-bump", true)
                 .attr("filter", "url(#bubble-glow)")
                 .raise();
+
+            // Physical nudge to part neighboring bubbles
+            const dx = (d.x ?? width / 2) - width / 2;
+            const dy = (d.y ?? height / 2) - height / 2;
+            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+            d.vx = (d.vx || 0) + (dx / dist) * 1.5;
+            d.vy = (d.vy || 0) + (dy / dist) * 1.5;
+
+            if (self.simulation) {
+                self.simulation.alphaTarget(0.03);
+            }
+
+            // Clear any prior timer
+            if (self.hoverTimer !== null) {
+                clearTimeout(self.hoverTimer);
+                self.hoverTimer = null;
+            }
+
+            // 1-second (1000ms) continuous hover timer for tooltip
+            self.hoverTimer = window.setTimeout(() => {
+                self.showTooltip(d, currentElement);
+            }, 1000);
         }).on("mouseleave", function (_event, _d) {
-            d3Selection.select(this)
+            const currentSelection = d3Selection.select(this);
+
+            // Revert bump and glow
+            currentSelection
+                .classed("bubble-bump", false)
                 .attr("filter", null);
+
+            // Cancel tooltip delay timer and immediately dismiss tooltip
+            if (self.hoverTimer !== null) {
+                clearTimeout(self.hoverTimer);
+                self.hoverTimer = null;
+            }
+            self.hideTooltip();
+
+            if (self.simulation) {
+                self.simulation.alphaTarget(0.015);
+            }
         });
 
         // Subtle organic gravitational drift force
@@ -222,16 +284,18 @@ export class BubbleGraphComponent {
                 // Unique subtle phase offset for each bubble based on index and elapsed steps
                 const angleX = timeStep + i * 1.37;
                 const angleY = timeStep * 0.8 + i * 2.19;
-                const nudgeStrength = 0.05;
+                const nudgeStrength = 0.04;
                 node.vx = (node.vx || 0) + Math.cos(angleX) * nudgeStrength;
                 node.vy = (node.vy || 0) + Math.sin(angleY) * nudgeStrength;
             });
         };
 
-        // Weight ratio: 0 (lightest) to 1 (heaviest)
+        // Weight ratio: 0 (minor) to 1 (prominent top 10)
         const getWeightRatio = (node: BubbleNode): number => {
-            if (maxRadius === minRadius) return 1;
-            return Math.max(0, Math.min(1, (node.radius - minRadius) / (maxRadius - minRadius)));
+            if (node.isTop10) {
+                return 0.5 + 0.5 * Math.max(0, Math.min(1, (node.radius - 38) / (78 - 38 || 1)));
+            }
+            return 0.15 * Math.max(0, Math.min(1, (node.radius - 16) / (26 - 16 || 1)));
         };
 
         // D3 Force Simulation setup with weight-based central gravitation and continuous subtle drift
@@ -239,16 +303,16 @@ export class BubbleGraphComponent {
             .velocityDecay(0.32)
             .force("drift", subtleGravitationalDrift)
             .force("center", d3Force.forceCenter(width / 2, height / 2).strength(0.02))
-            .force("charge", d3Force.forceManyBody<BubbleNode>().strength(d => -(d.radius * 1.5)))
-            .force("collide", d3Force.forceCollide<BubbleNode>().radius(d => d.radius + 6).strength(0.9).iterations(3))
+            .force("charge", d3Force.forceManyBody<BubbleNode>().strength(d => -(d.radius * (d.isTop10 ? 1.4 : 0.8))))
+            .force("collide", d3Force.forceCollide<BubbleNode>().radius(d => d.radius + (d.isTop10 ? 5 : 3)).strength(0.85).iterations(3))
             .force("x", d3Force.forceX<BubbleNode>(width / 2).strength(d => {
                 const w = getWeightRatio(d);
                 // Heavier games have significantly stronger gravitational pull towards the core
-                return 0.025 + w * 0.085;
+                return 0.02 + w * 0.08;
             }))
             .force("y", d3Force.forceY<BubbleNode>(height / 2).strength(d => {
                 const w = getWeightRatio(d);
-                return 0.025 + w * 0.085;
+                return 0.02 + w * 0.08;
             }))
             .alpha(1)
             .alphaDecay(0.025)
@@ -265,9 +329,69 @@ export class BubbleGraphComponent {
     }
 
     /**
-     * Stops and disposes of the physics simulation.
+     * Renders and positions the floating game tooltip.
+     */
+    private showTooltip(d: BubbleNode, nodeElement: SVGGElement): void {
+        if (!this.container) return;
+        const tooltip = this.container.querySelector("#bubble-tooltip") as HTMLElement | null;
+        if (!tooltip) return;
+
+        tooltip.innerHTML = `
+            <div class="bubble-tooltip-title">${escapeHtml(d.name)}</div>
+            <div class="bubble-tooltip-meta">
+                <span class="bubble-tooltip-rank">#${d.rank}</span>
+                <span class="bubble-tooltip-dot">•</span>
+                <span class="bubble-tooltip-playtime">${d.playTimeHours}h</span>
+                ${d.status ? `<span class="bubble-tooltip-dot">•</span><span class="bubble-tooltip-status">${escapeHtml(d.status)}</span>` : ""}
+            </div>
+        `;
+
+        tooltip.style.display = "block";
+        tooltip.style.opacity = "1";
+        tooltip.setAttribute("aria-hidden", "false");
+
+        const containerRect = this.container.getBoundingClientRect();
+        const nodeRect = nodeElement.getBoundingClientRect();
+
+        let left: number;
+        let top: number;
+
+        if (containerRect && nodeRect && containerRect.width > 0 && nodeRect.width > 0) {
+            left = nodeRect.left - containerRect.left + nodeRect.width / 2;
+            top = nodeRect.top - containerRect.top - 10;
+        } else {
+            // Fallback for jsdom / virtual testing environments
+            const scaleX = (containerRect?.width || 760) / 760;
+            const scaleY = (containerRect?.height || 620) / 620;
+            left = (d.x ?? 380) * scaleX;
+            top = ((d.y ?? 310) - d.radius - 10) * scaleY;
+        }
+
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+    }
+
+    /**
+     * Hides the floating game tooltip.
+     */
+    private hideTooltip(): void {
+        if (!this.container) return;
+        const tooltip = this.container.querySelector("#bubble-tooltip") as HTMLElement | null;
+        if (tooltip) {
+            tooltip.style.display = "none";
+            tooltip.style.opacity = "0";
+            tooltip.setAttribute("aria-hidden", "true");
+        }
+    }
+
+    /**
+     * Stops and disposes of the physics simulation and active timers.
      */
     public destroy(): void {
+        if (this.hoverTimer !== null) {
+            clearTimeout(this.hoverTimer);
+            this.hoverTimer = null;
+        }
         if (this.simulation) {
             this.simulation.stop();
             this.simulation = null;
