@@ -26,6 +26,9 @@
   },
   "homepage": "https://github.com/MrFranksJr/GamingGaiden#readme",
   "devDependencies": {
+    "@types/d3-force": "^3.0.10",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-selection": "^3.0.12",
     "@types/node": "^22.20.3",
     "esbuild": "^0.28.1",
     "jsdom": "^29.0.2",
@@ -33,6 +36,9 @@
     "vitest": "^4.1.5"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "latest"
+    "@fortawesome/fontawesome-free": "latest",
+    "d3-force": "^3.0.0",
+    "d3-scale": "^4.0.2",
+    "d3-selection": "^3.0.0"
   }
 }

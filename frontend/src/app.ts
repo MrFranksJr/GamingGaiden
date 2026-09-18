@@ -9,6 +9,10 @@ import {escapeHtml} from "./utils/HtmlUtils.js";
 
 interface ViewComponent {
     render(data: GameData, parameter?: string | null): string;
+
+    mount?(container: HTMLElement): void;
+
+    destroy?(): void;
 }
 
 type ViewComponentConstructor = new () => ViewComponent;
@@ -105,11 +109,12 @@ export function initSidebarToggle(): () => void {
 }
 
 export class Router {
-    private routes: RouteTable;
-    private container: HTMLElement | null;
+    private readonly routes: RouteTable;
+    private readonly container: HTMLElement | null;
     private data: GameData | null;
     private readonly onHashChange: () => void;
-    private sidebarCleanup: (() => void) | null;
+    private readonly sidebarCleanup: (() => void) | null;
+    private activeComponent: ViewComponent | null = null;
 
     constructor(routes: RouteTable) {
         this.routes = routes;
@@ -124,6 +129,8 @@ export class Router {
     destroy() {
         window.removeEventListener("hashchange", this.onHashChange);
         this.sidebarCleanup?.();
+        this.activeComponent?.destroy?.();
+        this.activeComponent = null;
     }
 
     async init() {
@@ -233,8 +240,11 @@ export class Router {
     render(route: RouteDefinition, parameter: string | null = null) {
         if (this.container) {
             try {
+                this.activeComponent?.destroy?.();
                 const component = new route.component();
+                this.activeComponent = component;
                 this.container.innerHTML = component.render(this.data!, parameter);
+                component.mount?.(this.container);
             } catch (error) {
                 console.error("Rendering error:", error);
                 this.displayError("An error occurred while rendering this view.");

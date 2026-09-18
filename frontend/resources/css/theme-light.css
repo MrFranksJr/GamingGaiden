@@ -12,6 +12,7 @@
   /* Text Colors */
     --text-primary: #333333; /* Primary text (headings, body, buttons) */
     --text-secondary: #666666; /* Secondary text (game details, labels, stats) */
+  --text-muted: #888888; /* Muted text / annotations */
     --text-inverse: #ffffff; /* Text on dark backgrounds */
 
   /* Border Colors */

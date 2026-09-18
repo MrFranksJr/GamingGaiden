@@ -15,7 +15,7 @@ describe('Router', () => {
             <div id="app">
                 <aside id="sidebar-nav">
                     <div class="sidebar-header">
-                        <img src="./resources/images/favicon.ico" alt="Gaming Gaiden Logo" class="app-logo"/>
+                        <img src="../resources/images/favicon.ico" alt="Gaming Gaiden Logo" class="app-logo"/>
                         <h1 class="app-title">Gaming Gaiden</h1>
                         <button id="sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle navigation sidebar" aria-expanded="true" title="Collapse sidebar">
                             <i class="fa-solid fa-bars"></i>
@@ -36,6 +36,10 @@ describe('Router', () => {
                 </aside>
                 <main id="main-content">
                     <div id="view-container"></div>
+                    <div style="display:none">
+                        <div id="summary"></div>
+                        <div id="all-games"></div>
+                    </div>
                 </main>
             </div>
         `
@@ -325,5 +329,40 @@ describe('Router', () => {
         sidebar.dispatchEvent(transitionEvent)
 
         expect(indicator.style.height).toBe('38px')
+    })
+
+    it('should call mount and destroy lifecycle methods on components during navigation', async () => {
+        let mounted = false
+        let destroyed = false
+
+        class LifecycleComponent {
+            render() {
+                return '<div id="lifecycle-view">Lifecycle</div>'
+            }
+
+            mount() {
+                mounted = true
+            }
+
+            destroy() {
+                destroyed = true
+            }
+        }
+
+        const routes = {
+            '#summary': {name: 'summary', component: LifecycleComponent as any},
+            '#all-games': {name: 'all-games', component: AllGamesComponent}
+        }
+
+        router = new Router(routes)
+        await new Promise(resolve => setTimeout(resolve, 0))
+
+        expect(mounted).toBe(true)
+        expect(destroyed).toBe(false)
+
+        window.location.hash = '#all-games'
+        router.handleRoute()
+
+        expect(destroyed).toBe(true)
     })
 })
