@@ -224,4 +224,73 @@ describe("BubbleGraphComponent", () => {
 
         component.destroy();
     });
+
+    it("correctly calculates tooltip coordinates relative to bubble-graph-container in a nested dashboard layout", () => {
+        const component = new BubbleGraphComponent();
+        document.body.innerHTML = `
+            <div id="view-container" style="position: absolute; left: 0px; top: 0px; width: 1400px; height: 900px;">
+                <div class="summary-col-left" style="width: 350px;"></div>
+                <div class="summary-col-center" style="width: 700px;">
+                    ${component.render(sampleBubbles)}
+                </div>
+            </div>
+        `;
+        const viewContainer = document.getElementById("view-container") as HTMLElement;
+        const graphContainer = document.getElementById("bubble-graph-container") as HTMLElement;
+
+        // Mock bounding rects
+        vi.spyOn(viewContainer, "getBoundingClientRect").mockReturnValue({
+            left: 0,
+            top: 0,
+            right: 1400,
+            bottom: 900,
+            width: 1400,
+            height: 900,
+            x: 0,
+            y: 0,
+            toJSON: () => {
+            }
+        });
+
+        vi.spyOn(graphContainer, "getBoundingClientRect").mockReturnValue({
+            left: 350,
+            top: 100,
+            right: 1050,
+            bottom: 720,
+            width: 700,
+            height: 620,
+            x: 350,
+            y: 100,
+            toJSON: () => {
+            }
+        });
+
+        component.mount(viewContainer, sampleBubbles);
+
+        const firstNode = document.querySelector(".bubble-node") as SVGGElement;
+        vi.spyOn(firstNode, "getBoundingClientRect").mockReturnValue({
+            left: 650,
+            top: 300,
+            right: 750,
+            bottom: 400,
+            width: 100,
+            height: 100,
+            x: 650,
+            y: 300,
+            toJSON: () => {
+            }
+        });
+
+        firstNode.dispatchEvent(new MouseEvent("mouseenter", {bubbles: true}));
+        vi.advanceTimersByTime(1000);
+
+        const tooltip = document.getElementById("bubble-tooltip") as HTMLElement;
+        expect(tooltip.style.display).toBe("block");
+        // Left should be relative to graphContainer (650 - 350 + 100/2 = 350px)
+        expect(tooltip.style.left).toBe("350px");
+        // Top should be relative to graphContainer (300 - 100 - 10 = 190px)
+        expect(tooltip.style.top).toBe("190px");
+
+        component.destroy();
+    });
 });

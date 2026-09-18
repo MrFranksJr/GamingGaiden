@@ -916,7 +916,7 @@ body {
     align-items: center;
     justify-content: center;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .bubble-graph-container {

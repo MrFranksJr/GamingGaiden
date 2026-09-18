@@ -232,8 +232,7 @@ export class BubbleGraphComponent {
             // Tactile bump spring scale and glow filter
             currentSelection
                 .classed("bubble-bump", true)
-                .attr("filter", "url(#bubble-glow)")
-                .raise();
+                .attr("filter", "url(#bubble-glow)");
 
             // Physical nudge to part neighboring bubbles
             const dx = (d.x ?? width / 2) - width / 2;
@@ -350,7 +349,8 @@ export class BubbleGraphComponent {
         tooltip.style.opacity = "1";
         tooltip.setAttribute("aria-hidden", "false");
 
-        const containerRect = this.container.getBoundingClientRect();
+        const graphContainer = this.container.querySelector("#bubble-graph-container") as HTMLElement | null || this.container;
+        const containerRect = graphContainer.getBoundingClientRect();
         const nodeRect = nodeElement.getBoundingClientRect();
 
         let left: number;
@@ -358,17 +358,26 @@ export class BubbleGraphComponent {
 
         if (containerRect && nodeRect && containerRect.width > 0 && nodeRect.width > 0) {
             left = nodeRect.left - containerRect.left + nodeRect.width / 2;
-            top = nodeRect.top - containerRect.top - 10;
+            const topOffset = nodeRect.top - containerRect.top;
+            if (topOffset < 50) {
+                // Position below bubble if close to upper boundary
+                top = nodeRect.bottom - containerRect.top + 10;
+                tooltip.style.transform = "translate(-50%, 0)";
+            } else {
+                top = topOffset - 10;
+                tooltip.style.transform = "translate(-50%, -100%)";
+            }
         } else {
             // Fallback for jsdom / virtual testing environments
             const scaleX = (containerRect?.width || 760) / 760;
             const scaleY = (containerRect?.height || 620) / 620;
             left = (d.x ?? 380) * scaleX;
             top = ((d.y ?? 310) - d.radius - 10) * scaleY;
+            tooltip.style.transform = "translate(-50%, -100%)";
         }
 
-        tooltip.style.left = `${left}px`;
-        tooltip.style.top = `${top}px`;
+        tooltip.style.left = `${Math.round(left)}px`;
+        tooltip.style.top = `${Math.round(top)}px`;
     }
 
     /**
