@@ -3,7 +3,7 @@ import {GameStatusDonut} from "../src/components/summary/GameStatusDonut";
 import {GameStatusBreakdown} from "../src/utils/SummaryStatsCalculator";
 
 describe("GameStatusDonut", () => {
-    it("should render responsive SVG donut with 50% thicker stroke (38px) and scalable center text", () => {
+    it("should render responsive SVG donut with adjusted stroke (30px) and scalable center text", () => {
         const breakdown: GameStatusBreakdown = {
             totalGames: 10,
             statuses: [
@@ -24,11 +24,11 @@ describe("GameStatusDonut", () => {
         expect(svg).not.toBeNull();
         expect(svg?.getAttribute("viewBox")).toBe("0 0 200 200");
 
-        // Segments should have 50% thicker stroke-width (38px)
+        // Segments should have stroke-width 30px (~20% less thick than 38px)
         const segments = card?.querySelectorAll(".donut-segment");
         expect(segments?.length).toBe(4); // Only non-zero categories
         segments?.forEach(segment => {
-            expect(segment.getAttribute("stroke-width")).toBe("38");
+            expect(segment.getAttribute("stroke-width")).toBe("30");
         });
 
         // Center text should be inside SVG for proportional scaling
@@ -62,6 +62,6 @@ describe("GameStatusDonut", () => {
         expect(segments.length).toBe(0);
 
         const circle = document.body.querySelector("circle");
-        expect(circle?.getAttribute("stroke-width")).toBe("38");
+        expect(circle?.getAttribute("stroke-width")).toBe("30");
     });
 });

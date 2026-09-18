@@ -5,8 +5,8 @@ export class GameStatusDonut {
     public static render(breakdown: GameStatusBreakdown): string {
         const total = breakdown.totalGames;
         const size = 200;
-        // Donut stroke width increased by an additional 50% (from 25 to 38 in 200x200 viewBox)
-        const strokeWidth = 38;
+        // Donut stroke width reduced by ~20% (from 38 to 30 in 200x200 viewBox)
+        const strokeWidth = 30;
         const radius = (size - strokeWidth) / 2;
         const center = size / 2;
         const circumference = 2 * Math.PI * radius;
