@@ -1,4 +1,5 @@
 import {Game, GameData} from "../types/GameData";
+import {toSortableTimestamp} from "./TimeUtils";
 
 export interface StatDelta {
     text: string;
@@ -145,8 +146,13 @@ export function formatRelativeTime(startTime: string | number, referenceNow?: Da
         // Handle Unix timestamp (in seconds or ms)
         sessionDate = startTime < 10000000000 ? new Date(startTime * 1000) : new Date(startTime);
     } else {
-        const parsed = Date.parse(startTime);
-        sessionDate = Number.isFinite(parsed) ? new Date(parsed) : new Date(startTime);
+        const num = Number(startTime);
+        if (Number.isFinite(num) && num > 0) {
+            sessionDate = num < 10000000000 ? new Date(num * 1000) : new Date(num);
+        } else {
+            const parsed = Date.parse(startTime);
+            sessionDate = Number.isFinite(parsed) ? new Date(parsed) : new Date(startTime);
+        }
     }
 
     if (isNaN(sessionDate.getTime())) {
@@ -195,6 +201,11 @@ function getSessionYear(startTime: string | number): number | null {
         return isNaN(d.getTime()) ? null : d.getFullYear();
     }
     if (typeof startTime === "string") {
+        const num = Number(startTime);
+        if (Number.isFinite(num) && num > 0) {
+            const d = num < 10000000000 ? new Date(num * 1000) : new Date(num);
+            return isNaN(d.getTime()) ? null : d.getFullYear();
+        }
         const parsed = Date.parse(startTime);
         if (Number.isFinite(parsed)) {
             return new Date(parsed).getFullYear();
@@ -348,9 +359,7 @@ export class SummaryStatsCalculator {
 
         // 5. Recent Activity (Latest 5 Sessions)
         const sortedSessions = [...sessions].sort((a, b) => {
-            const timeA = typeof a.start_time === "number" ? a.start_time : Date.parse(a.start_time) || 0;
-            const timeB = typeof b.start_time === "number" ? b.start_time : Date.parse(b.start_time) || 0;
-            return timeB - timeA;
+            return toSortableTimestamp(b.start_time) - toSortableTimestamp(a.start_time);
         });
 
         const recent5 = sortedSessions.slice(0, 5);

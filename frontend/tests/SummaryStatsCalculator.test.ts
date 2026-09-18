@@ -139,6 +139,43 @@ describe("SummaryStatsCalculator", () => {
             // Invalid date
             expect(formatRelativeTime("invalid-date", now)).toBe("Recently");
         });
+
+        it("formats relative timestamps using UNIX epoch seconds (DB format)", () => {
+            // Reference time: 2026-09-18T12:00:00Z -> 1789732800 seconds
+            const nowEpochSeconds = 1789732800;
+            const now = new Date(nowEpochSeconds * 1000);
+
+            // 45 seconds ago (numeric seconds)
+            expect(formatRelativeTime(nowEpochSeconds - 45, now)).toBe("Just now");
+            // 30 minutes ago (numeric seconds)
+            expect(formatRelativeTime(nowEpochSeconds - 1800, now)).toBe("Played 30m ago");
+            // 2 hours ago (numeric seconds)
+            expect(formatRelativeTime(nowEpochSeconds - 7200, now)).toBe("Played 2h ago");
+            // 2 hours ago (stringified seconds)
+            expect(formatRelativeTime(String(nowEpochSeconds - 7200), now)).toBe("Played 2h ago");
+            // 24 hours ago (yesterday)
+            expect(formatRelativeTime(nowEpochSeconds - 86400, now)).toBe("Yesterday");
+            // 4 days ago
+            expect(formatRelativeTime(nowEpochSeconds - 4 * 86400, now)).toBe("Played 4 days ago");
+            // 2 weeks ago
+            expect(formatRelativeTime(nowEpochSeconds - 14 * 86400, now)).toBe("Played 2 weeks ago");
+        });
+
+        it("demonstrates timezone-invariant elapsed time calculation", () => {
+            // Suppose a session occurred at 10:00 UTC (Unix timestamp: 1789725600)
+            const sessionUnixSeconds = 1789725600; // 2026-09-18T10:00:00Z
+
+            // In UTC: local time is 12:00 UTC (2 hours elapsed)
+            // In UTC+2 (e.g., CEST): session was at 12:00 local, current local time is 14:00 (2 hours elapsed)
+            // In UTC-5 (e.g., EST): session was at 05:00 local, current local time is 07:00 (2 hours elapsed)
+            // Regardless of user timezone, current instant is 2026-09-18T12:00:00Z (timestamp 1789732800)
+            const referenceNow = new Date("2026-09-18T12:00:00Z");
+
+            expect(formatRelativeTime(sessionUnixSeconds, referenceNow)).toBe("Played 2h ago");
+            expect(formatRelativeTime(String(sessionUnixSeconds), referenceNow)).toBe("Played 2h ago");
+            expect(formatRelativeTime(sessionUnixSeconds * 1000, referenceNow)).toBe("Played 2h ago");
+            expect(formatRelativeTime("2026-09-18T10:00:00Z", referenceNow)).toBe("Played 2h ago");
+        });
     });
 
     describe("Lifetime Statistics Calculation", () => {
