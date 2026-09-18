@@ -1,30 +1,30 @@
 /* Gaming Gaiden - Light Theme */
 
-:root {
+:root, [data-theme="light"] {
   /* Background Colors */
-    --bg-primary: #f0f2f5; /* Main body canvas */
-    --bg-panel: #ffffff; /* Panels, cards, sidebar, secondary surfaces */
-    --bg-tertiary: #f8f9fa; /* Calendar columns, game items, tertiary areas */
-  --bg-button: #fcfcfd;            /* Button default background */
-  --bg-button-hover: #e8e8e8;      /* Button hover state */
-  --bg-table-stripe: #cddbe7;      /* Table row striping */
+    --bg-primary: #f0f4f9; /* Soft light blue-gray body canvas */
+    --bg-panel: #ffffff; /* Clean white panels, cards, sidebar */
+    --bg-tertiary: #f8fafc; /* Secondary panels, calendar columns */
+    --bg-button: #f1f5f9; /* Button default background */
+    --bg-button-hover: #e2e8f0; /* Button hover state */
+    --bg-table-stripe: #f1f5f9; /* Table row striping */
 
   /* Text Colors */
-    --text-primary: #333333; /* Primary text (headings, body, buttons) */
-    --text-secondary: #666666; /* Secondary text (game details, labels, stats) */
-  --text-muted: #888888; /* Muted text / annotations */
+    --text-primary: #0f172a; /* Slate-900 primary text */
+    --text-secondary: #475569; /* Slate-600 secondary text */
+    --text-muted: #64748b; /* Slate-500 annotations / subtitles */
     --text-inverse: #ffffff; /* Text on dark backgrounds */
 
   /* Border Colors */
-    --border-primary: #333333; /* Table headers, strong dividers */
-    --border-light: #e0e3e8; /* All other borders, dividers, inputs */
+    --border-primary: #94a3b8; /* Table headers, strong dividers */
+    --border-light: #e2e8f0; /* All other borders, dividers, inputs */
 
     /* Shadow Colors & Tokens */
-  --shadow-primary: rgba(45, 35, 66, 0.4);    /* Outer shadow (short) */
-    --shadow-secondary: rgba(0, 0, 0, 0.08); /* Outer shadow (diffused) */
-  --shadow-inset: #d6d6e7;                     /* Button inset (purple-tinged) */
-  --shadow-image: gray;                        /* Image drop shadows */
-    --shadow-elevation-nav: 4px 0 16px rgba(0, 0, 0, 0.08), 1px 0 4px rgba(0, 0, 0, 0.04);
+    --shadow-primary: rgba(15, 23, 42, 0.12);
+    --shadow-secondary: rgba(0, 0, 0, 0.06);
+    --shadow-inset: #e2e8f0;
+    --shadow-image: #94a3b8;
+    --shadow-elevation-nav: 4px 0 16px rgba(0, 0, 0, 0.06), 1px 0 4px rgba(0, 0, 0, 0.03);
 
     /* Border Radius Tokens */
     --radius-sm: 6px;
@@ -33,38 +33,38 @@
     --radius-full: 9999px;
 
   /* Accent Colors - Blue */
-  --accent-blue: #2196F3;
-  --accent-blue-dark: #1976D2;
-  --accent-blue-light: #e3f2fd;
-    --accent-link-hover: #0066ee;
+    --accent-blue: #0284c7;
+    --accent-blue-dark: #0369a1;
+    --accent-blue-light: #e0f2fe;
+    --accent-link-hover: #0284c7;
 
   /* Status Colors */
-  --status-finished: #16a34a;       /* Green - Finished games */
-  --status-finished-alt: #4ade80;
-  --status-hold: #f59e0b;           /* Orange - On hold */
-  --status-forever: #6366f1;        /* Indigo - Forever games */
-  --status-dropped: #dc2626;        /* Red - Dropped games */
-  --status-error: #d32f2f;          /* Red - Error states */
-  --status-error-dark: #b71c1c;
-  --status-error-light: #ef9a9a;
-  --status-error-pale: #ffebee;
+    --status-finished: #10b981;
+    --status-finished-alt: #059669;
+    --status-hold: #f59e0b;
+    --status-forever: #a855f7;
+    --status-dropped: #ef4444;
+    --status-error: #ef4444;
+    --status-error-dark: #dc2626;
+    --status-error-light: #fca5a5;
+    --status-error-pale: #fee2e2;
 
     /* PlayStation Button Colors */
-    --ps-triangle-green: #00b060; /* Green - Triangle (Summary) */
-    --ps-circle-red: #f03c47; /* Red - Circle (All Games) */
-    --ps-cross-blue: #0070d1; /* Blue - Cross (Gaming Time) */
-    --ps-square-pink: #e02475; /* Pink - Square (Sessions) */
+    --ps-triangle-green: #059669;
+    --ps-circle-red: #e11d48;
+    --ps-cross-blue: #0284c7;
+    --ps-square-pink: #db2777;
 
   /* Chart Colors */
-  --chart-blue: rgba(55, 162, 235, 0.5);
-  --chart-grid: rgba(0, 0, 0, 0.1); /* Chart grid lines */
+    --chart-blue: rgba(2, 132, 199, 0.5);
+    --chart-grid: rgba(0, 0, 0, 0.08);
 
   /* Table Specific */
-    --table-header-bg: #333333;
+    --table-header-bg: #1e293b;
     --table-header-text: #ffffff;
 
   /* Scrollbar Colors */
-  --scrollbar-track: #f1f1f1;
-    --scrollbar-thumb: #888888;
-    --scrollbar-thumb-hover: #555555;
+    --scrollbar-track: #f1f5f9;
+    --scrollbar-thumb: #cbd5e1;
+    --scrollbar-thumb-hover: #94a3b8;
 }

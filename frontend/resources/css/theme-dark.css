@@ -1,30 +1,30 @@
-/* Gaming Gaiden - Dark Theme */
+/* Gaming Gaiden - Dark Theme (Midnight Slate Blue) */
 
-:root {
+:root, [data-theme="dark"] {
   /* Background Colors */
-    --bg-primary: #18181b; /* Main body canvas */
-    --bg-panel: #242428; /* Panels, cards, sidebar, secondary surfaces */
-    --bg-tertiary: #1e1e22; /* Calendar columns, game items, tertiary areas */
-    --bg-button: #333338; /* Button default background */
-    --bg-button-hover: #424248; /* Button hover state */
-  --bg-table-stripe: #2d3a47;      /* Table row striping */
+    --bg-primary: #0b1329; /* Deep dark-blue body canvas */
+    --bg-panel: #131d38; /* Dark blue-ish slate for cards, panels, sidebar */
+    --bg-tertiary: #0e172e; /* Sub-cards, calendar columns, nested sections */
+    --bg-button: #1c2a4f; /* Dark blue button surface */
+    --bg-button-hover: #273b6b; /* Hover state */
+    --bg-table-stripe: #152244; /* Table row striping */
 
   /* Text Colors */
-  --text-primary: #e0e0e0;          /* Primary text (headings, body, buttons) */
-  --text-secondary: #b0b0b0;        /* Secondary text (game details, labels, stats) */
-  --text-muted: #808088; /* Muted text / annotations */
-  --text-inverse: #1a1a1a;          /* Text on light backgrounds */
+    --text-primary: #f1f5f9; /* Off-white / slate-100 crisp text */
+    --text-secondary: #94a3b8; /* Slate-400 secondary text */
+    --text-muted: #64748b; /* Slate-500 annotations / subtitles */
+    --text-inverse: #0b1329; /* Dark text for bright backgrounds */
 
   /* Border Colors */
-  --border-primary: #555;           /* Table headers, strong dividers */
-    --border-light: #3a3a40; /* All other borders, dividers, inputs */
+    --border-primary: #334155; /* Strong dividers, table borders */
+    --border-light: rgba(255, 255, 255, 0.08); /* Subtle card & section borders */
 
     /* Shadow Colors & Tokens */
-  --shadow-primary: rgba(0, 0, 0, 0.6);    /* Outer shadow (short) */
-  --shadow-secondary: rgba(0, 0, 0, 0.4);  /* Outer shadow (diffused) */
-  --shadow-inset: #1a1a2a;                  /* Button inset */
-  --shadow-image: rgba(0, 0, 0, 0.8);      /* Image drop shadows */
-    --shadow-elevation-nav: 2px 0 12px var(--shadow-secondary);
+    --shadow-primary: rgba(0, 0, 0, 0.5);
+    --shadow-secondary: rgba(0, 0, 0, 0.3);
+    --shadow-inset: #080e1e;
+    --shadow-image: rgba(0, 0, 0, 0.7);
+    --shadow-elevation-nav: 4px 0 20px rgba(0, 0, 0, 0.4), 1px 0 4px rgba(0, 0, 0, 0.2);
 
     /* Border Radius Tokens */
     --radius-sm: 6px;
@@ -32,39 +32,39 @@
     --radius-lg: 12px;
     --radius-full: 9999px;
 
-  /* Accent Colors - Blue (adjusted for dark mode visibility) */
-  --accent-blue: #42a5f5;
-  --accent-blue-dark: #1e88e5;
-  --accent-blue-light: #1e3a5f;
-  --accent-link-hover: #64b5f6;
+    /* Accent Colors - Blue */
+    --accent-blue: #38bdf8; /* Bright cyan / sky accent */
+    --accent-blue-dark: #0284c7;
+    --accent-blue-light: #0c4a6e;
+    --accent-link-hover: #7dd3fc;
 
-  /* Status Colors (adjusted for dark mode visibility) */
-  --status-finished: #4ade80;       /* Brighter green for dark mode */
-  --status-finished-alt: #16a34a;
-  --status-hold: #fbbf24;           /* Brighter orange */
-  --status-forever: #a78bfa;        /* Lighter indigo */
-  --status-dropped: #f87171;        /* Lighter red */
-  --status-error: #ef5350;          /* Brighter red */
-  --status-error-dark: #c62828;
-  --status-error-light: #e57373;
-  --status-error-pale: #4a2424;
+    /* Status Colors */
+    --status-finished: #10b981;
+    --status-finished-alt: #059669;
+    --status-hold: #f59e0b;
+    --status-forever: #a855f7;
+    --status-dropped: #ef4444;
+    --status-error: #ef4444;
+    --status-error-dark: #dc2626;
+    --status-error-light: #f87171;
+    --status-error-pale: rgba(239, 68, 68, 0.15);
 
-    /* PlayStation Button Colors (adjusted for dark mode visibility) */
-    --ps-triangle-green: #00e575; /* Green - Triangle (Summary) */
-    --ps-circle-red: #ff545c; /* Red - Circle (All Games) */
-    --ps-cross-blue: #42a5f5; /* Blue - Cross (Gaming Time) */
-    --ps-square-pink: #ff6599; /* Pink - Square (Sessions) */
+    /* PlayStation Button Colors */
+    --ps-triangle-green: #10b981;
+    --ps-circle-red: #f43f5e;
+    --ps-cross-blue: #38bdf8;
+    --ps-square-pink: #ec4899;
 
   /* Chart Colors */
-  --chart-blue: rgba(66, 165, 245, 0.5);
-  --chart-grid: rgba(255, 255, 255, 0.1); /* Chart grid lines */
+    --chart-blue: rgba(56, 189, 248, 0.5);
+    --chart-grid: rgba(255, 255, 255, 0.08);
 
   /* Table Specific */
-  --table-header-bg: #1a1a1a;
-  --table-header-text: #e0e0e0;
+    --table-header-bg: #0e172e;
+    --table-header-text: #f1f5f9;
 
   /* Scrollbar Colors */
-  --scrollbar-track: #2a2a2a;
-  --scrollbar-thumb: #555;
-  --scrollbar-thumb-hover: #777;
+    --scrollbar-track: #0e172e;
+    --scrollbar-thumb: #273b6b;
+    --scrollbar-thumb-hover: #3b5494;
 }

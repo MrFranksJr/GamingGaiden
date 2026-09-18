@@ -33,6 +33,16 @@ describe('Router', () => {
                             <span class="nav-badge games-count" id="sidebar-games-count">0</span>
                         </a>
                     </nav>
+                    <div class="sidebar-footer" id="sidebar-footer">
+                        <div class="theme-switcher" id="theme-switcher" title="Change theme">
+                            <i class="fa-solid fa-desktop" id="theme-icon"></i>
+                            <select id="theme-select">
+                                <option value="system">System</option>
+                                <option value="dark">Dark</option>
+                                <option value="light">Light</option>
+                            </select>
+                        </div>
+                    </div>
                 </aside>
                 <main id="main-content">
                     <div id="view-container"></div>
@@ -364,5 +374,20 @@ describe('Router', () => {
         router.handleRoute()
 
         expect(destroyed).toBe(true)
+    })
+
+    it('should initialize theme manager on router instantiation and update theme on select change', async () => {
+        router = new Router({
+            '#summary': {name: 'summary', component: SummaryComponent}
+        })
+
+        const select = document.getElementById('theme-select') as HTMLSelectElement
+        expect(select).not.toBeNull()
+
+        select.value = 'dark'
+        select.dispatchEvent(new Event('change'))
+
+        expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+        expect(document.documentElement.getAttribute('data-theme-preference')).toBe('dark')
     })
 })

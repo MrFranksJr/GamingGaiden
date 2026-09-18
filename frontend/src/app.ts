@@ -6,6 +6,7 @@ import {GameDetailComponent} from "./components/GameDetailComponent.js";
 import {GameData} from "./types/GameData.js";
 import {validateGameData} from "./data/GameDataValidator.js";
 import {escapeHtml} from "./utils/HtmlUtils.js";
+import {initThemeManager} from "./utils/ThemeManager.js";
 
 interface ViewComponent {
     render(data: GameData, parameter?: string | null): string;
@@ -114,6 +115,7 @@ export class Router {
     private data: GameData | null;
     private readonly onHashChange: () => void;
     private readonly sidebarCleanup: (() => void) | null;
+    private readonly themeCleanup: (() => void) | null;
     private activeComponent: ViewComponent | null = null;
 
     constructor(routes: RouteTable) {
@@ -123,12 +125,14 @@ export class Router {
         this.onHashChange = () => this.handleRoute();
         window.addEventListener("hashchange", this.onHashChange);
         this.sidebarCleanup = initSidebarToggle();
+        this.themeCleanup = initThemeManager();
         void this.init();
     }
 
     destroy() {
         window.removeEventListener("hashchange", this.onHashChange);
         this.sidebarCleanup?.();
+        this.themeCleanup?.();
         this.activeComponent?.destroy?.();
         this.activeComponent = null;
     }

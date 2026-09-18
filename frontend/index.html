@@ -40,6 +40,22 @@
                     <span class="nav-label">Sessions</span>
                 </a>
             </nav>
+            <div class="sidebar-footer" id="sidebar-footer">
+                <div class="theme-switcher" id="theme-switcher" title="Change theme (System / Dark / Light)">
+                    <div class="theme-switcher-icon">
+                        <i class="fa-solid fa-desktop" id="theme-icon" aria-hidden="true"></i>
+                    </div>
+                    <label for="theme-select" class="visually-hidden">Theme Preference</label>
+                    <div class="theme-select-wrapper">
+                        <select id="theme-select" class="theme-select" aria-label="Select color theme">
+                            <option value="system">System</option>
+                            <option value="dark">Dark</option>
+                            <option value="light">Light</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down theme-select-arrow" aria-hidden="true"></i>
+                    </div>
+                </div>
+            </div>
         </aside>
         <main id="main-content">
             <!-- Content will be rendered here -->
