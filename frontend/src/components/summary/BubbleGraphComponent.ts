@@ -59,7 +59,7 @@ export class BubbleGraphComponent {
         const width = 760;
         const height = 620;
 
-        // Dual-tier radius scaling: Top 10 (38-78px), Non-Top 10 (16-26px)
+        // Dual-tier radius scaling: Top 10 (48-98px), Non-Top 10 (20-34px)
         const top10Games = topGames.filter(g => g.isTop10);
         const minorGames = topGames.filter(g => !g.isTop10);
 
@@ -67,13 +67,13 @@ export class BubbleGraphComponent {
         const maxTop10Hours = top10Games.length ? Math.max(...top10Games.map(g => g.playTimeHours)) : 1;
         const top10Scale = d3Scale.scaleSqrt()
             .domain([Math.max(0, minTop10Hours), Math.max(0.1, maxTop10Hours)])
-            .range([38, 78]);
+            .range([48, 98]);
 
         const minMinorHours = minorGames.length ? Math.min(...minorGames.map(g => g.playTimeHours)) : 0;
         const maxMinorHours = minorGames.length ? Math.max(...minorGames.map(g => g.playTimeHours)) : 1;
         const minorScale = d3Scale.scaleSqrt()
             .domain([Math.max(0, minMinorHours), Math.max(0.1, maxMinorHours)])
-            .range([16, 26]);
+            .range([20, 34]);
 
         const getRadius = (g: GameBubble): number => {
             if (g.isTop10) {
@@ -100,8 +100,8 @@ export class BubbleGraphComponent {
             // Spawn top 10 closer to center, remaining titles in wider orbital scatter
             const isCore = g.isTop10;
             const randomAngle = Math.random() * 2 * Math.PI;
-            const minScatter = isCore ? 20 : 120;
-            const maxScatter = isCore ? 140 : 260;
+            const minScatter = isCore ? 15 : 90;
+            const maxScatter = isCore ? 120 : 210;
             const randomDistance = minScatter + Math.random() * (maxScatter - minScatter);
             const initialX = Math.round(width / 2 + Math.cos(randomAngle) * randomDistance);
             const initialY = Math.round(height / 2 + Math.sin(randomAngle) * randomDistance);
@@ -238,11 +238,11 @@ export class BubbleGraphComponent {
             const dx = (d.x ?? width / 2) - width / 2;
             const dy = (d.y ?? height / 2) - height / 2;
             const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-            d.vx = (d.vx || 0) + (dx / dist) * 1.5;
-            d.vy = (d.vy || 0) + (dy / dist) * 1.5;
+            d.vx = (node => (node.vx || 0) + (dx / dist) * 1.0)(d);
+            d.vy = (node => (node.vy || 0) + (dy / dist) * 1.0)(d);
 
             if (self.simulation) {
-                self.simulation.alphaTarget(0.03);
+                self.simulation.alphaTarget(0.02);
             }
 
             // Clear any prior timer
@@ -271,7 +271,7 @@ export class BubbleGraphComponent {
             self.hideTooltip();
 
             if (self.simulation) {
-                self.simulation.alphaTarget(0.015);
+                self.simulation.alphaTarget(0.008);
             }
         });
 
@@ -283,7 +283,7 @@ export class BubbleGraphComponent {
                 // Unique subtle phase offset for each bubble based on index and elapsed steps
                 const angleX = timeStep + i * 1.37;
                 const angleY = timeStep * 0.8 + i * 2.19;
-                const nudgeStrength = 0.04;
+                const nudgeStrength = 0.012;
                 node.vx = (node.vx || 0) + Math.cos(angleX) * nudgeStrength;
                 node.vy = (node.vy || 0) + Math.sin(angleY) * nudgeStrength;
             });
@@ -292,38 +292,40 @@ export class BubbleGraphComponent {
         // Weight ratio: 0 (minor) to 1 (prominent top 10)
         const getWeightRatio = (node: BubbleNode): number => {
             if (node.isTop10) {
-                return 0.5 + 0.5 * Math.max(0, Math.min(1, (node.radius - 38) / (78 - 38 || 1)));
+                return 0.5 + 0.5 * Math.max(0, Math.min(1, (node.radius - 48) / (98 - 48 || 1)));
             }
-            return 0.15 * Math.max(0, Math.min(1, (node.radius - 16) / (26 - 16 || 1)));
+            return 0.15 * Math.max(0, Math.min(1, (node.radius - 20) / (34 - 20 || 1)));
         };
 
         // D3 Force Simulation setup with weight-based central gravitation and continuous subtle drift
         this.simulation = d3Force.forceSimulation<BubbleNode>(nodes)
-            .velocityDecay(0.32)
+            .velocityDecay(0.3)
             .force("drift", subtleGravitationalDrift)
-            .force("center", d3Force.forceCenter(width / 2, height / 2).strength(0.02))
-            .force("charge", d3Force.forceManyBody<BubbleNode>().strength(d => -(d.radius * (d.isTop10 ? 1.4 : 0.8))))
-            .force("collide", d3Force.forceCollide<BubbleNode>().radius(d => d.radius + (d.isTop10 ? 5 : 3)).strength(0.85).iterations(3))
+            .force("center", d3Force.forceCenter(width / 2, height / 2).strength(0.04))
+            .force("collide", d3Force.forceCollide<BubbleNode>().radius(d => d.radius + (d.isTop10 ? 4 : 2)).strength(0.95).iterations(4))
             .force("x", d3Force.forceX<BubbleNode>(width / 2).strength(d => {
                 const w = getWeightRatio(d);
-                // Heavier games have significantly stronger gravitational pull towards the core
-                return 0.02 + w * 0.08;
+                // Heavier games have stronger gravitational pull towards the core
+                return 0.035 + w * 0.045;
             }))
             .force("y", d3Force.forceY<BubbleNode>(height / 2).strength(d => {
                 const w = getWeightRatio(d);
-                return 0.02 + w * 0.08;
+                return 0.035 + w * 0.045;
             }))
             .alpha(1)
-            .alphaDecay(0.025)
-            .alphaTarget(0.015) // Keeps a gentle baseline energy so bubbles subtly interact continuously
+            .alphaDecay(0.02)
+            .alphaTarget(0.005) // Keeps a gentle baseline energy so bubbles subtly interact continuously
             .on("tick", () => {
-                nodeSelection.attr("transform", d => {
-                    // Clamp within boundaries
-                    const padding = 10;
-                    const x = Math.max(d.radius + padding, Math.min(width - d.radius - padding, d.x || width / 2));
-                    const y = Math.max(d.radius + padding, Math.min(height - d.radius - padding, d.y || height / 2));
-                    return `translate(${x}, ${y})`;
+                const padding = 8;
+                nodes.forEach(d => {
+                    if (d.x !== undefined) {
+                        d.x = Math.max(d.radius + padding, Math.min(width - d.radius - padding, d.x));
+                    }
+                    if (d.y !== undefined) {
+                        d.y = Math.max(d.radius + padding, Math.min(height - d.radius - padding, d.y));
+                    }
                 });
+                nodeSelection.attr("transform", d => `translate(${d.x ?? width / 2}, ${d.y ?? height / 2})`);
             });
     }
 

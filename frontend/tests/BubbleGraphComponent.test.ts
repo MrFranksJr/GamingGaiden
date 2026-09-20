@@ -108,18 +108,18 @@ describe("BubbleGraphComponent", () => {
             expect(badge).not.toBeNull();
             const bgCircle = nodes[i].querySelector(".bubble-bg") as SVGCircleElement;
             const r = parseFloat(bgCircle.getAttribute("r") || "0");
-            expect(r).toBeGreaterThanOrEqual(38);
-            expect(r).toBeLessThanOrEqual(78);
+            expect(r).toBeGreaterThanOrEqual(48);
+            expect(r).toBeLessThanOrEqual(102);
         }
 
-        // Remaining 5 nodes (11-15) must NOT have badges and have compact radii (16-26px)
+        // Remaining 5 nodes (11-15) must NOT have badges and have compact radii (20-34px)
         for (let i = 10; i < 15; i++) {
             const badge = nodes[i].querySelector(".bubble-badge-group");
             expect(badge).toBeNull();
             const bgCircle = nodes[i].querySelector(".bubble-bg") as SVGCircleElement;
             const r = parseFloat(bgCircle.getAttribute("r") || "0");
-            expect(r).toBeGreaterThanOrEqual(16);
-            expect(r).toBeLessThanOrEqual(26);
+            expect(r).toBeGreaterThanOrEqual(20);
+            expect(r).toBeLessThanOrEqual(34);
         }
 
         component.destroy();
