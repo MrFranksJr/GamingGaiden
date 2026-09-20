@@ -125,7 +125,7 @@ describe("BubbleGraphComponent", () => {
         component.destroy();
     });
 
-    it("displays tooltip after 1-second continuous hover and hides on mouseleave", () => {
+    it("displays tooltip immediately on hover and hides on mouseleave", () => {
         const component = new BubbleGraphComponent();
         document.body.innerHTML = component.render(sampleBubbles);
         component.mount(document.body, sampleBubbles);
@@ -136,15 +136,8 @@ describe("BubbleGraphComponent", () => {
         const firstNode = document.querySelector(".bubble-node") as SVGGElement;
         expect(firstNode).not.toBeNull();
 
-        // Mouse enter starts timer
+        // Mouse enter displays tooltip immediately
         firstNode.dispatchEvent(new MouseEvent("mouseenter", {bubbles: true}));
-
-        // Advance 500ms - still hidden
-        vi.advanceTimersByTime(500);
-        expect(tooltip.style.display).toBe("none");
-
-        // Advance another 500ms (total 1000ms) - tooltip is displayed
-        vi.advanceTimersByTime(500);
         expect(tooltip.style.display).toBe("block");
         expect(tooltip.textContent).toContain("Helldivers 2");
         expect(tooltip.textContent).toContain("#1");
@@ -223,7 +216,6 @@ describe("BubbleGraphComponent", () => {
 
         nodes.forEach((node, index) => {
             node.dispatchEvent(new MouseEvent("mouseenter", {bubbles: true}));
-            vi.advanceTimersByTime(1000);
 
             expect(tooltip.style.display).toBe("block");
             expect(tooltip.textContent).toContain(expectedStatuses[index]);
@@ -231,26 +223,6 @@ describe("BubbleGraphComponent", () => {
             node.dispatchEvent(new MouseEvent("mouseleave", {bubbles: true}));
             expect(tooltip.style.display).toBe("none");
         });
-
-        component.destroy();
-    });
-
-    it("cancels tooltip timer if mouse leaves before 1 second", () => {
-        const component = new BubbleGraphComponent();
-        document.body.innerHTML = component.render(sampleBubbles);
-        component.mount(document.body, sampleBubbles);
-
-        const tooltip = document.getElementById("bubble-tooltip") as HTMLElement;
-        const firstNode = document.querySelector(".bubble-node") as SVGGElement;
-
-        // Mouse enter, then leave after 600ms
-        firstNode.dispatchEvent(new MouseEvent("mouseenter", {bubbles: true}));
-        vi.advanceTimersByTime(600);
-        firstNode.dispatchEvent(new MouseEvent("mouseleave", {bubbles: true}));
-
-        // Advance another 1000ms
-        vi.advanceTimersByTime(1000);
-        expect(tooltip.style.display).toBe("none");
 
         component.destroy();
     });
@@ -359,7 +331,6 @@ describe("BubbleGraphComponent", () => {
         });
 
         firstNode.dispatchEvent(new MouseEvent("mouseenter", {bubbles: true}));
-        vi.advanceTimersByTime(1000);
 
         const tooltip = document.getElementById("bubble-tooltip") as HTMLElement;
         expect(tooltip.style.display).toBe("block");

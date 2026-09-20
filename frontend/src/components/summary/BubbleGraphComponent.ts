@@ -13,7 +13,6 @@ export interface BubbleNode extends d3Force.SimulationNodeDatum, GameBubble {
 export class BubbleGraphComponent {
     private simulation: d3Force.Simulation<BubbleNode, undefined> | null = null;
     private container: HTMLElement | null = null;
-    private hoverTimer: number | null = null;
 
     /**
      * Renders the static SVG markup skeleton with tooltip overlay.
@@ -223,7 +222,7 @@ export class BubbleGraphComponent {
             window.location.hash = `#game-detail?name=${encodeURIComponent(d.name)}`;
         });
 
-        // Hover events: 1s delayed tooltip, tactile bump animation & subtle physics nudge
+        // Hover events: immediate tooltip, tactile bump animation & subtle physics nudge
         const self = this;
         nodeSelection.on("mouseenter", function (_event, d) {
             const currentElement = this;
@@ -245,16 +244,7 @@ export class BubbleGraphComponent {
                 self.simulation.alphaTarget(0.02);
             }
 
-            // Clear any prior timer
-            if (self.hoverTimer !== null) {
-                clearTimeout(self.hoverTimer);
-                self.hoverTimer = null;
-            }
-
-            // 1-second (1000ms) continuous hover timer for tooltip
-            self.hoverTimer = window.setTimeout(() => {
-                self.showTooltip(d, currentElement);
-            }, 1000);
+            self.showTooltip(d, currentElement);
         }).on("mouseleave", function (_event, _d) {
             const currentSelection = d3Selection.select(this);
 
@@ -263,11 +253,6 @@ export class BubbleGraphComponent {
                 .classed("bubble-bump", false)
                 .attr("filter", null);
 
-            // Cancel tooltip delay timer and immediately dismiss tooltip
-            if (self.hoverTimer !== null) {
-                clearTimeout(self.hoverTimer);
-                self.hoverTimer = null;
-            }
             self.hideTooltip();
 
             if (self.simulation) {
@@ -396,13 +381,9 @@ export class BubbleGraphComponent {
     }
 
     /**
-     * Stops and disposes of the physics simulation and active timers.
+     * Stops and disposes of the physics simulation.
      */
     public destroy(): void {
-        if (this.hoverTimer !== null) {
-            clearTimeout(this.hoverTimer);
-            this.hoverTimer = null;
-        }
         if (this.simulation) {
             this.simulation.stop();
             this.simulation = null;
