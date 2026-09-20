@@ -1180,10 +1180,6 @@ body {
     min-width: 0;
 }
 
-.donut-legend-item:last-child:nth-child(odd) {
-    grid-column: 1 / -1;
-}
-
 .donut-legend-header {
     display: flex;
     align-items: center;
