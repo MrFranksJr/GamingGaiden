@@ -268,4 +268,108 @@ describe("AllGamesComponent", () => {
         const sidebarFilters = document.getElementById("sidebar-filters");
         expect(sidebarFilters?.innerHTML).toBe("");
     });
+
+    it("should render a search field in header and filter games in real-time", () => {
+        document.body.innerHTML = `
+            <aside id="sidebar-nav">
+                <nav class="sidebar-menu" id="sidebar-menu"></nav>
+                <div id="sidebar-filters" class="sidebar-filters-container"></div>
+                <div id="sidebar-footer"></div>
+            </aside>
+            <main>
+                <div id="view-container"></div>
+            </main>
+        `;
+
+        const testData: GameData = {
+            ...mockData,
+            games: [
+                {
+                    name: "Super Mario Odyssey",
+                    play_time: 100,
+                    session_count: 5,
+                    status: "playing",
+                    completed: "FALSE",
+                    icon_path: null
+                },
+                {
+                    name: "Mario Kart 8 Deluxe",
+                    play_time: 50,
+                    session_count: 10,
+                    status: "finished",
+                    completed: "TRUE",
+                    icon_path: null
+                },
+                {
+                    name: "The Legend of Zelda: Tears of the Kingdom",
+                    play_time: 200,
+                    session_count: 20,
+                    status: "playing",
+                    completed: "FALSE",
+                    icon_path: null
+                }
+            ]
+        };
+
+        const container = document.getElementById("view-container")!;
+        const component = new AllGamesComponent();
+        container.innerHTML = component.render(testData);
+        component.mount(container);
+
+        const searchInput = container.querySelector<HTMLInputElement>("#all-games-search-input")!;
+        const clearBtn = container.querySelector<HTMLButtonElement>("#all-games-search-clear")!;
+        const countEl = container.querySelector(".all-games-count")!;
+
+        expect(searchInput).not.toBeNull();
+        expect(searchInput.placeholder).toBe("Search games...");
+        expect(container.querySelector(".all-games-search-icon i.fa-magnifying-glass")).not.toBeNull();
+        expect(clearBtn).not.toBeNull();
+        expect(clearBtn.classList.contains("visible")).toBe(false);
+        expect(countEl.textContent).toBe("3 games");
+
+        // Type "Mario" into search
+        searchInput.value = "Mario";
+        searchInput.dispatchEvent(new Event("input"));
+
+        let cards = container.querySelectorAll(".game-card");
+        expect(cards.length).toBe(2);
+        expect(countEl.textContent).toBe("2 games");
+        expect(clearBtn.classList.contains("visible")).toBe(true);
+
+        // Filter further by status "Completed"
+        const completedBtn = document.querySelector<HTMLButtonElement>('.sidebar-filter-btn[data-filter="completed"]')!;
+        completedBtn.click();
+
+        cards = container.querySelectorAll(".game-card");
+        expect(cards.length).toBe(1);
+        expect(cards[0].querySelector(".game-card-title")?.textContent).toBe("Mario Kart 8 Deluxe");
+        expect(countEl.textContent).toBe("1 game");
+
+        // Search with no results
+        searchInput.value = "Zelda";
+        searchInput.dispatchEvent(new Event("input"));
+        cards = container.querySelectorAll(".game-card");
+        expect(cards.length).toBe(0);
+        expect(countEl.textContent).toBe("0 games");
+        const emptyMsg = container.querySelector(".all-games-empty")!;
+        expect(emptyMsg.textContent).toContain('No games found matching "Zelda" in "Completed".');
+
+        // Click clear button
+        clearBtn.click();
+        expect(searchInput.value).toBe("");
+        expect(clearBtn.classList.contains("visible")).toBe(false);
+        cards = container.querySelectorAll(".game-card");
+        expect(cards.length).toBe(1);
+        expect(cards[0].querySelector(".game-card-title")?.textContent).toBe("Mario Kart 8 Deluxe");
+
+        // Test Escape key clears search
+        searchInput.value = "Mario";
+        searchInput.dispatchEvent(new Event("input"));
+        expect(searchInput.value).toBe("Mario");
+        searchInput.dispatchEvent(new KeyboardEvent("keydown", {key: "Escape"}));
+        expect(searchInput.value).toBe("");
+        expect(component.getSearch()).toBe("");
+
+        component.destroy();
+    });
 });

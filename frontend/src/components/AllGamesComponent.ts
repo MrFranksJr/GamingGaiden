@@ -81,7 +81,11 @@ export class AllGamesComponent {
     private currentData: GameData | null = null;
     private currentContainer: HTMLElement | null = null;
     private activeFilter: string = "all";
+    private searchQuery: string = "";
     private filterClickListener: ((e: MouseEvent) => void) | null = null;
+    private searchInputListener: ((e: Event) => void) | null = null;
+    private searchKeyDownListener: ((e: KeyboardEvent) => void) | null = null;
+    private clearClickListener: ((e: MouseEvent) => void) | null = null;
 
     render(data: GameData, parameter?: string | null): string {
         if (!data || !data.games) return "<p>No games found.</p>";
@@ -93,21 +97,40 @@ export class AllGamesComponent {
         }
 
         this.currentData = data;
-        const filterId = normalizeFilterId(parameter || this.activeFilter);
-        this.activeFilter = filterId;
+        this.activeFilter = normalizeFilterId(parameter || this.activeFilter);
 
-        const filteredGames = filterId === "all"
+        return this.renderViewHtml(validGames);
+    }
+
+    private getFilteredGames(validGames: Game[]): Game[] {
+        let filtered = this.activeFilter === "all"
             ? validGames
-            : validGames.filter(game => getStatusSlug(categorizeGameStatus(game)) === filterId);
+            : validGames.filter(game => getStatusSlug(categorizeGameStatus(game)) === this.activeFilter);
 
-        const currentFilterOption = FILTER_OPTIONS.find(f => f.id === filterId) || FILTER_OPTIONS[0];
+        const query = this.searchQuery.trim().toLowerCase();
+        if (query) {
+            filtered = filtered.filter(game => game.name.toLowerCase().includes(query));
+        }
+        return filtered;
+    }
+
+    private renderViewHtml(validGames: Game[]): string {
+        const filteredGames = this.getFilteredGames(validGames);
+        const currentFilterOption = FILTER_OPTIONS.find(f => f.id === this.activeFilter) || FILTER_OPTIONS[0];
         const countText = `${filteredGames.length} ${filteredGames.length === 1 ? "game" : "games"}`;
 
         let gridContentHtml = "";
         if (filteredGames.length === 0) {
+            const query = this.searchQuery.trim();
+            let emptyMsg = `No games found for "${escapeHtml(currentFilterOption.label)}".`;
+            if (query) {
+                emptyMsg = this.activeFilter === "all"
+                    ? `No games found matching "${escapeHtml(query)}".`
+                    : `No games found matching "${escapeHtml(query)}" in "${escapeHtml(currentFilterOption.label)}".`;
+            }
             gridContentHtml = `
                 <div class="all-games-empty">
-                    <p>No games found for "${escapeHtml(currentFilterOption.label)}".</p>
+                    <p>${emptyMsg}</p>
                 </div>
             `;
         } else {
@@ -124,13 +147,39 @@ export class AllGamesComponent {
             gridContentHtml = `<div id="all-games-grid">${cards}</div>`;
         }
 
+        const isClearVisible = Boolean(this.searchQuery.trim());
+
         return `
             <div id="all-games-view">
                 <div class="all-games-header">
-                    <h2 class="all-games-title">${escapeHtml(currentFilterOption.label)}</h2>
-                    <span class="all-games-count">${escapeHtml(countText)}</span>
+                    <div class="all-games-header-left">
+                        <h2 class="all-games-title">${escapeHtml(currentFilterOption.label)}</h2>
+                        <span class="all-games-count">${escapeHtml(countText)}</span>
+                    </div>
+                    <div class="all-games-search-wrapper">
+                        <span class="all-games-search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input 
+                            type="text" 
+                            id="all-games-search-input" 
+                            class="all-games-search-input" 
+                            placeholder="Search games..." 
+                            value="${escapeHtml(this.searchQuery)}"
+                            aria-label="Search games"
+                            autocomplete="off"
+                            spellcheck="false"
+                        />
+                        <button type="button" 
+                                id="all-games-search-clear" 
+                                class="all-games-search-clear${isClearVisible ? " visible" : ""}" 
+                                aria-label="Clear search" 
+                                title="Clear search">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
                 </div>
-                ${gridContentHtml}
+                <div id="all-games-content">
+                    ${gridContentHtml}
+                </div>
             </div>
         `;
     }
@@ -143,6 +192,103 @@ export class AllGamesComponent {
         if (validGames.length === 0) return;
 
         this.mountSidebarFilters(validGames);
+        this.attachSearchListeners(container, validGames);
+    }
+
+    private attachSearchListeners(container: HTMLElement, validGames: Game[]): void {
+        const sortedGames = [...validGames].sort((first, second) =>
+            first.name.localeCompare(second.name, undefined, {sensitivity: "base"})
+        );
+        const searchInput = container.querySelector<HTMLInputElement>("#all-games-search-input");
+        const clearBtn = container.querySelector<HTMLButtonElement>("#all-games-search-clear");
+
+        if (searchInput) {
+            this.searchInputListener = (e: Event) => {
+                const target = e.target as HTMLInputElement;
+                this.searchQuery = target.value;
+                if (clearBtn) {
+                    clearBtn.classList.toggle("visible", Boolean(this.searchQuery.trim()));
+                }
+                this.updateGridAndCount(container, sortedGames);
+            };
+            searchInput.addEventListener("input", this.searchInputListener);
+
+            this.searchKeyDownListener = (e: KeyboardEvent) => {
+                if (e.key === "Escape" && this.searchQuery) {
+                    e.preventDefault();
+                    this.clearSearch(container, sortedGames);
+                }
+            };
+            searchInput.addEventListener("keydown", this.searchKeyDownListener);
+        }
+
+        if (clearBtn) {
+            this.clearClickListener = (e: MouseEvent) => {
+                e.preventDefault();
+                this.clearSearch(container, sortedGames);
+                if (searchInput) {
+                    searchInput.focus();
+                }
+            };
+            clearBtn.addEventListener("click", this.clearClickListener);
+        }
+    }
+
+    private clearSearch(container: HTMLElement, validGames: Game[]): void {
+        this.searchQuery = "";
+        const searchInput = container.querySelector<HTMLInputElement>("#all-games-search-input");
+        if (searchInput) {
+            searchInput.value = "";
+        }
+        const clearBtn = container.querySelector<HTMLButtonElement>("#all-games-search-clear");
+        if (clearBtn) {
+            clearBtn.classList.remove("visible");
+        }
+        this.updateGridAndCount(container, validGames);
+    }
+
+    private updateGridAndCount(container: HTMLElement, validGames: Game[]): void {
+        const filteredGames = this.getFilteredGames(validGames);
+        const countEl = container.querySelector(".all-games-count");
+        if (countEl) {
+            countEl.textContent = `${filteredGames.length} ${filteredGames.length === 1 ? "game" : "games"}`;
+        }
+
+        const titleEl = container.querySelector(".all-games-title");
+        const currentFilterOption = FILTER_OPTIONS.find(f => f.id === this.activeFilter) || FILTER_OPTIONS[0];
+        if (titleEl) {
+            titleEl.textContent = currentFilterOption.label;
+        }
+
+        const contentEl = container.querySelector("#all-games-content");
+        if (contentEl) {
+            if (filteredGames.length === 0) {
+                const query = this.searchQuery.trim();
+                let emptyMsg = `No games found for "${currentFilterOption.label}".`;
+                if (query) {
+                    emptyMsg = this.activeFilter === "all"
+                        ? `No games found matching "${query}".`
+                        : `No games found matching "${query}" in "${currentFilterOption.label}".`;
+                }
+                contentEl.innerHTML = `
+                    <div class="all-games-empty">
+                        <p>${escapeHtml(emptyMsg)}</p>
+                    </div>
+                `;
+            } else {
+                const cards = filteredGames.map(game => {
+                    const iconPath = safeCachedImagePath(game.icon_path);
+                    const statusCategory = categorizeGameStatus(game);
+                    const statusSlug = getStatusSlug(statusCategory);
+                    const statusPillHtml = `<span class="game-status-pill status-${escapeHtml(statusSlug)}">${escapeHtml(statusCategory)}</span>`;
+                    const posterHtml = iconPath
+                        ? `<img src="${escapeHtml(iconPath)}" alt="${escapeHtml(game.name)} cover" class="game-poster-img" loading="lazy">`
+                        : `<div class="poster-fallback" aria-hidden="true"><span class="fallback-icon">🎮</span><span class="fallback-initials">${escapeHtml(getGameInitials(game.name))}</span></div>`;
+                    return `<a href="#game-detail?name=${encodeURIComponent(game.name)}" class="game-card" title="${escapeHtml(game.name)}"><div class="game-poster-frame">${posterHtml}${statusPillHtml}</div><div class="game-card-title">${escapeHtml(game.name)}</div></a>`;
+                }).join("");
+                contentEl.innerHTML = `<div id="all-games-grid">${cards}</div>`;
+            }
+        }
     }
 
     private mountSidebarFilters(validGames: Game[]): void {
@@ -218,13 +364,36 @@ export class AllGamesComponent {
     public setFilter(filterId: string): void {
         this.activeFilter = normalizeFilterId(filterId);
         if (this.currentData && this.currentContainer) {
-            this.currentContainer.innerHTML = this.render(this.currentData, this.activeFilter);
+            const validGames = this.currentData.games.filter(game => game !== null);
+            this.updateGridAndCount(this.currentContainer, validGames);
         }
         this.updateSidebarButtonsActiveState();
     }
 
     public getActiveFilter(): string {
         return this.activeFilter;
+    }
+
+    public setSearch(query: string): void {
+        this.searchQuery = query;
+        if (this.currentContainer) {
+            const searchInput = this.currentContainer.querySelector<HTMLInputElement>("#all-games-search-input");
+            if (searchInput && searchInput.value !== query) {
+                searchInput.value = query;
+            }
+            const clearBtn = this.currentContainer.querySelector<HTMLButtonElement>("#all-games-search-clear");
+            if (clearBtn) {
+                clearBtn.classList.toggle("visible", Boolean(query.trim()));
+            }
+            if (this.currentData && this.currentData.games) {
+                const validGames = this.currentData.games.filter(game => game !== null);
+                this.updateGridAndCount(this.currentContainer, validGames);
+            }
+        }
+    }
+
+    public getSearch(): string {
+        return this.searchQuery;
     }
 
     private updateSidebarButtonsActiveState(): void {
@@ -246,6 +415,22 @@ export class AllGamesComponent {
                     this.filterClickListener = null;
                 }
                 filtersContainer.innerHTML = "";
+            }
+            if (this.currentContainer) {
+                const searchInput = this.currentContainer.querySelector<HTMLInputElement>("#all-games-search-input");
+                if (searchInput && this.searchInputListener) {
+                    searchInput.removeEventListener("input", this.searchInputListener);
+                    this.searchInputListener = null;
+                }
+                if (searchInput && this.searchKeyDownListener) {
+                    searchInput.removeEventListener("keydown", this.searchKeyDownListener);
+                    this.searchKeyDownListener = null;
+                }
+                const clearBtn = this.currentContainer.querySelector<HTMLButtonElement>("#all-games-search-clear");
+                if (clearBtn && this.clearClickListener) {
+                    clearBtn.removeEventListener("click", this.clearClickListener);
+                    this.clearClickListener = null;
+                }
             }
         }
         this.currentData = null;

@@ -625,11 +625,19 @@ body {
 
 .all-games-header {
     display: flex;
-    align-items: baseline;
-    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
     margin-bottom: 20px;
     padding-bottom: 12px;
     border-bottom: 1px solid var(--border-light);
+}
+
+.all-games-header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
 }
 
 .all-games-title {
@@ -644,6 +652,82 @@ body {
     font-size: 0.95rem;
     font-weight: 500;
     color: var(--text-secondary);
+}
+
+.all-games-search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 200px;
+    max-width: 320px;
+    flex: 0 1 280px;
+}
+
+.all-games-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.all-games-search-input {
+    width: 100%;
+    padding: 7px 32px 7px 34px;
+    font-size: 0.875rem;
+    font-family: inherit;
+    color: var(--text-primary);
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-full);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.all-games-search-input:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    background-color: var(--bg-panel);
+}
+
+.all-games-search-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.85;
+}
+
+.all-games-search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.all-games-search-clear.visible {
+    display: flex;
+}
+
+.all-games-search-clear:hover {
+    color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .all-games-empty {
