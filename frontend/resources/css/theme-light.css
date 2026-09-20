@@ -39,11 +39,14 @@
     --accent-link-hover: #0284c7;
 
   /* Status Colors */
+    --status-completed: #10b981;
+    --status-in-progress: #6366f1;
+    --status-on-hold: #f59e0b;
+    --status-forever: #a855f7;
+    --status-dropped: #ef4444;
     --status-finished: #10b981;
     --status-finished-alt: #059669;
     --status-hold: #f59e0b;
-    --status-forever: #a855f7;
-    --status-dropped: #ef4444;
     --status-error: #ef4444;
     --status-error-dark: #dc2626;
     --status-error-light: #fca5a5;
