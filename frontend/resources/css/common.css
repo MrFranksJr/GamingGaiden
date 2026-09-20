@@ -288,22 +288,30 @@ body {
     transition: color 0.15s ease;
 }
 
-/* Active PlayStation Icon Colors */
+/* PlayStation Icon Colors (Hover & Active) */
+.sidebar-menu .nav-link[data-route="#summary"]:hover .nav-icon,
+.sidebar-menu .nav-link[href="#summary"]:hover .nav-icon,
 .sidebar-menu .nav-link[data-route="#summary"].active .nav-icon,
 .sidebar-menu .nav-link[href="#summary"].active .nav-icon {
     color: var(--ps-triangle-green);
 }
 
+.sidebar-menu .nav-link[data-route="#all-games"]:hover .nav-icon,
+.sidebar-menu .nav-link[href="#all-games"]:hover .nav-icon,
 .sidebar-menu .nav-link[data-route="#all-games"].active .nav-icon,
 .sidebar-menu .nav-link[href="#all-games"].active .nav-icon {
     color: var(--ps-circle-red);
 }
 
+.sidebar-menu .nav-link[data-route="#gaming-time"]:hover .nav-icon,
+.sidebar-menu .nav-link[href="#gaming-time"]:hover .nav-icon,
 .sidebar-menu .nav-link[data-route="#gaming-time"].active .nav-icon,
 .sidebar-menu .nav-link[href="#gaming-time"].active .nav-icon {
     color: var(--ps-cross-blue);
 }
 
+.sidebar-menu .nav-link[data-route="#session-history"]:hover .nav-icon,
+.sidebar-menu .nav-link[href="#session-history"]:hover .nav-icon,
 .sidebar-menu .nav-link[data-route="#session-history"].active .nav-icon,
 .sidebar-menu .nav-link[href="#session-history"].active .nav-icon {
     color: var(--ps-square-pink);
@@ -330,6 +338,176 @@ body {
     background-color: var(--accent-blue);
     color: var(--text-inverse);
     border-color: var(--accent-blue);
+}
+
+/* Sidebar Filters Container */
+.sidebar-filters-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-light);
+}
+
+.sidebar-filters-container:empty {
+    display: none;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.sidebar-filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sidebar-filter-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px 6px 8px;
+}
+
+.sidebar-filter-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.sidebar-filter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.sidebar-filter-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    min-height: 36px;
+    width: 100%;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    user-select: none;
+    font-family: inherit;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.sidebar-filter-btn:hover {
+    background-color: var(--bg-button-hover);
+    color: var(--text-primary);
+}
+
+.sidebar-filter-btn:focus-visible {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 2px;
+}
+
+.sidebar-filter-btn.active {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-weight: 600;
+    border-color: var(--border-light);
+}
+
+.sidebar-filter-btn .filter-icon {
+    font-size: 0.95rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+    transition: color 0.15s ease;
+}
+
+.sidebar-filter-btn[data-filter="all"]:hover .filter-icon,
+.sidebar-filter-btn[data-filter="all"].active .filter-icon {
+    color: var(--accent-blue);
+}
+
+.sidebar-filter-btn[data-filter="in-progress"]:hover .filter-icon,
+.sidebar-filter-btn[data-filter="in-progress"].active .filter-icon {
+    color: var(--status-in-progress, #6366f1);
+}
+
+.sidebar-filter-btn[data-filter="completed"]:hover .filter-icon,
+.sidebar-filter-btn[data-filter="completed"].active .filter-icon {
+    color: var(--status-completed, #10b981);
+}
+
+.sidebar-filter-btn[data-filter="on-hold"]:hover .filter-icon,
+.sidebar-filter-btn[data-filter="on-hold"].active .filter-icon {
+    color: var(--status-on-hold, #f59e0b);
+}
+
+.sidebar-filter-btn[data-filter="forever"]:hover .filter-icon,
+.sidebar-filter-btn[data-filter="forever"].active .filter-icon {
+    color: var(--status-forever, #a855f7);
+}
+
+.sidebar-filter-btn[data-filter="dropped"]:hover .filter-icon,
+.sidebar-filter-btn[data-filter="dropped"].active .filter-icon {
+    color: var(--status-dropped, #ef4444);
+}
+
+.sidebar-filter-btn .filter-label {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-filter-btn .filter-badge {
+    background-color: var(--bg-button);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-light);
+}
+
+.sidebar-filter-btn.active .filter-badge {
+    background-color: var(--accent-blue);
+    color: var(--text-inverse);
+    border-color: var(--accent-blue);
+}
+
+/* Collapsed Sidebar Filter Styles */
+#sidebar-nav.collapsed .sidebar-filters-container {
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+#sidebar-nav.collapsed .sidebar-filter-header,
+#sidebar-nav.collapsed .sidebar-filter-btn .filter-label,
+#sidebar-nav.collapsed .sidebar-filter-btn .filter-badge {
+    display: none;
+}
+
+#sidebar-nav.collapsed .sidebar-filter-btn {
+    justify-content: center;
+    padding: 8px 0;
+    min-height: 36px;
+    gap: 0;
+}
+
+#sidebar-nav.collapsed .sidebar-filter-btn .filter-icon {
+    width: 24px;
+    font-size: 1.1rem;
 }
 
 /* Sidebar Footer & Theme Switcher */
@@ -443,6 +621,40 @@ body {
 /* All Games Grid & Cards */
 #all-games-view {
     width: 100%;
+}
+
+.all-games-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.all-games-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.all-games-count {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.all-games-empty {
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    background-color: var(--bg-panel);
+    border: 1px dashed var(--border-light);
+    border-radius: var(--radius-lg);
+    margin-top: 16px;
 }
 
 #all-games-grid {

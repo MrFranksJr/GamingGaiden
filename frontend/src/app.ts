@@ -237,7 +237,13 @@ export class Router {
             return;
         }
 
-        const parameter = routeKey === "#game-detail" ? new URLSearchParams(query).get("name") : null;
+        const queryParams = new URLSearchParams(query);
+        let parameter: string | null = null;
+        if (routeKey === "#game-detail") {
+            parameter = queryParams.get("name");
+        } else if (routeKey === "#all-games") {
+            parameter = queryParams.get("filter") || queryParams.get("status");
+        }
         this.render(route, parameter);
     }
 

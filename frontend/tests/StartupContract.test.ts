@@ -59,7 +59,7 @@ describe("local-file startup contract", () => {
         expect(document.querySelector("a[href='#session-history'] .nav-icon i.fa-solid.fa-calendar")).not.toBeNull();
     });
 
-    it("defines playstation button colors and active sidebar icon rules", () => {
+    it("defines playstation button colors and hover/active sidebar icon rules", () => {
         const themeCss = readFileSync(resolve("resources/css/theme.css"), "utf8");
         const commonCss = readFileSync(resolve("resources/css/common.css"), "utf8");
 
@@ -68,9 +68,13 @@ describe("local-file startup contract", () => {
         expect(themeCss).toContain("--ps-cross-blue");
         expect(themeCss).toContain("--ps-square-pink");
 
+        expect(commonCss).toContain('.nav-link[href="#summary"]:hover .nav-icon');
         expect(commonCss).toContain('.nav-link[href="#summary"].active .nav-icon');
+        expect(commonCss).toContain('.nav-link[href="#all-games"]:hover .nav-icon');
         expect(commonCss).toContain('.nav-link[href="#all-games"].active .nav-icon');
+        expect(commonCss).toContain('.nav-link[href="#gaming-time"]:hover .nav-icon');
         expect(commonCss).toContain('.nav-link[href="#gaming-time"].active .nav-icon');
+        expect(commonCss).toContain('.nav-link[href="#session-history"]:hover .nav-icon');
         expect(commonCss).toContain('.nav-link[href="#session-history"].active .nav-icon');
     });
 

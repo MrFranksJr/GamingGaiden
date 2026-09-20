@@ -155,7 +155,8 @@ describe('Router', () => {
     it('should handle dynamic routes with params', async () => {
         const routes = {
             '#summary': {name: 'summary', component: SummaryComponent},
-            '#game-detail': {name: 'game-detail', component: GameDetailComponent}
+            '#game-detail': {name: 'game-detail', component: GameDetailComponent},
+            '#all-games': {name: 'all-games', component: AllGamesComponent}
         }
 
         router = new Router(routes)
@@ -165,6 +166,20 @@ describe('Router', () => {
         router.handleRoute()
 
         expect(document.getElementById('detail-game-name')?.textContent).toBe('Game A')
+
+        // Test #all-games with filter param
+        window.location.hash = '#all-games?filter=completed'
+        router.handleRoute()
+
+        expect(container.querySelectorAll('.game-card')).toHaveLength(1)
+        expect(container.querySelector('.game-card-title')?.textContent).toBe('Game B')
+        expect(container.querySelector('.all-games-title')?.textContent).toBe('Completed')
+
+        // Navigate back to summary and verify sidebar filter cleanup
+        window.location.hash = '#summary'
+        router.handleRoute()
+        const sidebarFilters = document.getElementById('sidebar-filters')
+        expect(sidebarFilters?.innerHTML).toBe('')
     })
 
     it('should show a visible error for an unknown route', async () => {
