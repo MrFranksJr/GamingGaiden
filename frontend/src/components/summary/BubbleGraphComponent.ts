@@ -238,8 +238,8 @@ export class BubbleGraphComponent {
             const dx = (d.x ?? width / 2) - width / 2;
             const dy = (d.y ?? height / 2) - height / 2;
             const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-            d.vx = (node => (node.vx || 0) + (dx / dist) * 1.0)(d);
-            d.vy = (node => (node.vy || 0) + (dy / dist) * 1.0)(d);
+            d.vx = (node => (node.vx || 0) + (dx / dist))(d);
+            d.vy = (node => (node.vy || 0) + (dy / dist))(d);
 
             if (self.simulation) {
                 self.simulation.alphaTarget(0.02);

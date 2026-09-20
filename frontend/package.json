@@ -10,7 +10,7 @@
   "scripts": {
     "sync:fontawesome": "node scripts/sync-fontawesome.js",
     "sync:data": "node scripts/sync-data.js",
-    "build": "npm run sync:fontawesome && npm run sync:data && esbuild src/app.ts --bundle --outfile=resources/js/app.js --platform=browser --format=iife",
+    "build": "npm run sync:data && esbuild src/app.ts --bundle --outfile=resources/js/app.js --platform=browser --format=iife",
     "pretest": "npm run build",
     "test": "vitest run"
   },
