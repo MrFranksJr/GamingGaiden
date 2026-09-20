@@ -9,6 +9,7 @@ import {escapeHtml} from "../utils/HtmlUtils";
 export class SummaryComponent {
     private bubbleGraph: BubbleGraphComponent = new BubbleGraphComponent();
     private currentMetrics: SummaryDashboardMetrics | null = null;
+    private currentContainer: HTMLElement | null = null;
 
     public render(data: GameData | null): string {
         if (!data || !data.games) {
@@ -134,13 +135,19 @@ export class SummaryComponent {
     }
 
     public mount(container: HTMLElement): void {
+        this.currentContainer = container;
         if (this.currentMetrics && this.currentMetrics.topGames) {
             this.bubbleGraph.mount(container, this.currentMetrics.topGames);
         }
+        GameStatusDonut.mount(container);
     }
 
     public destroy(): void {
         this.bubbleGraph.destroy();
+        if (this.currentContainer) {
+            GameStatusDonut.destroy(this.currentContainer);
+            this.currentContainer = null;
+        }
         this.currentMetrics = null;
     }
 }
