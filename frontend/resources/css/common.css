@@ -763,9 +763,8 @@ body {
     background: var(--bg-panel);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
-    padding: 36px 40px;
+    padding: 18px 20px;
     box-shadow: 0 4px 12px var(--shadow-secondary);
-    flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -775,22 +774,22 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    flex: 1;
-    min-height: 0;
-    gap: 16px;
+    justify-content: flex-start;
+    gap: 14px;
     width: 100%;
 }
 
 .donut-chart-wrapper {
     position: relative;
     width: 100%;
-    flex: 1;
-    min-height: 180px;
+    max-width: 180px;
+    max-height: 180px;
+    aspect-ratio: 1 / 1;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto;
+    flex-shrink: 0;
 }
 
 .donut-svg {
@@ -828,51 +827,68 @@ body {
 
 .donut-legend {
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 10px;
 }
 
 .donut-legend-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 0.82rem;
-    padding: 2px 0;
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    min-width: 0;
+}
+
+.donut-legend-item:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
 }
 
 .donut-legend-header {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    min-width: 0;
 }
 
 .donut-legend-dot {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     display: inline-block;
+    flex-shrink: 0;
 }
 
 .donut-legend-label {
     color: var(--text-primary);
     font-weight: 500;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .donut-legend-numbers {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    flex-shrink: 0;
 }
 
 .donut-legend-count {
     color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.78rem;
 }
 
 .donut-legend-pct {
     font-weight: 600;
     color: var(--text-primary);
-    min-width: 32px;
+    font-size: 0.75rem;
     text-align: right;
 }
 
@@ -881,7 +897,6 @@ body {
     background: var(--bg-panel);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
-    padding: 20px;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -893,6 +908,7 @@ body {
     text-align: center;
     margin-bottom: 8px;
     flex-shrink: 0;
+    padding-top: 20px;
 }
 
 .centerpiece-title {
@@ -1042,7 +1058,6 @@ body {
     border-radius: var(--radius-lg);
     padding: 18px 20px;
     box-shadow: 0 4px 12px var(--shadow-secondary);
-    flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -1051,8 +1066,7 @@ body {
 .recent-activity-list {
     display: flex;
     flex-direction: column;
-    justify-content: space-evenly;
-    flex: 1;
+    justify-content: flex-start;
     gap: 8px;
 }
 
@@ -1060,16 +1074,17 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px;
+    padding: 8px 10px;
     border-radius: var(--radius-md);
     background: var(--bg-tertiary);
     border: 1px solid var(--border-light);
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+    transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
 }
 
 .recent-activity-item:hover {
     border-color: rgba(99, 102, 241, 0.4);
     background: rgba(99, 102, 241, 0.05);
+    transform: translateX(2px);
 }
 
 .recent-thumb-wrapper {
@@ -1126,6 +1141,53 @@ body {
     font-size: 0.75rem;
     font-weight: 600;
     white-space: nowrap;
+}
+
+/* Compact scaling for smaller screens and heights */
+@media (max-width: 1400px), (max-height: 860px) {
+    .recent-activity-card {
+        padding: 14px 16px;
+    }
+
+    .recent-activity-list {
+        gap: 6px;
+    }
+
+    .recent-activity-item {
+        padding: 6px 8px;
+        gap: 10px;
+    }
+
+    .recent-thumb-wrapper {
+        width: 34px;
+        height: 34px;
+    }
+
+    .recent-thumb-fallback {
+        font-size: 0.75rem;
+    }
+
+    .recent-game-title {
+        font-size: 0.8rem;
+    }
+
+    .recent-relative-time {
+        font-size: 0.7rem;
+    }
+
+    .recent-duration-badge {
+        padding: 3px 6px;
+        font-size: 0.7rem;
+    }
+
+    .game-status-card {
+        padding: 14px 16px;
+    }
+
+    .donut-chart-wrapper {
+        max-width: 150px;
+        max-height: 150px;
+    }
 }
 
 .recent-empty {
