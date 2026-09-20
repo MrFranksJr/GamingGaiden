@@ -30,7 +30,6 @@ describe('Router', () => {
                         <a href="#all-games" class="nav-link" data-route="#all-games" title="All Games">
                             <span class="nav-icon"><i class="fa-solid fa-gamepad"></i></span>
                             <span class="nav-label">All Games</span>
-                            <span class="nav-badge games-count" id="sidebar-games-count">0</span>
                         </a>
                     </nav>
                     <div class="sidebar-footer" id="sidebar-footer">
@@ -128,7 +127,7 @@ describe('Router', () => {
         expect(container.querySelectorAll('.game-card')).toHaveLength(2)
     })
 
-    it('should synchronize active class on sidebar navigation and update game count', async () => {
+    it('should synchronize active class on sidebar navigation', async () => {
         const routes = {
             '#summary': {name: 'summary', component: SummaryComponent},
             '#all-games': {name: 'all-games', component: AllGamesComponent}
@@ -139,9 +138,7 @@ describe('Router', () => {
 
         const summaryLink = document.querySelector<HTMLAnchorElement>('a[href="#summary"]')!
         const allGamesLink = document.querySelector<HTMLAnchorElement>('a[href="#all-games"]')!
-        const badge = document.getElementById('sidebar-games-count')
 
-        expect(badge?.textContent).toBe('2')
         expect(summaryLink.classList.contains('active')).toBe(true)
         expect(allGamesLink.classList.contains('active')).toBe(false)
 

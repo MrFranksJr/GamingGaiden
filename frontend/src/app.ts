@@ -160,20 +160,10 @@ export class Router {
             const validated = validateGameData(rawData);
             this.data = validated.data;
             validated.warnings.forEach(warning => console.warn(warning));
-            this.updateSidebarGameCount();
         } catch (error) {
             console.error("Failed to load game data:", error);
             const message = error instanceof Error ? error.message : "Unknown data error.";
             this.displayError(`Failed to load data: ${message}`);
-        }
-    }
-
-    private updateSidebarGameCount() {
-        if (this.data && typeof document !== "undefined") {
-            const badge = document.getElementById("sidebar-games-count") || document.querySelector(".games-count");
-            if (badge) {
-                badge.textContent = String(this.data.games.length);
-            }
         }
     }
 
