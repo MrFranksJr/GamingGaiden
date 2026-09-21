@@ -1749,11 +1749,20 @@ body {
     transform: translateX(-3px);
 }
 
+/* Header Row: hero (left 50%) + stat cards (right 50%), equal-height columns */
+.game-detail-header-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: stretch;
+}
+
 /* Hero Header */
 .game-detail-hero {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 24px;
+    height: 100%;
     background: var(--bg-panel);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
@@ -1762,8 +1771,8 @@ body {
 }
 
 .game-detail-hero-poster {
-    width: 100px;
-    height: 130px;
+    width: 180px;
+    aspect-ratio: 2 / 3;
     flex-shrink: 0;
     border-radius: var(--radius-md);
     overflow: hidden;
@@ -1867,9 +1876,9 @@ body {
 
 .game-detail-hero-meta {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 18px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
     font-size: 0.85rem;
     color: var(--text-secondary);
 }
@@ -1950,8 +1959,10 @@ body {
 /* Quick Stat Cards */
 .game-detail-stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: 1fr 1fr;
     gap: 14px;
+    height: 100%;
 }
 
 .game-stat-card {
@@ -2038,6 +2049,12 @@ body {
     display: flex;
     flex-direction: column;
     min-width: 0;
+}
+
+/* Cards fill their column so the sessions card matches the taller breakdown card */
+.game-detail-sessions-col > .game-detail-card,
+.game-detail-breakdown-col > .game-detail-card {
+    flex: 1;
 }
 
 .game-detail-bottom-card {
@@ -2335,6 +2352,10 @@ body {
         grid-template-columns: 1fr;
     }
 
+    .game-detail-header-row {
+        grid-template-columns: 1fr;
+    }
+
     .game-detail-stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -2352,11 +2373,12 @@ body {
     }
 
     .game-detail-hero-poster {
-        width: 80px;
-        height: 105px;
+        width: 140px;
+        height: auto;
     }
 
     .game-detail-stats-grid {
         grid-template-columns: 1fr;
+        grid-template-rows: auto;
     }
 }

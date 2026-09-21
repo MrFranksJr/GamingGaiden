@@ -1,4 +1,4 @@
-import {describe, expect, it, vi, beforeEach, afterEach} from 'vitest';
+import {describe, expect, it, vi, beforeEach} from 'vitest';
 import {GameDetailComponent} from '../src/components/GameDetailComponent';
 import {mockData} from './test-utils';
 import {GameData} from '../src/types/GameData';
@@ -66,6 +66,37 @@ describe('GameDetailComponent', () => {
 
         const backBtn = document.querySelector<HTMLButtonElement>('#game-detail-back-btn');
         expect(backBtn).not.toBeNull();
+    });
+
+    it('renders each hero meta stat as its own stacked line', () => {
+        const component = new GameDetailComponent();
+        document.body.innerHTML = component.render(mockData, 'Game A');
+
+        const metaContainer = document.querySelector('.game-detail-hero-meta');
+        expect(metaContainer).not.toBeNull();
+
+        // Release and Last Played must each be their own meta item (separate lines).
+        const metaItems = metaContainer!.querySelectorAll('.game-detail-meta-item');
+        expect(metaItems.length).toBe(2);
+
+        const labels = Array.from(metaItems).map(el => el.querySelector('.meta-label')?.textContent?.trim());
+        expect(labels).toContain('Release:');
+        expect(labels).toContain('Last Played:');
+    });
+
+    it('wraps the hero and the stat cards grid in a single header row', () => {
+        const component = new GameDetailComponent();
+        document.body.innerHTML = component.render(mockData, 'Game A');
+
+        const headerRow = document.querySelector('#game-detail-view > .game-detail-header-row');
+        expect(headerRow).not.toBeNull();
+
+        // Both the hero and the 2x2 stat grid live inside the header row.
+        expect(headerRow!.querySelector('.game-detail-hero')).not.toBeNull();
+        expect(headerRow!.querySelector('.game-detail-stats-grid')).not.toBeNull();
+
+        // The stat grid still holds all four cards.
+        expect(headerRow!.querySelectorAll('.game-stat-card').length).toBe(4);
     });
 
     it('renders poster fallback initials when icon_path is null', () => {

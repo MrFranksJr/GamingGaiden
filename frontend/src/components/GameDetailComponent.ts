@@ -6,7 +6,6 @@ import {
     formatDateTime,
     GameDetailStats,
     parseSessionDate,
-    TimeOfDayItem,
     TimelineSessionPoint
 } from "../utils/GameDetailStatsCalculator";
 
@@ -25,10 +24,10 @@ export class GameDetailComponent {
         const validSessions = (data.session_history || []).filter(s => s !== null);
         const stats = calculateGameDetailStats(game, validSessions);
 
-        return this.renderViewHtml(stats, game, validSessions);
+        return this.renderViewHtml(stats);
     }
 
-    private renderViewHtml(stats: GameDetailStats, rawGame: any, allSessions: Session[]): string {
+    private renderViewHtml(stats: GameDetailStats): string {
         const heroPosterHtml = stats.iconPath
             ? `<img src="${escapeHtml(safeCachedImagePath(stats.iconPath) || stats.iconPath)}" alt="${escapeHtml(stats.gameName)} cover" class="game-poster-img" id="detail-game-icon">`
             : `<div class="poster-fallback" id="detail-game-icon" aria-hidden="true"><span class="fallback-icon">🎮</span><span class="fallback-initials">${escapeHtml(stats.initials)}</span></div>`;
@@ -143,8 +142,10 @@ export class GameDetailComponent {
                     <a href="#all-games" class="back-link" style="display: none;">Back to List</a>
                 </div>
 
-                ${heroSectionHtml}
-                ${statCardsHtml}
+                <div class="game-detail-header-row">
+                    ${heroSectionHtml}
+                    ${statCardsHtml}
+                </div>
 
                 <div class="game-detail-main-layout">
                     <div class="game-detail-top-cards">
@@ -217,7 +218,7 @@ export class GameDetailComponent {
         }).join("");
 
         // Date labels on axis (show first, middle, last or up to 8 points)
-        let axisLabelsSvg = "";
+        let axisLabelsSvg: string;
         if (numPoints <= 8) {
             axisLabelsSvg = timeline.map((pt, idx) => {
                 const x = numPoints === 1 ? paddingLeft + innerWidth / 2 : paddingLeft + idx * stepX;
