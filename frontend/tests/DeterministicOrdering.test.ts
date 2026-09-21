@@ -5,6 +5,7 @@ import {GamingTimeComponent} from "../src/components/GamingTimeComponent";
 import {SessionHistoryComponent} from "../src/components/SessionHistoryComponent";
 import {GameData} from "../src/types/GameData";
 import {mockData} from "./test-utils";
+import {formatDateTime, parseSessionDate} from "../src/utils/GameDetailStatsCalculator";
 
 describe("deterministic component ordering", () => {
     const shuffledData: GameData = {
@@ -43,6 +44,9 @@ describe("deterministic component ordering", () => {
     it("sorts a game's sessions newest first", () => {
         document.body.innerHTML = new GameDetailComponent().render(shuffledData, "Game A");
         const starts = Array.from(document.querySelectorAll(".detail-session-start"), element => element.textContent);
-        expect(starts).toEqual(["300", "100"]);
+        expect(starts).toEqual([
+            formatDateTime(parseSessionDate(300)!),
+            formatDateTime(parseSessionDate(100)!)
+        ]);
     });
 });
