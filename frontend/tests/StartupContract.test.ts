@@ -1,4 +1,4 @@
-import {readFileSync} from "node:fs";
+import {existsSync, readFileSync} from "node:fs";
 import {resolve} from "node:path";
 import {afterEach, describe, expect, it} from "vitest";
 import "../src/types/GameData";
@@ -59,14 +59,34 @@ describe("local-file startup contract", () => {
         expect(document.querySelector("a[href='#session-history'] .nav-icon i.fa-solid.fa-calendar")).not.toBeNull();
     });
 
+    it("only links stylesheets that exist on disk", () => {
+        const html = readFileSync(resolve("index.html"), "utf8");
+        const document = new DOMParser().parseFromString(html, "text/html");
+        const hrefs = Array.from(document.querySelectorAll("link[rel='stylesheet']"))
+            .map(link => link.getAttribute("href"))
+            .filter((href): href is string => href !== null);
+
+        expect(hrefs.length).toBeGreaterThan(0);
+        for (const href of hrefs) {
+            const relativePath = href.replace(/^\.\//, "");
+            expect(existsSync(resolve(relativePath)), `linked stylesheet is missing: ${href}`).toBe(true);
+        }
+    });
+
     it("defines playstation button colors and hover/active sidebar icon rules", () => {
-        const themeCss = readFileSync(resolve("resources/css/theme.css"), "utf8");
+        // The PlayStation button color variables are defined per theme, so both
+        // theme stylesheets must carry the full set. (Previously this test read a
+        // non-existent "theme.css" and therefore never actually ran.)
+        const themeDarkCss = readFileSync(resolve("resources/css/theme-dark.css"), "utf8");
+        const themeLightCss = readFileSync(resolve("resources/css/theme-light.css"), "utf8");
         const commonCss = readFileSync(resolve("resources/css/common.css"), "utf8");
 
-        expect(themeCss).toContain("--ps-triangle-green");
-        expect(themeCss).toContain("--ps-circle-red");
-        expect(themeCss).toContain("--ps-cross-blue");
-        expect(themeCss).toContain("--ps-square-pink");
+        for (const themeCss of [themeDarkCss, themeLightCss]) {
+            expect(themeCss).toContain("--ps-triangle-green");
+            expect(themeCss).toContain("--ps-circle-red");
+            expect(themeCss).toContain("--ps-cross-blue");
+            expect(themeCss).toContain("--ps-square-pink");
+        }
 
         expect(commonCss).toContain('.nav-link[href="#summary"]:hover .nav-icon');
         expect(commonCss).toContain('.nav-link[href="#summary"].active .nav-icon');
@@ -87,7 +107,14 @@ describe("local-file startup contract", () => {
 
     it("boots the production bundle with a real exporter-generated payload", async () => {
         const bundle = readFileSync(resolve("resources/js/app.js"), "utf8");
-        window.gamingGaidenData = JSON.parse(readFileSync(resolve("resources/data.json"), "utf8"));
+        // The exporter may prepend a UTF-8 BOM; strip it before parsing, mirroring
+        // how sync-data.js sanitises the payload when generating data.js.
+        const rawData = readFileSync(resolve("resources/data.json"), "utf8").replace(/^\uFEFF/, "");
+        const parsedData = JSON.parse(rawData);
+        window.gamingGaidenData = parsedData;
+        // Derive expectations from the real payload so this contract test stays
+        // valid as the exporter data grows, rather than pinning a stale count.
+        const expectedGameCount = parsedData.games.length;
         document.body.innerHTML = '<div id="view-container">Loading...</div>';
 
         window.eval(bundle);
@@ -95,13 +122,13 @@ describe("local-file startup contract", () => {
         await new Promise(resolvePromise => setTimeout(resolvePromise, 0));
 
         expect(document.getElementById("summary-view")).not.toBeNull();
-        expect(document.getElementById("total-games-value")?.textContent).toBe("10");
+        expect(document.getElementById("total-games-value")?.textContent).toBe(String(expectedGameCount));
         expect(document.getElementById("error-message")).toBeNull();
 
         window.location.hash = "#all-games";
         window.dispatchEvent(new HashChangeEvent("hashchange"));
         expect(document.getElementById("all-games-view")).not.toBeNull();
-        expect(document.querySelectorAll(".game-card")).toHaveLength(10);
+        expect(document.querySelectorAll(".game-card")).toHaveLength(expectedGameCount);
 
         const firstGameLink = document.querySelector<HTMLAnchorElement>(".game-card");
         expect(firstGameLink?.hash).toMatch(/^#game-detail\?name=/);

@@ -1,6 +1,20 @@
 import {Game, GameData} from "../types/GameData";
 import {toSortableTimestamp} from "./TimeUtils";
 
+/**
+ * Minimum tracked session duration (in minutes) that counts toward the
+ * "average session" statistic. Sessions shorter than this are typically
+ * setup/tinkering blips (adjusting graphics, settings, etc.) rather than
+ * genuine play, and would otherwise drag the average down.
+ *
+ * NOTE: This threshold ONLY affects the average-session calculation
+ * (lifetime average and the year-over-year average delta). It does NOT
+ * affect total session counts, total playtime, per-game lifetime hours,
+ * recent activity, or the game detail pages — every real session is still
+ * tracked and displayed there.
+ */
+export const MIN_SESSION_MINUTES_FOR_AVG = 4;
+
 export interface StatDelta {
     text: string;
     type: "positive" | "negative" | "neutral";
@@ -241,7 +255,19 @@ export class SummaryStatsCalculator {
             ? sessions.length
             : validGames.reduce((acc, g) => acc + (Number.isFinite(g.session_count) ? Math.max(0, g.session_count) : 0), 0);
 
-        const avgSessionMinutes = totalSessions > 0 ? Math.round(totalPlayTimeMinutes / totalSessions) : 0;
+        // Average session duration is computed ONLY from tracked sessions whose
+        // duration meets MIN_SESSION_MINUTES_FOR_AVG. This deliberately does NOT
+        // divide total lifetime playtime (which includes hours imported before
+        // sessions were tracked) by the session count — doing so wildly inflates
+        // the average (e.g. a game with 300h imported but only a handful of
+        // tracked sessions). It also filters out short setup/tinkering sessions.
+        const avgEligibleSessions = sessions.filter(
+            s => Number.isFinite(s.duration) && s.duration >= MIN_SESSION_MINUTES_FOR_AVG
+        );
+        const avgEligiblePlayTime = avgEligibleSessions.reduce((acc, s) => acc + s.duration, 0);
+        const avgSessionMinutes = avgEligibleSessions.length > 0
+            ? Math.round(avgEligiblePlayTime / avgEligibleSessions.length)
+            : 0;
         const avgHours = Math.floor(avgSessionMinutes / 60);
         const avgMins = avgSessionMinutes % 60;
         const avgSessionFormatted = avgHours > 0 ? `${avgHours}h ${avgMins}m` : `${avgMins}m`;
@@ -268,12 +294,22 @@ export class SummaryStatsCalculator {
         if (thisYearSessions.length > 0) {
             const thisYearGames = new Set(thisYearSessions.map(s => s.game_name)).size;
             const thisYearPlayTime = thisYearSessions.reduce((acc, s) => acc + (s.duration || 0), 0);
-            const thisYearAvg = thisYearSessions.length > 0 ? thisYearPlayTime / thisYearSessions.length : 0;
+            // Average uses only sessions meeting the threshold, consistent with
+            // the lifetime avgSessionMinutes calculation above.
+            const thisYearAvgSessions = thisYearSessions.filter(
+                s => Number.isFinite(s.duration) && s.duration >= MIN_SESSION_MINUTES_FOR_AVG
+            );
+            const thisYearAvgPlayTime = thisYearAvgSessions.reduce((acc, s) => acc + s.duration, 0);
+            const thisYearAvg = thisYearAvgSessions.length > 0 ? thisYearAvgPlayTime / thisYearAvgSessions.length : 0;
 
             if (prevYearSessions.length > 0) {
                 const prevYearGames = new Set(prevYearSessions.map(s => s.game_name)).size;
                 const prevYearPlayTime = prevYearSessions.reduce((acc, s) => acc + (s.duration || 0), 0);
-                const prevYearAvg = prevYearSessions.length > 0 ? prevYearPlayTime / prevYearSessions.length : 0;
+                const prevYearAvgSessions = prevYearSessions.filter(
+                    s => Number.isFinite(s.duration) && s.duration >= MIN_SESSION_MINUTES_FOR_AVG
+                );
+                const prevYearAvgPlayTime = prevYearAvgSessions.reduce((acc, s) => acc + s.duration, 0);
+                const prevYearAvg = prevYearAvgSessions.length > 0 ? prevYearAvgPlayTime / prevYearAvgSessions.length : 0;
 
                 const gDiff = thisYearGames - prevYearGames;
                 gamesDelta = {

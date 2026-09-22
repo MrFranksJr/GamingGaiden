@@ -373,6 +373,84 @@ describe("SummaryStatsCalculator", () => {
             expect(metrics.milestone.annotation).toBe("*Excludes 2 forever games");
         });
 
+        it("computes avg session from tracked session durations, immune to imported lifetime playtime", () => {
+            // Witcher-style: a huge lifetime play_time imported before sessions
+            // were tracked, with only a couple of short tracked sessions. The
+            // average must reflect the tracked sessions, NOT play_time/sessions.
+            const data: GameData = {
+                schema_version: 1,
+                games: [
+                    {name: "The Witcher 3", play_time: 18847, session_count: 5, status: "", completed: "TRUE"},
+                    {name: "Indie Game", play_time: 60, session_count: 1, status: "playing", completed: "FALSE"}
+                ],
+                session_history: [
+                    {game_name: "The Witcher 3", start_time: "2026-05-01T10:00:00Z", duration: 20},
+                    {game_name: "The Witcher 3", start_time: "2026-05-02T10:00:00Z", duration: 24},
+                    {game_name: "Indie Game", start_time: "2026-05-03T10:00:00Z", duration: 60}
+                ],
+                daily_playtime: [],
+                gaming_pcs: []
+            };
+
+            const now = new Date("2026-09-18T12:00:00Z");
+            const metrics = SummaryStatsCalculator.compute(data, now);
+
+            // Old buggy behavior would have been (18847 + 60) / 3 = 6302 min.
+            // Correct: mean of tracked durations (20 + 24 + 60) / 3 = 34.67 -> 35 min.
+            expect(metrics.stats.avgSessionMinutes).toBe(35);
+            // Lifetime totals remain fully intact.
+            expect(metrics.stats.totalPlayTimeMinutes).toBe(18907);
+            expect(metrics.stats.totalSessions).toBe(3);
+        });
+
+        it("excludes short setup sessions below the threshold from the average only", () => {
+            // Metro-style: a game with tiny setup sessions (~1 min) that should
+            // not drag down the average, but must still be counted and preserved.
+            const data: GameData = {
+                schema_version: 1,
+                games: [
+                    {name: "Metro 2033", play_time: 62, session_count: 3, status: "hold", completed: "TRUE"}
+                ],
+                session_history: [
+                    {game_name: "Metro 2033", start_time: "2026-05-01T10:00:00Z", duration: 1},
+                    {game_name: "Metro 2033", start_time: "2026-05-02T10:00:00Z", duration: 1},
+                    {game_name: "Metro 2033", start_time: "2026-05-03T10:00:00Z", duration: 60}
+                ],
+                daily_playtime: [],
+                gaming_pcs: []
+            };
+
+            const now = new Date("2026-09-18T12:00:00Z");
+            const metrics = SummaryStatsCalculator.compute(data, now);
+
+            // Only the 60-min session meets the >=4 min threshold -> avg = 60.
+            expect(metrics.stats.avgSessionMinutes).toBe(60);
+            // Total session count still reflects ALL sessions (nothing dropped).
+            expect(metrics.stats.totalSessions).toBe(3);
+        });
+
+        it("returns zero average when no tracked session meets the threshold", () => {
+            const data: GameData = {
+                schema_version: 1,
+                games: [
+                    {name: "Only Blips", play_time: 3, session_count: 3, status: "playing", completed: "FALSE"}
+                ],
+                session_history: [
+                    {game_name: "Only Blips", start_time: "2026-05-01T10:00:00Z", duration: 1},
+                    {game_name: "Only Blips", start_time: "2026-05-02T10:00:00Z", duration: 1},
+                    {game_name: "Only Blips", start_time: "2026-05-03T10:00:00Z", duration: 1}
+                ],
+                daily_playtime: [],
+                gaming_pcs: []
+            };
+
+            const metrics = SummaryStatsCalculator.compute(data, new Date("2026-09-18T12:00:00Z"));
+            expect(metrics.stats.avgSessionMinutes).toBe(0);
+            expect(metrics.stats.avgSessionFormatted).toBe("0m");
+            // Sessions are still counted.
+            expect(metrics.stats.totalSessions).toBe(3);
+        });
+
         it("handles empty or null datasets gracefully", () => {
             const metricsNull = SummaryStatsCalculator.compute(null);
             expect(metricsNull.stats.totalGames).toBe(0);

@@ -11,7 +11,11 @@ describe("SummaryComponent", () => {
         expect(document.getElementById("total-games-value")?.textContent).toBe("2");
         expect(document.getElementById("total-playtime-value")?.textContent).toBe("3 Hr 0 Min");
         expect(document.getElementById("total-sessions-value")?.textContent).toBe("2");
-        expect(document.getElementById("avg-session-value")?.textContent).toBe("1h 30m");
+        // avg session = mean of tracked session durations (30m + 60m) / 2 = 45m.
+        // Previously this asserted "1h 30m", which was the reported bug: total
+        // lifetime playtime (180m) divided by session count (2) instead of the
+        // mean of the actual tracked session durations.
+        expect(document.getElementById("avg-session-value")?.textContent).toBe("45m");
         expect(document.getElementById("completed-games-value")?.textContent).toBe("1");
 
         // Check sub-panels
