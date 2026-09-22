@@ -32,6 +32,13 @@
     --ps-circle-red: #e11d48;
     --ps-cross-blue: #0284c7;
     --ps-square-pink: #db2777;
+
+    /* Game Status Colors (theme-invariant) */
+    --status-completed: #10b981;
+    --status-in-progress: #6366f1;
+    --status-on-hold: #f59e0b;
+    --status-forever: #a855f7;
+    --status-dropped: #ef4444;
 }
 
 [data-theme="dark"] {

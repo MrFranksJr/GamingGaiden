@@ -74,18 +74,17 @@ describe("local-file startup contract", () => {
     });
 
     it("defines playstation button colors and hover/active sidebar icon rules", () => {
-        // The PlayStation button color variables are defined per theme, so both
-        // theme stylesheets must carry the full set. (Previously this test read a
-        // non-existent "theme.css" and therefore never actually ran.)
-        const themeDarkCss = readFileSync(resolve("resources/css/theme-dark.css"), "utf8");
-        const themeLightCss = readFileSync(resolve("resources/css/theme-light.css"), "utf8");
+        // Theming lives entirely in common.css: a :root/[data-theme="light"]
+        // block plus a [data-theme="dark"] override block. The PlayStation button
+        // colors are defined in both, so each should appear at least twice.
         const commonCss = readFileSync(resolve("resources/css/common.css"), "utf8");
 
-        for (const themeCss of [themeDarkCss, themeLightCss]) {
-            expect(themeCss).toContain("--ps-triangle-green");
-            expect(themeCss).toContain("--ps-circle-red");
-            expect(themeCss).toContain("--ps-cross-blue");
-            expect(themeCss).toContain("--ps-square-pink");
+        const countOccurrences = (haystack: string, needle: string): number =>
+            haystack.split(needle).length - 1;
+
+        for (const psVar of ["--ps-triangle-green", "--ps-circle-red", "--ps-cross-blue", "--ps-square-pink"]) {
+            // Once in the light/:root block, once in the [data-theme="dark"] block.
+            expect(countOccurrences(commonCss, `${psVar}:`)).toBeGreaterThanOrEqual(2);
         }
 
         expect(commonCss).toContain('.nav-link[href="#summary"]:hover .nav-icon');
