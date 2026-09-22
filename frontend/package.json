@@ -11,6 +11,7 @@
     "sync:fontawesome": "node scripts/sync-fontawesome.js",
     "sync:data": "node scripts/sync-data.js",
     "build": "npm run sync:data && esbuild src/app.ts --bundle --outfile=resources/js/app.js --platform=browser --format=iife",
+    "dev": "npm run build && npx --yes http-server . -p 8080 -c-1 -o /index.html",
     "pretest": "npm run build",
     "test": "vitest run"
   },
