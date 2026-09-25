@@ -13,6 +13,7 @@ export interface Game {
 }
 
 export interface Session {
+    id?: number;
     game_name: string;
     start_time: number | string;
     duration: number;

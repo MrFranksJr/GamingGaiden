@@ -1,5 +1,6 @@
 .kiro/
 .idea/
+.agents/
 *.log
 *.code-workspace
 *.db
@@ -23,3 +24,4 @@ KIRO.md
 frontend/node_modules/
 frontend/resources/js/**/*.js
 frontend/tests/**/*.js
+/skills-lock.json
