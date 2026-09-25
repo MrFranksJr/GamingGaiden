@@ -39,6 +39,11 @@ const TIMELINE_BAR_GROW_MS = 550;
 const TIMELINE_STAGGER_MS = 25;
 const TIMELINE_STAGGER_TOTAL_CAP_MS = 1000;
 
+/** Session Breakdown fill animation: same curve as the graph, top-to-bottom stagger. */
+const BREAKDOWN_FILL_MS = 550;
+const BREAKDOWN_STAGGER_MS = 70;
+const ANIM_EASE = "cubic-bezier(0.22,1,0.36,1)";
+
 interface BarLayout {
     x: number;      // centre x
     y: number;      // top y (at full height)
@@ -127,6 +132,7 @@ export class GameDetailComponent {
     private timelineResizeObserver: ResizeObserver | null = null;
     private timelineFrame: number | null = null;
     private timelineTooltipCleanup: (() => void) | null = null;
+    private breakdownFrame: number | null = null;
 
     render(data: GameData, gameName?: string | null): string {
         if (!data || !data.games) return "<p>No games found.</p>";
@@ -510,6 +516,7 @@ export class GameDetailComponent {
         }
 
         this.setupTimeline(container);
+        this.setupBreakdownAnimation(container);
     }
 
     /**
@@ -721,6 +728,55 @@ export class GameDetailComponent {
         };
     }
 
+    /**
+     * Animates the Session Breakdown bars filling left-to-right after mount:
+     * the four time-of-day slot bars stagger top-to-bottom, and the two-segment
+     * weekday/weekend split bar animates as a closing beat. Honors
+     * prefers-reduced-motion by leaving bars at their target width instantly.
+     */
+    private setupBreakdownAnimation(container: HTMLElement): void {
+        const slotFills = Array.from(
+            container.querySelectorAll<HTMLElement>(".breakdown-slots-container .breakdown-progress-fill")
+        );
+        const splitFills = Array.from(
+            container.querySelectorAll<HTMLElement>(".breakdown-split-bar .split-bar-fill")
+        );
+        const allFills = [...slotFills, ...splitFills];
+        if (allFills.length === 0) return;
+
+        const prefersReduced = typeof window !== "undefined"
+            && typeof window.matchMedia === "function"
+            && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (prefersReduced) return; // Leave inline target widths untouched.
+
+        // Capture each target width (set inline at render) and collapse to 0.
+        allFills.forEach(el => {
+            el.dataset.targetWidth = el.style.width || "0%";
+            el.style.transition = "none";
+            el.style.width = "0%";
+        });
+
+        const raf = typeof requestAnimationFrame !== "undefined"
+            ? requestAnimationFrame.bind(window)
+            : (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0) as unknown as number;
+
+        this.breakdownFrame = raf(() => {
+            // Slot bars: staggered top-to-bottom.
+            slotFills.forEach((el, i) => {
+                const delay = i * BREAKDOWN_STAGGER_MS;
+                el.style.transition = `width ${BREAKDOWN_FILL_MS}ms ${ANIM_EASE} ${delay}ms`;
+                el.style.width = el.dataset.targetWidth || "0%";
+            });
+            // Split bar: closing beat, one stagger step after the last slot,
+            // both segments together.
+            const splitDelay = slotFills.length * BREAKDOWN_STAGGER_MS;
+            splitFills.forEach(el => {
+                el.style.transition = `width ${BREAKDOWN_FILL_MS}ms ${ANIM_EASE} ${splitDelay}ms`;
+                el.style.width = el.dataset.targetWidth || "0%";
+            });
+        });
+    }
+
     destroy(): void {
         if (this.currentContainer && this.backBtnListener) {
             const backBtn = this.currentContainer.querySelector<HTMLButtonElement>("#game-detail-back-btn");
@@ -733,6 +789,11 @@ export class GameDetailComponent {
             cancelAnimationFrame(this.timelineFrame);
         }
         this.timelineFrame = null;
+
+        if (this.breakdownFrame !== null && typeof cancelAnimationFrame !== "undefined") {
+            cancelAnimationFrame(this.breakdownFrame);
+        }
+        this.breakdownFrame = null;
 
         if (this.timelineResizeObserver) {
             this.timelineResizeObserver.disconnect();
