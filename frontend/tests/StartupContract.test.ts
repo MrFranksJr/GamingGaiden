@@ -97,6 +97,45 @@ describe("local-file startup contract", () => {
         expect(commonCss).toContain('.nav-link[href="#session-history"].active .nav-icon');
     });
 
+    it("does not stack top padding on the game detail view inside #main-content", () => {
+        // The game detail view (#game-detail-view / .game-detail-container) is
+        // rendered inside #main-content. #main-content already provides the
+        // content-area top padding, so .game-detail-container must not add its
+        // own top padding on top of it — otherwise the "Back" link is pushed
+        // down by the doubled padding (~48px instead of ~24px).
+        const commonCss = readFileSync(resolve("resources/css/common.css"), "utf8");
+
+        // Extract the declarations block for a given top-level selector.
+        const blockFor = (selector: string): string => {
+            const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const match = commonCss.match(new RegExp(`(?:^|\\})\\s*${escaped}\\s*\\{([^}]*)\\}`, "m"));
+            expect(match, `expected a CSS rule for ${selector}`).not.toBeNull();
+            return match![1];
+        };
+
+        // Resolve the effective top padding declared inside a block, honouring
+        // both the `padding` shorthand and an explicit `padding-top`.
+        const topPaddingOf = (block: string): string | null => {
+            const explicit = block.match(/(?:^|;)\s*padding-top\s*:\s*([^;]+)/i);
+            if (explicit) return explicit[1].trim();
+            const shorthand = block.match(/(?:^|;)\s*padding\s*:\s*([^;]+)/i);
+            if (shorthand) return shorthand[1].trim().split(/\s+/)[0];
+            return null;
+        };
+
+        const mainTop = topPaddingOf(blockFor("#main-content"));
+        const detailTop = topPaddingOf(blockFor(".game-detail-container"));
+
+        // #main-content owns the content-area top padding.
+        expect(mainTop).toBe("24px");
+        // .game-detail-container must not re-declare a non-zero top padding that
+        // stacks with #main-content. Either it declares no padding at all, or an
+        // explicit 0 top.
+        if (detailTop !== null) {
+            expect(detailTop).toBe("0");
+        }
+    });
+
     it("ships a classic bundled script without browser module imports", () => {
         const bundle = readFileSync(resolve("resources/js/app.js"), "utf8");
 
