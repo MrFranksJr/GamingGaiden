@@ -2135,30 +2135,83 @@ body {
 /* Timeline Chart */
 .timeline-chart-wrapper {
     width: 100%;
-    height: 140px;
+    height: 380px;
     position: relative;
 }
 
 .session-timeline-svg {
+    display: block;
     width: 100%;
-    height: 100%;
+    height: 380px;
     overflow: visible;
 }
 
+/* Grid + baseline */
+.timeline-grid-line {
+    stroke: var(--border-light, rgba(255, 255, 255, 0.08));
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+/* The 0-line (no dash) reads as the baseline. */
+.timeline-grid .timeline-grid-line:first-child {
+    stroke: var(--border-primary, rgba(255, 255, 255, 0.15));
+}
+
 .timeline-axis-label {
-    font-size: 10px;
+    font-size: 11px;
     fill: var(--text-muted);
     font-family: inherit;
     user-select: none;
 }
 
 .timeline-bar-anim {
-    transition: opacity 0.15s ease, fill 0.15s ease;
     cursor: pointer;
 }
 
-.timeline-bar-anim:hover {
+.timeline-bar-group:hover .timeline-bar-anim,
+.timeline-bar-group:focus .timeline-bar-anim {
     fill: var(--accent-blue-dark);
+}
+
+.timeline-bar-group {
+    outline: none;
+}
+
+.timeline-bar-group:focus-visible .timeline-bar-anim {
+    stroke: var(--status-forever, #a855f7);
+    stroke-width: 2;
+}
+
+/* Instant custom tooltip, anchored above the hovered/focused bar. */
+.timeline-tooltip {
+    position: absolute;
+    z-index: 5;
+    transform: translate(-50%, calc(-100% - 10px));
+    padding: 6px 10px;
+    border-radius: var(--radius-sm, 6px);
+    background: var(--bg-panel, #1b2130);
+    border: 1px solid var(--border-light, rgba(255, 255, 255, 0.12));
+    box-shadow: 0 6px 18px var(--shadow-secondary, rgba(0, 0, 0, 0.35));
+    color: var(--text-primary, #f8fafc);
+    font-size: 0.78rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.08s ease;
+}
+
+.timeline-tooltip.is-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .timeline-tooltip {
+        transition: none;
+    }
 }
 
 /* Session Breakdown Card */

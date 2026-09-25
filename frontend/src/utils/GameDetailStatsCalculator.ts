@@ -143,6 +143,122 @@ export function formatDateOnly(date: Date): string {
 }
 
 /**
+ * A single labelled reference value on the timeline y-axis.
+ */
+export interface AxisTick {
+    /** Duration value in minutes this tick sits at. */
+    minutes: number;
+    /** Compact human label, e.g. "30m", "1h", "1h30", "2h". */
+    label: string;
+}
+
+/**
+ * Resolved y-axis for the session-history timeline.
+ */
+export interface TimelineAxis {
+    /** Smallest ladder value >= the longest session (top of the chart). */
+    axisCeiling: number;
+    /** Interval, in minutes, between adjacent ticks. */
+    tickStep: number;
+    /** Ticks from 0 up to and including the axis ceiling, ascending. */
+    ticks: AxisTick[];
+}
+
+/**
+ * Round-number ladder (in minutes) used to pick a human-friendly axis ceiling.
+ * Sub-hour values stay minute-based; hour values are multiples of 60.
+ */
+const AXIS_LADDER_MINUTES = [
+    5, 10, 15, 20, 30, 45,
+    60, 90, 120, 150, 180, 240, 300, 360, 480, 600, 720
+];
+
+/**
+ * Formats a tick value (minutes) into a compact axis label:
+ * "0", "30m" for sub-hour values; "1h", "1h30", "2h" for hour values.
+ */
+export function formatTickLabel(minutes: number): string {
+    const m = Math.max(0, Math.round(minutes));
+    if (m === 0) return "0";
+    if (m < 60) return `${m}m`;
+    const hours = Math.floor(m / 60);
+    const rem = m % 60;
+    return rem === 0 ? `${hours}h` : `${hours}h${String(rem).padStart(2, "0")}`;
+}
+
+/**
+ * Computes a tick-based y-axis for the timeline: an axis ceiling snapped up to a
+ * round ladder value, and a tick step chosen so the chart shows 3-5 ticks
+ * (including 0 and the ceiling). Falls back to a sensible default when there is
+ * no positive duration.
+ */
+export function computeTimelineAxis(maxDurationMinutes: number): TimelineAxis {
+    const maxDuration = Number.isFinite(maxDurationMinutes) && maxDurationMinutes > 0
+        ? maxDurationMinutes
+        : 0;
+
+    // No positive duration: render a stable placeholder axis.
+    if (maxDuration <= 0) {
+        const axisCeiling = 30;
+        const tickStep = pickTickStep(axisCeiling);
+        return {axisCeiling, tickStep, ticks: buildTicks(axisCeiling, tickStep)};
+    }
+
+    // Axis ceiling: smallest ladder value >= max duration, else round up to hour.
+    const axisCeiling = AXIS_LADDER_MINUTES.find(v => v >= maxDuration)
+        ?? Math.ceil(maxDuration / 60) * 60;
+
+    // Pick a tick step that yields 3-5 ticks (2-4 intervals), preferring round
+    // divisors of the ceiling (60, 30, 15, ...) so labels stay milestone-like.
+    const tickStep = pickTickStep(axisCeiling);
+    return {axisCeiling, tickStep, ticks: buildTicks(axisCeiling, tickStep)};
+}
+
+/** Builds ascending ticks from 0 through the ceiling at the given step. */
+function buildTicks(axisCeiling: number, tickStep: number): AxisTick[] {
+    const ticks: AxisTick[] = [];
+    for (let value = 0; value <= axisCeiling + 0.001; value += tickStep) {
+        const rounded = Math.round(value);
+        ticks.push({minutes: rounded, label: formatTickLabel(rounded)});
+    }
+    if (ticks[ticks.length - 1].minutes !== axisCeiling) {
+        ticks.push({minutes: axisCeiling, label: formatTickLabel(axisCeiling)});
+    }
+    return ticks;
+}
+
+/**
+ * Chooses the interval between ticks so the axis shows between 2 and 4 intervals
+ * (3-5 ticks). Prefers candidate steps that divide the ceiling evenly.
+ */
+function pickTickStep(axisCeiling: number): number {
+    const candidates = [15, 30, 60, 120, 180, 240, 300, 360];
+    const evenDivisors = candidates.filter(step => axisCeiling % step === 0);
+    for (const step of evenDivisors) {
+        const intervals = axisCeiling / step;
+        if (intervals >= 2 && intervals <= 4) return step;
+    }
+    // No even divisor lands in range: derive a step whose resulting tick count
+    // (ticks = floor(ceiling/step) + 1, plus the ceiling itself if not aligned)
+    // lands in 3-5. Prefer larger steps (fewer, cleaner ticks) first.
+    for (const intervals of [2, 3, 4]) {
+        const snapped = Math.max(1, Math.round(axisCeiling / intervals));
+        if (tickCount(axisCeiling, snapped) >= 3 && tickCount(axisCeiling, snapped) <= 5) {
+            return snapped;
+        }
+    }
+    return Math.max(1, Math.round(axisCeiling / 2));
+}
+
+/** Number of ticks produced by buildTicks for a ceiling/step (0..ceiling incl.). */
+function tickCount(axisCeiling: number, step: number): number {
+    if (step <= 0) return 0;
+    const aligned = Math.floor((axisCeiling + 0.001) / step) + 1;
+    const lastAligned = (aligned - 1) * step;
+    return lastAligned === axisCeiling ? aligned : aligned + 1;
+}
+
+/**
  * Returns slug for status styling (e.g. "completed", "in-progress", "on-hold", "forever", "dropped").
  */
 export function getStatusSlug(category: GameStatusCategory): string {

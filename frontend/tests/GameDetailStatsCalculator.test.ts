@@ -5,11 +5,72 @@ import {
     parseSessionDate,
     getStatusSlug,
     formatDateTime,
-    formatDateOnly
+    formatDateOnly,
+    formatTickLabel,
+    computeTimelineAxis
 } from "../src/utils/GameDetailStatsCalculator";
 import {Game, Session} from "../src/types/GameData";
 
 describe("GameDetailStatsCalculator", () => {
+    describe("formatTickLabel", () => {
+        it("labels zero and sub-hour values in minutes", () => {
+            expect(formatTickLabel(0)).toBe("0");
+            expect(formatTickLabel(30)).toBe("30m");
+            expect(formatTickLabel(45)).toBe("45m");
+        });
+
+        it("labels whole hours as Nh and mixed as NhMM", () => {
+            expect(formatTickLabel(60)).toBe("1h");
+            expect(formatTickLabel(120)).toBe("2h");
+            expect(formatTickLabel(90)).toBe("1h30");
+            expect(formatTickLabel(150)).toBe("2h30");
+        });
+    });
+
+    describe("computeTimelineAxis", () => {
+        it("snaps the ceiling up to a round ladder value for short sessions", () => {
+            // Max 47m -> ceiling 60m (1h)
+            const axis = computeTimelineAxis(47);
+            expect(axis.axisCeiling).toBe(60);
+            expect(axis.ticks[0]).toEqual({minutes: 0, label: "0"});
+            expect(axis.ticks[axis.ticks.length - 1].minutes).toBe(60);
+            expect(axis.ticks[axis.ticks.length - 1].label).toBe("1h");
+            // 3-5 ticks
+            expect(axis.ticks.length).toBeGreaterThanOrEqual(3);
+            expect(axis.ticks.length).toBeLessThanOrEqual(5);
+        });
+
+        it("produces hour-milestone ticks for long sessions", () => {
+            // Max 147m -> ceiling 150m; ticks should be round milestones, not 147/74.
+            const axis = computeTimelineAxis(147);
+            expect(axis.axisCeiling).toBe(150);
+            const labels = axis.ticks.map(t => t.label);
+            expect(labels).not.toContain("147m");
+            expect(labels[0]).toBe("0");
+            expect(labels[labels.length - 1]).toBe("2h30");
+            expect(axis.ticks.length).toBeGreaterThanOrEqual(3);
+            expect(axis.ticks.length).toBeLessThanOrEqual(5);
+        });
+
+        it("keeps 3-5 ticks across a range of durations", () => {
+            for (const max of [5, 20, 55, 100, 200, 400, 700]) {
+                const axis = computeTimelineAxis(max);
+                expect(axis.axisCeiling).toBeGreaterThanOrEqual(max);
+                expect(axis.ticks.length).toBeGreaterThanOrEqual(3);
+                expect(axis.ticks.length).toBeLessThanOrEqual(5);
+                expect(axis.ticks[0].minutes).toBe(0);
+                expect(axis.ticks[axis.ticks.length - 1].minutes).toBe(axis.axisCeiling);
+            }
+        });
+
+        it("returns a sensible placeholder axis for no/zero duration", () => {
+            const axis = computeTimelineAxis(0);
+            expect(axis.axisCeiling).toBe(30);
+            expect(axis.ticks[0].minutes).toBe(0);
+            expect(axis.ticks[axis.ticks.length - 1].minutes).toBe(30);
+        });
+    });
+
     describe("parseSessionDate & formatting helpers", () => {
         it("correctly parses Unix timestamps in seconds", () => {
             // 1771631171 -> 2026-02-20

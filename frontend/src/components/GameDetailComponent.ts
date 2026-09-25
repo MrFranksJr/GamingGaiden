@@ -3,15 +3,130 @@ import {formatPlaytime, toSortableTimestamp} from "../utils/TimeUtils";
 import {escapeHtml, safeCachedImagePath} from "../utils/HtmlUtils";
 import {
     calculateGameDetailStats,
+    computeTimelineAxis,
     formatDateTime,
     GameDetailStats,
     parseSessionDate,
+    TimelineAxis,
     TimelineSessionPoint
 } from "../utils/GameDetailStatsCalculator";
+
+/**
+ * Fixed inner-geometry of the timeline chart. Width is dynamic (measured at
+ * mount); everything else is constant. Height targets ~380px per design.
+ */
+interface TimelineDims {
+    chartHeight: number;
+    paddingLeft: number;
+    paddingRight: number;
+    paddingTop: number;
+    paddingBottom: number;
+}
+
+const TIMELINE_DIMS: TimelineDims = {
+    chartHeight: 380,
+    paddingLeft: 48,
+    paddingRight: 24,
+    paddingTop: 20,
+    paddingBottom: 34
+};
+
+/** Width assumed for the pre-mount (server-less) initial render. */
+const TIMELINE_ESTIMATED_WIDTH = 1000;
+
+/** Per-bar stagger and grow duration for the load animation. */
+const TIMELINE_BAR_GROW_MS = 550;
+const TIMELINE_STAGGER_MS = 25;
+const TIMELINE_STAGGER_TOTAL_CAP_MS = 1000;
+
+interface BarLayout {
+    x: number;      // centre x
+    y: number;      // top y (at full height)
+    width: number;
+    height: number; // full (target) height
+}
+
+interface TickLayout {
+    minutes: number;
+    label: string;
+    y: number;
+}
+
+interface XLabelLayout {
+    x: number;
+    label: string;
+}
+
+interface TimelineLayout {
+    baselineY: number;
+    innerHeight: number;
+    bars: BarLayout[];
+    ticks: TickLayout[];
+    xLabels: XLabelLayout[];
+}
+
+/**
+ * Computes real-pixel coordinates for bars, tick gridlines, and x-axis date
+ * labels given a concrete chart width. Pure and deterministic so it can drive
+ * both the initial render (estimated width) and the mount-time relayout
+ * (measured width) identically.
+ */
+export function computeTimelineLayout(
+    timeline: TimelineSessionPoint[],
+    axis: TimelineAxis,
+    chartWidth: number,
+    dims: TimelineDims = TIMELINE_DIMS
+): TimelineLayout {
+    const innerWidth = Math.max(1, chartWidth - dims.paddingLeft - dims.paddingRight);
+    const innerHeight = Math.max(1, dims.chartHeight - dims.paddingTop - dims.paddingBottom);
+    const baselineY = dims.paddingTop + innerHeight;
+    const numPoints = timeline.length;
+    const ceiling = Math.max(1, axis.axisCeiling);
+
+    const stepX = numPoints > 1 ? innerWidth / (numPoints - 1) : innerWidth / 2;
+    const barWidth = Math.max(6, Math.min(36, Math.floor(innerWidth / Math.max(1, numPoints * 1.5))));
+
+    const bars: BarLayout[] = timeline.map((pt, idx) => {
+        const x = numPoints === 1 ? dims.paddingLeft + innerWidth / 2 : dims.paddingLeft + idx * stepX;
+        const height = Math.max(2, (pt.durationMinutes / ceiling) * innerHeight);
+        const y = baselineY - height;
+        return {x, y, width: barWidth, height};
+    });
+
+    const ticks: TickLayout[] = axis.ticks.map(t => ({
+        minutes: t.minutes,
+        label: t.label,
+        y: baselineY - (t.minutes / ceiling) * innerHeight
+    }));
+
+    // X labels: up to 5 evenly spaced date markers (first..last).
+    let xLabels: XLabelLayout[];
+    if (numPoints <= 8) {
+        xLabels = timeline.map((pt, idx) => ({
+            x: numPoints === 1 ? dims.paddingLeft + innerWidth / 2 : dims.paddingLeft + idx * stepX,
+            label: pt.dateFormatted.slice(0, 5)
+        }));
+    } else {
+        const indices = [0, Math.floor(numPoints / 4), Math.floor(numPoints / 2), Math.floor((3 * numPoints) / 4), numPoints - 1];
+        xLabels = indices.map(idx => ({
+            x: dims.paddingLeft + idx * stepX,
+            label: timeline[idx].dateFormatted.slice(0, 5)
+        }));
+    }
+
+    return {baselineY, innerHeight, bars, ticks, xLabels};
+}
 
 export class GameDetailComponent {
     private currentContainer: HTMLElement | null = null;
     private backBtnListener: ((e: Event) => void) | null = null;
+    private timeline: TimelineSessionPoint[] = [];
+    private timelineAxis: TimelineAxis | null = null;
+    private readonly timelineDims: TimelineDims = TIMELINE_DIMS;
+    private timelineResizeListener: (() => void) | null = null;
+    private timelineResizeObserver: ResizeObserver | null = null;
+    private timelineFrame: number | null = null;
+    private timelineTooltipCleanup: (() => void) | null = null;
 
     render(data: GameData, gameName?: string | null): string {
         if (!data || !data.games) return "<p>No games found.</p>";
@@ -181,57 +296,57 @@ export class GameDetailComponent {
             `;
         }
 
-        const chartHeight = 150;
-        const chartWidth = 1000;
-        const paddingLeft = 40;
-        const paddingRight = 24;
-        const paddingTop = 15;
-        const paddingBottom = 30;
-        const innerWidth = chartWidth - paddingLeft - paddingRight;
-        const innerHeight = chartHeight - paddingTop - paddingBottom;
-
-        const maxDuration = Math.max(1, ...timeline.map(p => p.durationMinutes));
+        // Real-pixel layout is finalised at mount() once the container width is
+        // known; the initial markup is drawn against an estimated width so the
+        // chart is valid and testable before mount, and re-laid-out afterwards.
         const numPoints = timeline.length;
-        const stepX = numPoints > 1 ? innerWidth / (numPoints - 1) : innerWidth / 2;
-        const barWidth = Math.max(6, Math.min(28, Math.floor(innerWidth / (numPoints * 1.5))));
+        const maxDuration = Math.max(1, ...timeline.map(p => p.durationMinutes));
+        const axis = computeTimelineAxis(maxDuration);
 
-        const barsSvg = timeline.map((pt, idx) => {
-            const x = numPoints === 1 ? paddingLeft + innerWidth / 2 : paddingLeft + idx * stepX;
-            const barH = Math.max(4, (pt.durationMinutes / maxDuration) * innerHeight);
-            const y = paddingTop + innerHeight - barH;
+        // Stash for the mount-time layout + animation pass.
+        this.timeline = timeline;
+        this.timelineAxis = axis;
+
+        const dims = this.timelineDims;
+        const estimatedWidth = TIMELINE_ESTIMATED_WIDTH;
+        const layout = computeTimelineLayout(timeline, axis, estimatedWidth, dims);
+
+        const gridSvg = layout.ticks.map(t =>
+            `<line class="timeline-grid-line" x1="${dims.paddingLeft}" y1="${t.y.toFixed(2)}" x2="${(estimatedWidth - dims.paddingRight).toFixed(2)}" y2="${t.y.toFixed(2)}" ${t.minutes === 0 ? "" : `stroke-dasharray="3,3"`} />`
+        ).join("");
+
+        const yLabelsSvg = layout.ticks.map(t =>
+            `<text class="timeline-axis-label timeline-y-label" x="${(dims.paddingLeft - 8).toFixed(2)}" y="${(t.y + 4).toFixed(2)}" text-anchor="end">${escapeHtml(t.label)}</text>`
+        ).join("");
+
+        const barsSvg = layout.bars.map((b, idx) => {
+            const pt = timeline[idx];
+            const tooltip = `${pt.dateFormatted}${pt.timeFormatted ? ` ${pt.timeFormatted}` : ""} · ${pt.durationFormatted}`;
             return `
-                <g class="timeline-bar-group" tabindex="0" role="img" aria-label="${escapeHtml(pt.dateFormatted)}: ${escapeHtml(pt.durationFormatted)}">
-                    <rect 
-                        class="timeline-bar-anim" 
-                        x="${x - barWidth / 2}" 
-                        y="${y}" 
-                        width="${barWidth}" 
-                        height="${barH}" 
-                        rx="3" 
-                        fill="var(--accent-blue, #3b82f6)"
-                    >
-                        <title>${escapeHtml(pt.dateFormatted)}${pt.timeFormatted ? ` ${escapeHtml(pt.timeFormatted)}` : ""}: ${escapeHtml(pt.durationFormatted)}</title>
-                    </rect>
-                    <circle cx="${x}" cy="${y}" r="2.5" class="timeline-bar-dot" fill="var(--accent-purple, #8b5cf6)" />
+                <g class="timeline-bar-group" tabindex="0" role="img"
+                   aria-label="${escapeHtml(pt.dateFormatted)}: ${escapeHtml(pt.durationFormatted)}"
+                   data-minutes="${pt.durationMinutes}"
+                   data-index="${idx}"
+                   data-tooltip="${escapeHtml(tooltip)}">
+                    <rect class="timeline-bar-anim"
+                          x="${(b.x - b.width / 2).toFixed(2)}"
+                          y="${b.y.toFixed(2)}"
+                          width="${b.width.toFixed(2)}"
+                          height="${b.height.toFixed(2)}"
+                          rx="3"
+                          fill="var(--accent-blue, #3b82f6)" />
+                    <circle class="timeline-bar-dot"
+                            cx="${b.x.toFixed(2)}"
+                            cy="${b.y.toFixed(2)}"
+                            r="2.5"
+                            fill="var(--status-forever, #8b5cf6)" />
                 </g>
             `;
         }).join("");
 
-        // Date labels on axis (show first, middle, last or up to 8 points)
-        let axisLabelsSvg: string;
-        if (numPoints <= 8) {
-            axisLabelsSvg = timeline.map((pt, idx) => {
-                const x = numPoints === 1 ? paddingLeft + innerWidth / 2 : paddingLeft + idx * stepX;
-                return `<text x="${x}" y="${chartHeight - 8}" class="timeline-axis-label" text-anchor="middle">${escapeHtml(pt.dateFormatted.slice(0, 5))}</text>`;
-            }).join("");
-        } else {
-            const indices = [0, Math.floor(numPoints / 4), Math.floor(numPoints / 2), Math.floor((3 * numPoints) / 4), numPoints - 1];
-            axisLabelsSvg = indices.map(idx => {
-                const pt = timeline[idx];
-                const x = paddingLeft + idx * stepX;
-                return `<text x="${x}" y="${chartHeight - 8}" class="timeline-axis-label" text-anchor="middle">${escapeHtml(pt.dateFormatted.slice(0, 5))}</text>`;
-            }).join("");
-        }
+        const xLabelsSvg = layout.xLabels.map(l =>
+            `<text class="timeline-axis-label timeline-x-label" x="${l.x.toFixed(2)}" y="${(dims.chartHeight - 8).toFixed(2)}" text-anchor="middle">${escapeHtml(l.label)}</text>`
+        ).join("");
 
         return `
             <div class="game-detail-card timeline-card">
@@ -242,21 +357,14 @@ export class GameDetailComponent {
                     </div>
                 </div>
                 <div class="timeline-chart-wrapper">
-                    <svg class="session-timeline-svg" viewBox="0 0 ${chartWidth} ${chartHeight}" preserveAspectRatio="none">
-                        <!-- Grid lines -->
-                        <line x1="${paddingLeft}" y1="${paddingTop}" x2="${chartWidth - paddingRight}" y2="${paddingTop}" class="timeline-grid-line" stroke="var(--border-subtle, rgba(255,255,255,0.08))" stroke-dasharray="3,3" />
-                        <line x1="${paddingLeft}" y1="${paddingTop + innerHeight / 2}" x2="${chartWidth - paddingRight}" y2="${paddingTop + innerHeight / 2}" class="timeline-grid-line" stroke="var(--border-subtle, rgba(255,255,255,0.08))" stroke-dasharray="3,3" />
-                        <line x1="${paddingLeft}" y1="${paddingTop + innerHeight}" x2="${chartWidth - paddingRight}" y2="${paddingTop + innerHeight}" class="timeline-baseline" stroke="var(--border-strong, rgba(255,255,255,0.15))" />
-                        
-                        <!-- Axis Labels Y -->
-                        <text x="${paddingLeft - 6}" y="${paddingTop + 4}" class="timeline-axis-label" text-anchor="end">${maxDuration}m</text>
-                        <text x="${paddingLeft - 6}" y="${paddingTop + innerHeight / 2 + 4}" class="timeline-axis-label" text-anchor="end">${Math.round(maxDuration / 2)}m</text>
-                        <text x="${paddingLeft - 6}" y="${paddingTop + innerHeight + 4}" class="timeline-axis-label" text-anchor="end">0m</text>
-
-                        <!-- Bars -->
-                        ${barsSvg}
-                        ${axisLabelsSvg}
+                    <svg class="session-timeline-svg" width="${estimatedWidth}" height="${dims.chartHeight}"
+                         viewBox="0 0 ${estimatedWidth} ${dims.chartHeight}" preserveAspectRatio="xMinYMin meet">
+                        <g class="timeline-grid">${gridSvg}</g>
+                        <g class="timeline-y-axis">${yLabelsSvg}</g>
+                        <g class="timeline-bars">${barsSvg}</g>
+                        <g class="timeline-x-axis">${xLabelsSvg}</g>
                     </svg>
+                    <div class="timeline-tooltip" role="tooltip" aria-hidden="true"></div>
                 </div>
             </div>
         `;
@@ -400,6 +508,217 @@ export class GameDetailComponent {
             };
             backBtn.addEventListener("click", this.backBtnListener);
         }
+
+        this.setupTimeline(container);
+    }
+
+    /**
+     * Lays out the timeline at the measured container width, wires the instant
+     * tooltip, triggers the grow-up animation, and keeps the chart responsive
+     * to width changes.
+     */
+    private setupTimeline(container: HTMLElement): void {
+        const svg = container.querySelector<SVGSVGElement>(".session-timeline-svg");
+        const wrapper = container.querySelector<HTMLElement>(".timeline-chart-wrapper");
+        if (!svg || !wrapper || !this.timelineAxis || this.timeline.length === 0) {
+            return;
+        }
+
+        const relayout = () => this.layoutTimelineSvg(svg, wrapper);
+
+        // Initial layout on the next frame so the wrapper has a measured width.
+        const raf = typeof requestAnimationFrame !== "undefined"
+            ? requestAnimationFrame.bind(window)
+            : (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0) as unknown as number;
+        this.timelineFrame = raf(() => {
+            relayout();
+            this.animateTimeline(svg);
+        });
+
+        // Stay responsive to width changes without re-animating.
+        if (typeof ResizeObserver !== "undefined") {
+            this.timelineResizeObserver = new ResizeObserver(() => relayout());
+            this.timelineResizeObserver.observe(wrapper);
+        } else if (typeof window !== "undefined") {
+            this.timelineResizeListener = () => relayout();
+            window.addEventListener("resize", this.timelineResizeListener);
+        }
+
+        this.setupTimelineTooltip(svg, wrapper);
+    }
+
+    /** Recomputes bar/grid/label coordinates for the current wrapper width. */
+    private layoutTimelineSvg(svg: SVGSVGElement, wrapper: HTMLElement): void {
+        if (!this.timelineAxis) return;
+        const width = Math.max(1, Math.round(wrapper.clientWidth || TIMELINE_ESTIMATED_WIDTH));
+        const dims = this.timelineDims;
+        const layout = computeTimelineLayout(this.timeline, this.timelineAxis, width, dims);
+
+        svg.setAttribute("width", String(width));
+        svg.setAttribute("height", String(dims.chartHeight));
+        svg.setAttribute("viewBox", `0 0 ${width} ${dims.chartHeight}`);
+
+        const gridLines = svg.querySelectorAll<SVGLineElement>(".timeline-grid .timeline-grid-line");
+        const yLabels = svg.querySelectorAll<SVGTextElement>(".timeline-y-axis .timeline-y-label");
+        layout.ticks.forEach((t, i) => {
+            const line = gridLines[i];
+            if (line) {
+                line.setAttribute("x1", String(dims.paddingLeft));
+                line.setAttribute("y1", t.y.toFixed(2));
+                line.setAttribute("x2", String(width - dims.paddingRight));
+                line.setAttribute("y2", t.y.toFixed(2));
+            }
+            const label = yLabels[i];
+            if (label) {
+                label.setAttribute("x", String(dims.paddingLeft - 8));
+                label.setAttribute("y", (t.y + 4).toFixed(2));
+            }
+        });
+
+        const groups = svg.querySelectorAll<SVGGElement>(".timeline-bars .timeline-bar-group");
+        layout.bars.forEach((b, i) => {
+            const group = groups[i];
+            if (!group) return;
+            const rect = group.querySelector<SVGRectElement>(".timeline-bar-anim");
+            const dot = group.querySelector<SVGCircleElement>(".timeline-bar-dot");
+            if (rect) {
+                rect.setAttribute("x", (b.x - b.width / 2).toFixed(2));
+                rect.setAttribute("width", b.width.toFixed(2));
+                // Preserve mid-animation state: only set full geometry when not animating.
+                if (!svg.classList.contains("is-animating")) {
+                    rect.setAttribute("y", b.y.toFixed(2));
+                    rect.setAttribute("height", b.height.toFixed(2));
+                }
+                rect.dataset.fullY = b.y.toFixed(2);
+                rect.dataset.fullHeight = b.height.toFixed(2);
+                rect.dataset.baselineY = layout.baselineY.toFixed(2);
+            }
+            if (dot) {
+                dot.setAttribute("cx", b.x.toFixed(2));
+                if (!svg.classList.contains("is-animating")) {
+                    dot.setAttribute("cy", b.y.toFixed(2));
+                }
+                dot.dataset.fullCy = b.y.toFixed(2);
+                dot.dataset.baselineY = layout.baselineY.toFixed(2);
+            }
+        });
+
+        const xLabels = svg.querySelectorAll<SVGTextElement>(".timeline-x-axis .timeline-x-label");
+        layout.xLabels.forEach((l, i) => {
+            const label = xLabels[i];
+            if (label) {
+                label.setAttribute("x", l.x.toFixed(2));
+                label.setAttribute("y", (dims.chartHeight - 8).toFixed(2));
+            }
+        });
+    }
+
+    /**
+     * Animates bars growing from the baseline to full height, staggered
+     * left-to-right. Respects prefers-reduced-motion by leaving bars at full
+     * height instantly.
+     */
+    private animateTimeline(svg: SVGSVGElement): void {
+        const prefersReduced = typeof window !== "undefined"
+            && typeof window.matchMedia === "function"
+            && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (prefersReduced) return;
+
+        const rects = Array.from(svg.querySelectorAll<SVGRectElement>(".timeline-bar-anim"));
+        const dots = Array.from(svg.querySelectorAll<SVGCircleElement>(".timeline-bar-dot"));
+        if (rects.length === 0) return;
+
+        const stagger = Math.min(TIMELINE_STAGGER_MS, TIMELINE_STAGGER_TOTAL_CAP_MS / rects.length);
+
+        svg.classList.add("is-animating");
+
+        // Collapse to baseline, then release to full height on the next frame.
+        rects.forEach(rect => {
+            const baselineY = rect.dataset.baselineY;
+            if (baselineY === undefined) return;
+            rect.style.transition = "none";
+            rect.setAttribute("y", baselineY);
+            rect.setAttribute("height", "0");
+        });
+        dots.forEach(dot => {
+            const baselineY = dot.dataset.baselineY;
+            if (baselineY === undefined) return;
+            dot.style.transition = "none";
+            dot.setAttribute("cy", baselineY);
+        });
+
+        const raf = typeof requestAnimationFrame !== "undefined"
+            ? requestAnimationFrame.bind(window)
+            : (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0) as unknown as number;
+
+        raf(() => {
+            rects.forEach((rect, i) => {
+                const delay = i * stagger;
+                rect.style.transition = `y ${TIMELINE_BAR_GROW_MS}ms cubic-bezier(0.22,1,0.36,1) ${delay}ms, height ${TIMELINE_BAR_GROW_MS}ms cubic-bezier(0.22,1,0.36,1) ${delay}ms`;
+                const fullY = rect.dataset.fullY;
+                const fullHeight = rect.dataset.fullHeight;
+                if (fullY !== undefined) rect.setAttribute("y", fullY);
+                if (fullHeight !== undefined) rect.setAttribute("height", fullHeight);
+            });
+            dots.forEach((dot, i) => {
+                const delay = i * stagger;
+                dot.style.transition = `cy ${TIMELINE_BAR_GROW_MS}ms cubic-bezier(0.22,1,0.36,1) ${delay}ms`;
+                const fullCy = dot.dataset.fullCy;
+                if (fullCy !== undefined) dot.setAttribute("cy", fullCy);
+            });
+
+            const totalMs = TIMELINE_BAR_GROW_MS + (rects.length - 1) * stagger + 50;
+            setTimeout(() => svg.classList.remove("is-animating"), totalMs);
+        });
+    }
+
+    /** Wires an instant custom tooltip anchored above the hovered/focused bar. */
+    private setupTimelineTooltip(svg: SVGSVGElement, wrapper: HTMLElement): void {
+        const tooltip = wrapper.querySelector<HTMLElement>(".timeline-tooltip");
+        if (!tooltip) return;
+
+        const show = (group: SVGGElement) => {
+            const text = group.dataset.tooltip || "";
+            if (!text) return;
+            tooltip.textContent = text;
+            tooltip.setAttribute("aria-hidden", "false");
+            tooltip.classList.add("is-visible");
+
+            // Anchor above the bar centre, in wrapper-local coordinates.
+            const rect = group.querySelector<SVGRectElement>(".timeline-bar-anim");
+            const wrapperBox = wrapper.getBoundingClientRect();
+            const barBox = (rect || group).getBoundingClientRect();
+            const centreX = barBox.left + barBox.width / 2 - wrapperBox.left;
+            const topY = barBox.top - wrapperBox.top;
+            tooltip.style.left = `${centreX}px`;
+            tooltip.style.top = `${topY}px`;
+        };
+
+        const hide = () => {
+            tooltip.classList.remove("is-visible");
+            tooltip.setAttribute("aria-hidden", "true");
+        };
+
+        const onOver = (e: Event) => {
+            const group = (e.target as Element).closest<SVGGElement>(".timeline-bar-group");
+            if (group) show(group);
+        };
+        const onFocusIn = (e: Event) => {
+            const group = (e.target as Element).closest<SVGGElement>(".timeline-bar-group");
+            if (group) show(group);
+        };
+
+        svg.addEventListener("mouseover", onOver);
+        svg.addEventListener("mouseout", hide);
+        svg.addEventListener("focusin", onFocusIn);
+        svg.addEventListener("focusout", hide);
+
+        this.timelineTooltipCleanup = () => {
+            svg.removeEventListener("mouseover", onOver);
+            svg.removeEventListener("mouseout", hide);
+            svg.removeEventListener("focusin", onFocusIn);
+            svg.removeEventListener("focusout", hide);
+        };
     }
 
     destroy(): void {
@@ -409,6 +728,25 @@ export class GameDetailComponent {
                 backBtn.removeEventListener("click", this.backBtnListener);
             }
         }
+
+        if (this.timelineFrame !== null && typeof cancelAnimationFrame !== "undefined") {
+            cancelAnimationFrame(this.timelineFrame);
+        }
+        this.timelineFrame = null;
+
+        if (this.timelineResizeObserver) {
+            this.timelineResizeObserver.disconnect();
+            this.timelineResizeObserver = null;
+        }
+        if (this.timelineResizeListener && typeof window !== "undefined") {
+            window.removeEventListener("resize", this.timelineResizeListener);
+            this.timelineResizeListener = null;
+        }
+        if (this.timelineTooltipCleanup) {
+            this.timelineTooltipCleanup();
+            this.timelineTooltipCleanup = null;
+        }
+
         this.backBtnListener = null;
         this.currentContainer = null;
     }
