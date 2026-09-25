@@ -123,6 +123,9 @@ body {
     height: 24px;
     object-fit: contain;
     flex-shrink: 0;
+    /* Inert when expanded; becomes the expand control only when collapsed */
+    pointer-events: none;
+    cursor: default;
 }
 
 .sidebar-header .app-title {
@@ -177,6 +180,28 @@ body {
     padding: 4px 0 14px 0;
     flex-direction: column;
     gap: 8px;
+}
+
+/* In collapsed state the toggle button is gone; the logo expands the sidebar */
+#sidebar-nav.collapsed .sidebar-toggle-btn {
+    display: none;
+}
+
+#sidebar-nav.collapsed .app-logo {
+    pointer-events: auto;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+#sidebar-nav.collapsed .app-logo:hover {
+    transform: scale(1.1);
+    filter: brightness(1.15);
+}
+
+#sidebar-nav.collapsed .app-logo:focus-visible {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 2px;
 }
 
 #sidebar-nav.collapsed .app-title,

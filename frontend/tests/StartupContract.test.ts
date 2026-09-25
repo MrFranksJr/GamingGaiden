@@ -37,7 +37,7 @@ describe("local-file startup contract", () => {
         expect(title?.textContent?.trim()).toBe("Gaming Gaiden");
     });
 
-    it("includes font-awesome stylesheet and bars icon for sidebar toggle", () => {
+    it("includes font-awesome stylesheet and angles-left icon for sidebar toggle", () => {
         const html = readFileSync(resolve("index.html"), "utf8");
         const document = new DOMParser().parseFromString(html, "text/html");
         const stylesheets = Array.from(document.querySelectorAll("link[rel='stylesheet']")).map(link => link.getAttribute("href"));
@@ -45,7 +45,7 @@ describe("local-file startup contract", () => {
 
         const toggleBtn = document.getElementById("sidebar-toggle");
         expect(toggleBtn).not.toBeNull();
-        const icon = toggleBtn?.querySelector("i.fa-solid.fa-bars");
+        const icon = toggleBtn?.querySelector("i.fa-solid.fa-angles-left");
         expect(icon).not.toBeNull();
     });
 

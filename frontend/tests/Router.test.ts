@@ -15,10 +15,10 @@ describe('Router', () => {
             <div id="app">
                 <aside id="sidebar-nav">
                     <div class="sidebar-header">
-                        <img src="../resources/images/favicon.ico" alt="Gaming Gaiden Logo" class="app-logo"/>
+                        <img id="sidebar-expand" src="../resources/images/favicon.ico" alt="Gaming Gaiden Logo" class="app-logo" role="button" aria-label="Expand navigation sidebar"/>
                         <h1 class="app-title">Gaming Gaiden</h1>
-                        <button id="sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle navigation sidebar" aria-expanded="true" title="Collapse sidebar">
-                            <i class="fa-solid fa-bars"></i>
+                        <button id="sidebar-toggle" class="sidebar-toggle-btn" aria-label="Collapse navigation sidebar" aria-expanded="true" title="Collapse sidebar">
+                            <i class="fa-solid fa-angles-left"></i>
                         </button>
                     </div>
                     <nav class="sidebar-menu" id="sidebar-menu">
@@ -245,29 +245,36 @@ describe('Router', () => {
 
         const sidebar = document.getElementById('sidebar-nav')!
         const toggleBtn = document.getElementById('sidebar-toggle')!
-        const toggleIcon = toggleBtn.querySelector('.fa-bars')!
+        const expandLogo = document.getElementById('sidebar-expand')!
+        const toggleIcon = toggleBtn.querySelector('.fa-angles-left')!
 
         expect(sidebar.classList.contains('collapsed')).toBe(false)
         expect(toggleBtn.getAttribute('aria-expanded')).toBe('true')
         expect(toggleBtn.getAttribute('title')).toBe('Collapse sidebar')
         expect(toggleIcon).not.toBeNull()
 
-        // Click to collapse
+        // Click the angles-left button to collapse
         toggleBtn.click()
 
         expect(sidebar.classList.contains('collapsed')).toBe(true)
         expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')
         expect(toggleBtn.getAttribute('title')).toBe('Expand sidebar')
-        expect(toggleBtn.querySelector('.fa-bars')).not.toBeNull()
+        // Toggle button is hidden from AT / tab order while collapsed
+        expect(toggleBtn.getAttribute('aria-hidden')).toBe('true')
+        expect(toggleBtn.getAttribute('tabindex')).toBe('-1')
+        // Logo becomes the expander
+        expect(expandLogo.getAttribute('tabindex')).toBe('0')
         expect(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)).toBe('true')
 
-        // Click to expand again
-        toggleBtn.click()
+        // Click the app logo to expand again
+        expandLogo.click()
 
         expect(sidebar.classList.contains('collapsed')).toBe(false)
         expect(toggleBtn.getAttribute('aria-expanded')).toBe('true')
         expect(toggleBtn.getAttribute('title')).toBe('Collapse sidebar')
-        expect(toggleBtn.querySelector('.fa-bars')).not.toBeNull()
+        expect(toggleBtn.hasAttribute('aria-hidden')).toBe(false)
+        // Logo is inert again when expanded
+        expect(expandLogo.getAttribute('tabindex')).toBe('-1')
         expect(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)).toBe('false')
     })
 
@@ -283,12 +290,15 @@ describe('Router', () => {
 
         const sidebar = document.getElementById('sidebar-nav')!
         const toggleBtn = document.getElementById('sidebar-toggle')!
-        const toggleIcon = toggleBtn.querySelector('.fa-bars')!
+        const expandLogo = document.getElementById('sidebar-expand')!
+        const toggleIcon = toggleBtn.querySelector('.fa-angles-left')!
 
         expect(sidebar.classList.contains('collapsed')).toBe(true)
         expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')
         expect(toggleBtn.getAttribute('title')).toBe('Expand sidebar')
         expect(toggleIcon).not.toBeNull()
+        expect(toggleBtn.getAttribute('aria-hidden')).toBe('true')
+        expect(expandLogo.getAttribute('tabindex')).toBe('0')
     })
 
     it('should preserve title tooltip attributes on navigation links for collapsed mode', async () => {

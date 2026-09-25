@@ -52,6 +52,7 @@ export function initSidebarToggle(): () => void {
     }
     const sidebar = document.getElementById("sidebar-nav");
     const toggleBtn = document.getElementById("sidebar-toggle");
+    const expandLogo = document.getElementById("sidebar-expand");
     if (!sidebar || !toggleBtn) {
         return () => {
         };
@@ -62,10 +63,24 @@ export function initSidebarToggle(): () => void {
             sidebar.classList.add("collapsed");
             toggleBtn.setAttribute("aria-expanded", "false");
             toggleBtn.setAttribute("title", "Expand sidebar");
+            // Toggle button is hidden when collapsed; take it out of the tab order.
+            toggleBtn.setAttribute("tabindex", "-1");
+            toggleBtn.setAttribute("aria-hidden", "true");
+            if (expandLogo) {
+                expandLogo.setAttribute("tabindex", "0");
+                expandLogo.removeAttribute("aria-hidden");
+            }
         } else {
             sidebar.classList.remove("collapsed");
             toggleBtn.setAttribute("aria-expanded", "true");
             toggleBtn.setAttribute("title", "Collapse sidebar");
+            toggleBtn.removeAttribute("tabindex");
+            toggleBtn.removeAttribute("aria-hidden");
+            // Logo is inert when expanded.
+            if (expandLogo) {
+                expandLogo.setAttribute("tabindex", "-1");
+                expandLogo.setAttribute("aria-hidden", "true");
+            }
         }
         updateNavIndicatorPosition();
         if (typeof requestAnimationFrame !== "undefined") {
@@ -102,10 +117,37 @@ export function initSidebarToggle(): () => void {
         }
     };
 
+    const expand = () => {
+        // Only meaningful while collapsed; expands and persists the state.
+        if (!sidebar.classList.contains("collapsed")) return;
+        setCollapsed(false);
+        try {
+            localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, "false");
+        } catch {
+            // Ignore storage write error
+        }
+    };
+
+    const onLogoClick = () => expand();
+    const onLogoKeydown = (e: KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+            e.preventDefault();
+            expand();
+        }
+    };
+
     toggleBtn.addEventListener("click", onToggleClick);
+    if (expandLogo) {
+        expandLogo.addEventListener("click", onLogoClick);
+        expandLogo.addEventListener("keydown", onLogoKeydown as EventListener);
+    }
     return () => {
         toggleBtn.removeEventListener("click", onToggleClick);
         sidebar.removeEventListener("transitionend", onTransitionEnd as EventListener);
+        if (expandLogo) {
+            expandLogo.removeEventListener("click", onLogoClick);
+            expandLogo.removeEventListener("keydown", onLogoKeydown as EventListener);
+        }
     };
 }
 
