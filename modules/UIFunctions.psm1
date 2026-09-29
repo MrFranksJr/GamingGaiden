@@ -1,4 +1,4 @@
-function UpdateAllStatsInBackground() {
+﻿function UpdateAllStatsInBackground() {
     # The SPA renders from the JSON export; the legacy per-page HTML renderers
     # were removed in the Legacy Frontend Sunset. Keeping the data export.
     Export-GameDataToJson
@@ -99,7 +99,7 @@ function RenderAboutDialog() {
     $labelAttributions.Location = New-Object Drawing.Point(70, 220)
     $labelAttributions.AutoSize = $true
     $labelAttributions.Add_LinkClicked({
-            Start-Process "https://github.com/kulvind3r/GamingGaiden#attributions"
+            Start-Process "https://github.com/MrFranksJr/GamingGaiden#attributions"
         })
     $aboutForm.Controls.Add($labelAttributions)
 

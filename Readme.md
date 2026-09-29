@@ -109,11 +109,8 @@ Made with love using
 
 - [PSSQLite](https://www.powershellgallery.com/packages/PSSQLite) by [Warren Frame](https://github.com/RamblingCookieMonster)
 - [ps12exe](https://github.com/steve02081504/ps12exe) by [Steve Green](https://github.com/steve02081504)
-- [DOMPurify](https://github.com/cure53/DOMPurify) by [Cure53](https://github.com/cure53)
-- [DataTables](https://datatables.net/)
-- [Jquery](https://jquery.com/)
-- [ChartJs](https://www.chartjs.org/)
+- [D3](https://d3js.org/) by [Mike Bostock](https://github.com/d3)
+- [Font Awesome Free](https://fontawesome.com/) by [Fonticons](https://github.com/FortAwesome/Font-Awesome)
 - Various Icons from [Icons8](https://icons8.com)
 - Game Cartridge Icon from [FreePik on Flaticon](https://www.flaticon.com/free-icons/game-cartridge)
 - Cute [Ninja Vector by Catalyststuff on Freepik](https://www.freepik.com/free-vector/cute-ninja-gaming-cartoon-vector-icon-illustration-people-technology-icon-concept-isolated-flat_42903434.htm)
-- [Ninja Garden Font](https://www.fontspace.com/ninja-garden-font-f32923) by [Iconian Fonts](https://www.fontspace.com/iconian-fonts)
