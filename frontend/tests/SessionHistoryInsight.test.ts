@@ -26,7 +26,7 @@ function dataOf(sessions: Session[]): GameData {
             play_time: 999,
             session_count: 99,
             status: "playing",
-            completed: "FALSE",
+            completed: false,
             icon_path: null
         })),
         session_history: sessions,

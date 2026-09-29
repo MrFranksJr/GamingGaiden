@@ -10,7 +10,7 @@ const data: GameData = {
             play_time: 300,
             session_count: 9,
             status: "playing",
-            completed: "FALSE",
+            completed: false,
             icon_path: "resources/images/cache/Game_A.jpg"
         },
         {
@@ -18,7 +18,7 @@ const data: GameData = {
             play_time: 120,
             session_count: 3,
             status: "finished",
-            completed: "TRUE",
+            completed: true,
             icon_path: "resources/images/cache/Game_B.jpg"
         }
     ],

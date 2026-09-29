@@ -96,7 +96,7 @@ export interface SummaryDashboardMetrics {
  * - Forever: status is forever
  * - Dropped: status is dropped/abandoned
  * - On Hold: status is hold/on hold/to be picked up later
- * - Completed: status is finished/completed/done or completed === "TRUE"
+ * - Completed: status is finished/completed/done, or the completed flag is set
  * - In Progress: default state for playing/active or added games
  */
 export function categorizeGameStatus(game: Game): GameStatusCategory {
@@ -114,7 +114,7 @@ export function categorizeGameStatus(game: Game): GameStatusCategory {
         return "On Hold";
     }
 
-    const isCompleted = game.completed === "TRUE" || st === "finished" || st === "completed" || st === "done";
+    const isCompleted = game.completed || st === "finished" || st === "completed" || st === "done";
 
     if (isCompleted) {
         return "Completed";

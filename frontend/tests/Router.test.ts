@@ -202,8 +202,8 @@ describe("Router", () => {
         window.gamingGaidenData = {
             ...mockData,
             gaming_pcs: [
-                {name: "MINWU", in_use: "TRUE", total_play_time: 6000, start_date: 1605063600},
-                {name: "OLD-RIG", in_use: "FALSE", total_play_time: 0, start_date: 1451602800, end_date: 1604185200}
+                {name: "MINWU", in_use: true, total_play_time: 6000, start_date: 1605063600},
+                {name: "OLD-RIG", in_use: false, total_play_time: 0, start_date: 1451602800, end_date: 1604185200}
             ]
         };
 

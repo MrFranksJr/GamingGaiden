@@ -46,6 +46,12 @@ function optionalDateValue(value: unknown): number | string | null | undefined {
     return finiteNumber(value) || typeof value === "string" || value === null ? value : undefined;
 }
 
+/** The stored data model encodes booleans as the strings "TRUE"/"FALSE"; real booleans pass through. */
+function booleanFlag(value: unknown): boolean {
+    if (typeof value === "boolean") return value;
+    return typeof value === "string" && value.trim().toUpperCase() === "TRUE";
+}
+
 function parseGame(value: unknown): Game | null {
     if (!isRecord(value) || !nonEmptyString(value.name)) return null;
     return {
@@ -53,7 +59,7 @@ function parseGame(value: unknown): Game | null {
         play_time: nonNegativeNumber(value.play_time) ? value.play_time : 0,
         session_count: nonNegativeNumber(value.session_count) ? value.session_count : 0,
         status: typeof value.status === "string" ? value.status : "",
-        completed: typeof value.completed === "string" ? value.completed : "FALSE",
+        completed: booleanFlag(value.completed),
         exe_name: optionalString(value.exe_name),
         last_play_date: optionalDateValue(value.last_play_date),
         icon_path: optionalString(value.icon_path),
@@ -83,7 +89,7 @@ function parseGamingPC(value: unknown): GamingPC | null {
     if (!isRecord(value) || !nonEmptyString(value.name)) return null;
     return {
         name: value.name,
-        in_use: typeof value.in_use === "string" ? value.in_use : "FALSE",
+        in_use: booleanFlag(value.in_use),
         icon_path: optionalString(value.icon_path),
         cost: optionalString(value.cost),
         currency: optionalString(value.currency),

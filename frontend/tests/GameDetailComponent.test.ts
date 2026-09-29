@@ -110,7 +110,7 @@ describe("GameDetailComponent", () => {
                     play_time: 120,
                     session_count: 2,
                     status: "completed",
-                    completed: "TRUE",
+                    completed: true,
                     icon_path: null
                 }
             ],
@@ -134,7 +134,7 @@ describe("GameDetailComponent", () => {
                     play_time: 300,
                     session_count: 3,
                     status: "playing",
-                    completed: "FALSE",
+                    completed: false,
                     icon_path: null
                 }
             ],
@@ -167,7 +167,7 @@ describe("GameDetailComponent", () => {
                     play_time: 0,
                     session_count: 0,
                     status: "in progress",
-                    completed: "FALSE",
+                    completed: false,
                     icon_path: null
                 }
             ],

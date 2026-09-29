@@ -17,7 +17,7 @@ describe("SummaryStatsCalculator", () => {
                     play_time: 200,
                     session_count: 5,
                     status: "forever",
-                    completed: "FALSE"
+                    completed: false
                 })
             ).toBe("Forever");
             expect(
@@ -26,7 +26,7 @@ describe("SummaryStatsCalculator", () => {
                     play_time: 200,
                     session_count: 5,
                     status: "Forever",
-                    completed: "TRUE"
+                    completed: true
                 })
             ).toBe("Forever");
             expect(
@@ -35,7 +35,7 @@ describe("SummaryStatsCalculator", () => {
                     play_time: 100,
                     session_count: 2,
                     status: "finished",
-                    completed: "TRUE"
+                    completed: true
                 })
             ).toBe("Completed");
             expect(
@@ -44,7 +44,7 @@ describe("SummaryStatsCalculator", () => {
                     play_time: 100,
                     session_count: 2,
                     status: "completed",
-                    completed: "FALSE"
+                    completed: false
                 })
             ).toBe("Completed");
             expect(
@@ -53,7 +53,7 @@ describe("SummaryStatsCalculator", () => {
                     play_time: 0,
                     session_count: 0,
                     status: "done",
-                    completed: "FALSE"
+                    completed: false
                 })
             ).toBe("Completed");
             expect(
@@ -62,7 +62,7 @@ describe("SummaryStatsCalculator", () => {
                     play_time: 100,
                     session_count: 2,
                     status: "dropped",
-                    completed: "TRUE"
+                    completed: true
                 })
             ).toBe("Dropped");
             expect(
@@ -71,7 +71,7 @@ describe("SummaryStatsCalculator", () => {
                     play_time: 100,
                     session_count: 2,
                     status: "abandoned",
-                    completed: "FALSE"
+                    completed: false
                 })
             ).toBe("Dropped");
             expect(
@@ -80,7 +80,7 @@ describe("SummaryStatsCalculator", () => {
                     play_time: 30,
                     session_count: 1,
                     status: "hold",
-                    completed: "TRUE"
+                    completed: true
                 })
             ).toBe("On Hold");
             expect(
@@ -89,7 +89,7 @@ describe("SummaryStatsCalculator", () => {
                     play_time: 30,
                     session_count: 1,
                     status: "On Hold",
-                    completed: "FALSE"
+                    completed: false
                 })
             ).toBe("On Hold");
             expect(
@@ -98,7 +98,7 @@ describe("SummaryStatsCalculator", () => {
                     play_time: 30,
                     session_count: 1,
                     status: "to be picked up later",
-                    completed: "TRUE"
+                    completed: true
                 })
             ).toBe("On Hold");
             expect(
@@ -107,7 +107,7 @@ describe("SummaryStatsCalculator", () => {
                     play_time: 100,
                     session_count: 2,
                     status: "playing",
-                    completed: "FALSE"
+                    completed: false
                 })
             ).toBe("In Progress");
             expect(
@@ -116,7 +116,7 @@ describe("SummaryStatsCalculator", () => {
                     play_time: 50,
                     session_count: 1,
                     status: "",
-                    completed: "FALSE"
+                    completed: false
                 })
             ).toBe("In Progress");
             expect(
@@ -125,7 +125,7 @@ describe("SummaryStatsCalculator", () => {
                     play_time: 0,
                     session_count: 0,
                     status: "",
-                    completed: "FALSE"
+                    completed: false
                 })
             ).toBe("In Progress");
         });
@@ -214,7 +214,7 @@ describe("SummaryStatsCalculator", () => {
                         play_time: 120,
                         session_count: 2,
                         status: "playing",
-                        completed: "FALSE",
+                        completed: false,
                         icon_path: "path/1.jpg"
                     },
                     {
@@ -222,10 +222,10 @@ describe("SummaryStatsCalculator", () => {
                         play_time: 60,
                         session_count: 1,
                         status: "finished",
-                        completed: "TRUE",
+                        completed: true,
                         icon_path: "path/2.jpg"
                     },
-                    {name: "Game 3", play_time: 0, session_count: 0, status: "", completed: "FALSE"}
+                    {name: "Game 3", play_time: 0, session_count: 0, status: "", completed: false}
                 ],
                 session_history: [
                     {game_name: "Game 1", start_time: "2026-09-18T10:00:00Z", duration: 60},
@@ -292,35 +292,35 @@ describe("SummaryStatsCalculator", () => {
                         play_time: 300,
                         session_count: 5,
                         status: "forever",
-                        completed: "TRUE"
+                        completed: true
                     },
                     {
                         name: "Cyberpunk 2077",
                         play_time: 120,
                         session_count: 2,
                         status: "playing",
-                        completed: "FALSE"
+                        completed: false
                     },
                     {
                         name: "Elden Ring",
                         play_time: 150,
                         session_count: 3,
                         status: "finished",
-                        completed: "TRUE"
+                        completed: true
                     },
                     {
                         name: "Metal Gear Solid",
                         play_time: 50,
                         session_count: 1,
                         status: "hold",
-                        completed: "TRUE"
+                        completed: true
                     },
                     {
                         name: "Concord",
                         play_time: 10,
                         session_count: 1,
                         status: "dropped",
-                        completed: "TRUE"
+                        completed: true
                     }
                 ],
                 session_history: [],
@@ -377,14 +377,14 @@ describe("SummaryStatsCalculator", () => {
                         play_time: 300,
                         session_count: 5,
                         status: "forever",
-                        completed: "FALSE"
+                        completed: false
                     },
                     {
                         name: "Counter Strike 2",
                         play_time: 500,
                         session_count: 10,
                         status: "forever",
-                        completed: "FALSE"
+                        completed: false
                     }
                 ],
                 session_history: [],
@@ -408,8 +408,8 @@ describe("SummaryStatsCalculator", () => {
             const data: GameData = {
                 schema_version: 1,
                 games: [
-                    {name: "The Witcher 3", play_time: 18847, session_count: 5, status: "", completed: "TRUE"},
-                    {name: "Indie Game", play_time: 60, session_count: 1, status: "playing", completed: "FALSE"}
+                    {name: "The Witcher 3", play_time: 18847, session_count: 5, status: "", completed: true},
+                    {name: "Indie Game", play_time: 60, session_count: 1, status: "playing", completed: false}
                 ],
                 session_history: [
                     {game_name: "The Witcher 3", start_time: "2026-05-01T10:00:00Z", duration: 20},
@@ -436,7 +436,7 @@ describe("SummaryStatsCalculator", () => {
             // not drag down the average, but must still be counted and preserved.
             const data: GameData = {
                 schema_version: 1,
-                games: [{name: "Metro 2033", play_time: 62, session_count: 3, status: "hold", completed: "TRUE"}],
+                games: [{name: "Metro 2033", play_time: 62, session_count: 3, status: "hold", completed: true}],
                 session_history: [
                     {game_name: "Metro 2033", start_time: "2026-05-01T10:00:00Z", duration: 1},
                     {game_name: "Metro 2033", start_time: "2026-05-02T10:00:00Z", duration: 1},
@@ -458,7 +458,7 @@ describe("SummaryStatsCalculator", () => {
         it("returns zero average when no tracked session meets the threshold", () => {
             const data: GameData = {
                 schema_version: 1,
-                games: [{name: "Only Blips", play_time: 3, session_count: 3, status: "playing", completed: "FALSE"}],
+                games: [{name: "Only Blips", play_time: 3, session_count: 3, status: "playing", completed: false}],
                 session_history: [
                     {game_name: "Only Blips", start_time: "2026-05-01T10:00:00Z", duration: 1},
                     {game_name: "Only Blips", start_time: "2026-05-02T10:00:00Z", duration: 1},
@@ -499,8 +499,8 @@ describe("SummaryStatsCalculator", () => {
             const data: GameData = {
                 schema_version: 1,
                 games: [
-                    {name: "Game A", play_time: 200, session_count: 4, status: "playing", completed: "FALSE"},
-                    {name: "Game B", play_time: 100, session_count: 2, status: "playing", completed: "FALSE"}
+                    {name: "Game A", play_time: 200, session_count: 4, status: "playing", completed: false},
+                    {name: "Game B", play_time: 100, session_count: 2, status: "playing", completed: false}
                 ],
                 session_history: [
                     // 2026 sessions (current)
@@ -525,7 +525,7 @@ describe("SummaryStatsCalculator", () => {
         it("handles missing previous year sessions with current year fallback", () => {
             const data: GameData = {
                 schema_version: 1,
-                games: [{name: "Game A", play_time: 120, session_count: 2, status: "playing", completed: "FALSE"}],
+                games: [{name: "Game A", play_time: 120, session_count: 2, status: "playing", completed: false}],
                 session_history: [{game_name: "Game A", start_time: "2026-05-01T10:00:00Z", duration: 120}],
                 daily_playtime: [],
                 gaming_pcs: []
@@ -546,7 +546,7 @@ describe("SummaryStatsCalculator", () => {
                 play_time: (i + 1) * 10,
                 session_count: 1,
                 status: "playing",
-                completed: "FALSE"
+                completed: false
             }));
 
             const data: GameData = {
@@ -580,11 +580,11 @@ describe("SummaryStatsCalculator", () => {
             const data: GameData = {
                 schema_version: 1,
                 games: [
-                    {name: "Game Forever", play_time: 500, session_count: 5, status: "forever", completed: "FALSE"},
-                    {name: "Game Dropped", play_time: 400, session_count: 4, status: "dropped", completed: "TRUE"},
-                    {name: "Game Hold", play_time: 300, session_count: 3, status: "hold", completed: "FALSE"},
-                    {name: "Game Finished", play_time: 200, session_count: 2, status: "", completed: "TRUE"},
-                    {name: "Game Active", play_time: 100, session_count: 1, status: "", completed: "FALSE"}
+                    {name: "Game Forever", play_time: 500, session_count: 5, status: "forever", completed: false},
+                    {name: "Game Dropped", play_time: 400, session_count: 4, status: "dropped", completed: true},
+                    {name: "Game Hold", play_time: 300, session_count: 3, status: "hold", completed: false},
+                    {name: "Game Finished", play_time: 200, session_count: 2, status: "", completed: true},
+                    {name: "Game Active", play_time: 100, session_count: 1, status: "", completed: false}
                 ],
                 session_history: [],
                 daily_playtime: [],

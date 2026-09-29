@@ -156,7 +156,7 @@ describe("GameDetailStatsCalculator", () => {
             play_time: 180,
             session_count: 3,
             status: "playing",
-            completed: "FALSE",
+            completed: false,
             release_date: "2024-05-06",
             finish_date: null,
             icon_path: "resources/images/cache/Hades_II.jpg"
@@ -249,7 +249,7 @@ describe("GameDetailStatsCalculator", () => {
                 play_time: 0,
                 session_count: 0,
                 status: "on hold",
-                completed: "FALSE"
+                completed: false
             };
 
             const stats = calculateGameDetailStats(emptyGame, []);
@@ -275,7 +275,7 @@ describe("GameDetailStatsCalculator", () => {
                 play_time: 6000,
                 session_count: 50,
                 status: "finished",
-                completed: "TRUE",
+                completed: true,
                 finish_date: "2026-03-15",
                 release_date: "2022-02-25"
             };

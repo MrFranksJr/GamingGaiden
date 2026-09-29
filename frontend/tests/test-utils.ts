@@ -8,7 +8,7 @@ export const mockData: GameData = {
             play_time: 120,
             session_count: 5,
             status: "playing",
-            completed: "FALSE",
+            completed: false,
             icon_path: "resources/images/cache/Game_A.jpg"
         },
         {
@@ -16,7 +16,7 @@ export const mockData: GameData = {
             play_time: 60,
             session_count: 2,
             status: "finished",
-            completed: "TRUE",
+            completed: true,
             finish_date: "2026-09-01",
             icon_path: "resources/images/cache/Game_B.jpg"
         }

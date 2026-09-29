@@ -1,6 +1,7 @@
 import {GamingPC, GameData, Game} from "../types/GameData";
 import {monthShortName} from "./CalendarModel";
 import {GamePlayedRow, rankGamesPlayed} from "./GamesPlayedRanking";
+import {formatMoney, formatMoneyPerHour, parseAmount} from "./Money";
 
 export interface RigSummary {
     name: string;
@@ -43,7 +44,7 @@ function validRigs(data: GameData): GamingPC[] {
 }
 
 function isInUse(rig: GamingPC): boolean {
-    return rig.in_use === "TRUE";
+    return rig.in_use;
 }
 
 function endDateValue(rig: GamingPC): number {
@@ -133,27 +134,17 @@ function buildRigGames(games: Game[]): RigGameRow[] {
     );
 }
 
-/** Parses the string cost into a number, or null when missing/blank/non-positive. */
-function parseCost(value: unknown): number | null {
-    if (typeof value !== "string") return null;
-    const amount = Number(value.trim());
-    return Number.isFinite(amount) && amount > 0 ? amount : null;
-}
-
 function buildCost(rig: GamingPC, totalMinutes: number): RigCost {
     const symbol = typeof rig.currency === "string" ? rig.currency.trim() : "";
-    const amount = parseCost(rig.cost);
+    const amount = parseAmount(rig.cost);
     if (amount === null) {
         return {recorded: false, formatted: "Not recorded", perHourFormatted: null};
     }
-    // Trim trailing ".00" for whole amounts so "€2500" reads cleanly.
-    const amountText = Number.isInteger(amount) ? String(amount) : amount.toFixed(2);
-    const formatted = `${symbol}${amountText}`;
-
-    const hours = totalMinutes / 60;
-    const perHourFormatted = hours > 0 ? `${symbol}${(amount / hours).toFixed(2)}/h` : null;
-
-    return {recorded: true, formatted, perHourFormatted};
+    return {
+        recorded: true,
+        formatted: formatMoney(amount, symbol),
+        perHourFormatted: formatMoneyPerHour(amount, symbol, totalMinutes / 60)
+    };
 }
 
 /**

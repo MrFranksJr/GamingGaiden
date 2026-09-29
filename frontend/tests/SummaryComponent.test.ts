@@ -37,7 +37,7 @@ describe("SummaryComponent", () => {
                     play_time: 240,
                     session_count: 4,
                     status: "forever",
-                    completed: "FALSE"
+                    completed: false
                 }
             ]
         };
@@ -71,7 +71,7 @@ describe("SummaryComponent", () => {
                 play_time: (i + 1) * 60,
                 session_count: i + 1,
                 status: "in progress",
-                completed: "FALSE"
+                completed: false
             }))
         };
 

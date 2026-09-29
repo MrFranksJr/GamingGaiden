@@ -3,7 +3,7 @@ export interface Game {
     play_time: number;
     session_count: number;
     status: string;
-    completed: string;
+    completed: boolean;
     exe_name?: string | null;
     last_play_date?: number | string | null;
     icon_path?: string | null;
@@ -26,7 +26,7 @@ export interface DailyPlaytime {
 
 export interface GamingPC {
     name: string;
-    in_use: string;
+    in_use: boolean;
     icon_path?: string | null;
     cost?: string | null;
     currency?: string | null;

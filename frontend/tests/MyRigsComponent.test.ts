@@ -4,7 +4,7 @@ import {GameData, GamingPC, Game} from "../src/types/GameData";
 
 function pc(overrides: Partial<GamingPC> & {name: string}): GamingPC {
     return {
-        in_use: "FALSE",
+        in_use: false,
         cost: null,
         currency: null,
         start_date: 0,
@@ -15,7 +15,7 @@ function pc(overrides: Partial<GamingPC> & {name: string}): GamingPC {
 }
 
 function game(name: string, overrides: Partial<Game> = {}): Game {
-    return {name, play_time: 0, session_count: 0, status: "playing", completed: "FALSE", ...overrides};
+    return {name, play_time: 0, session_count: 0, status: "playing", completed: false, ...overrides};
 }
 
 function dataOf(pcs: GamingPC[], games: Game[] = []): GameData {
@@ -32,7 +32,7 @@ const soloRig = dataOf(
     [
         pc({
             name: "MINWU",
-            in_use: "TRUE",
+            in_use: true,
             cost: "2500",
             currency: "€ ",
             total_play_time: 6000,
@@ -93,8 +93,8 @@ describe("MyRigsComponent", () => {
 
     it("renders a rig switcher and defaults to the in-use rig when several rigs exist", () => {
         const data = dataOf([
-            pc({name: "OLD", in_use: "FALSE", end_date: Date.UTC(2019, 0, 1) / 1000}),
-            pc({name: "CURRENT", in_use: "TRUE"})
+            pc({name: "OLD", in_use: false, end_date: Date.UTC(2019, 0, 1) / 1000}),
+            pc({name: "CURRENT", in_use: true})
         ]);
         renderInto(data);
         const chips = document.querySelectorAll(".rig-switcher .rig-chip");
@@ -104,13 +104,13 @@ describe("MyRigsComponent", () => {
     });
 
     it("honors the rig query parameter to select a specific rig", () => {
-        const data = dataOf([pc({name: "OLD", in_use: "FALSE"}), pc({name: "CURRENT", in_use: "TRUE"})]);
+        const data = dataOf([pc({name: "OLD", in_use: false}), pc({name: "CURRENT", in_use: true})]);
         renderInto(data, "rig=OLD");
         expect(document.querySelector(".rig-hero-name")?.textContent).toContain("OLD");
     });
 
     it("shows 'Not recorded' and no cost-per-hour when cost is missing", () => {
-        const data = dataOf([pc({name: "MINWU", in_use: "TRUE", cost: null, total_play_time: 600})]);
+        const data = dataOf([pc({name: "MINWU", in_use: true, cost: null, total_play_time: 600})]);
         renderInto(data);
         const text = document.querySelector("#my-rigs-view")!.textContent!;
         expect(text).toContain("Not recorded");

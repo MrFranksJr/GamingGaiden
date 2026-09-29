@@ -45,7 +45,7 @@ describe("AllGamesComponent", () => {
                     play_time: 10,
                     session_count: 1,
                     status: "finished",
-                    completed: "TRUE",
+                    completed: true,
                     icon_path: null
                 },
                 {
@@ -53,7 +53,7 @@ describe("AllGamesComponent", () => {
                     play_time: 10,
                     session_count: 1,
                     status: "playing",
-                    completed: "FALSE",
+                    completed: false,
                     icon_path: null
                 },
                 {
@@ -61,7 +61,7 @@ describe("AllGamesComponent", () => {
                     play_time: 10,
                     session_count: 1,
                     status: "hold",
-                    completed: "FALSE",
+                    completed: false,
                     icon_path: null
                 },
                 {
@@ -69,7 +69,7 @@ describe("AllGamesComponent", () => {
                     play_time: 10,
                     session_count: 1,
                     status: "forever",
-                    completed: "FALSE",
+                    completed: false,
                     icon_path: null
                 },
                 {
@@ -77,7 +77,7 @@ describe("AllGamesComponent", () => {
                     play_time: 10,
                     session_count: 1,
                     status: "dropped",
-                    completed: "FALSE",
+                    completed: false,
                     icon_path: null
                 }
             ]
@@ -115,7 +115,7 @@ describe("AllGamesComponent", () => {
                     play_time: 120,
                     session_count: 3,
                     status: "finished",
-                    completed: "TRUE",
+                    completed: true,
                     icon_path: null
                 },
                 {
@@ -123,7 +123,7 @@ describe("AllGamesComponent", () => {
                     play_time: 200,
                     session_count: 10,
                     status: "playing",
-                    completed: "FALSE",
+                    completed: false,
                     icon_path: ""
                 }
             ]
@@ -294,7 +294,7 @@ describe("AllGamesComponent", () => {
                     play_time: 100,
                     session_count: 5,
                     status: "playing",
-                    completed: "FALSE",
+                    completed: false,
                     icon_path: null
                 },
                 {
@@ -302,7 +302,7 @@ describe("AllGamesComponent", () => {
                     play_time: 50,
                     session_count: 10,
                     status: "finished",
-                    completed: "TRUE",
+                    completed: true,
                     icon_path: null
                 },
                 {
@@ -310,7 +310,7 @@ describe("AllGamesComponent", () => {
                     play_time: 200,
                     session_count: 20,
                     status: "playing",
-                    completed: "FALSE",
+                    completed: false,
                     icon_path: null
                 }
             ]

@@ -42,6 +42,21 @@ describe("Data Validation", () => {
         expect(result.data.games[1].finish_date).toBe("2026-09-01");
     });
 
+    it("coerces the stringly-typed TRUE/FALSE flags to booleans at the boundary", () => {
+        const raw = {
+            schema_version: 1,
+            games: [{name: "A", completed: "TRUE"}, {name: "B", completed: "FALSE"}, {name: "C"}],
+            session_history: [],
+            daily_playtime: [],
+            gaming_pcs: [{name: "RIG-ON", in_use: "TRUE"}, {name: "RIG-OFF", in_use: "FALSE"}, {name: "RIG-NONE"}]
+        };
+
+        const {data} = validateGameData(raw);
+
+        expect(data.games.map((g) => g.completed)).toEqual([true, false, false]);
+        expect(data.gaming_pcs.map((p) => p.in_use)).toEqual([true, false, false]);
+    });
+
     it("accepts exports created before schema versioning", () => {
         const legacyData = {...mockData} as Partial<GameData>;
         delete legacyData.schema_version;

@@ -19,7 +19,7 @@ const data: GameData = {
             play_time: 300,
             session_count: 9,
             status: "playing",
-            completed: "FALSE",
+            completed: false,
             icon_path: "resources/images/cache/Game_A.jpg"
         },
         {
@@ -27,10 +27,10 @@ const data: GameData = {
             play_time: 120,
             session_count: 3,
             status: "finished",
-            completed: "TRUE",
+            completed: true,
             icon_path: "resources/images/cache/Game_B.jpg"
         },
-        {name: "Game C", play_time: 60, session_count: 1, status: "dropped", completed: "FALSE", icon_path: null}
+        {name: "Game C", play_time: 60, session_count: 1, status: "dropped", completed: false, icon_path: null}
     ],
     session_history: [
         // Apr 16, 2025

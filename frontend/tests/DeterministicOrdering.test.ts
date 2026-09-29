@@ -48,7 +48,7 @@ describe("deterministic component ordering", () => {
             gaming_pcs: [
                 {
                     name: "MINWU",
-                    in_use: "TRUE",
+                    in_use: true,
                     cost: null,
                     currency: null,
                     start_date: 0,
@@ -62,7 +62,7 @@ describe("deterministic component ordering", () => {
                     play_time: 10,
                     session_count: 1,
                     status: "playing",
-                    completed: "FALSE",
+                    completed: false,
                     gaming_pc_name: "MINWU"
                 },
                 {
@@ -70,7 +70,7 @@ describe("deterministic component ordering", () => {
                     play_time: 50,
                     session_count: 1,
                     status: "playing",
-                    completed: "FALSE",
+                    completed: false,
                     gaming_pc_name: "MINWU"
                 }
             ],

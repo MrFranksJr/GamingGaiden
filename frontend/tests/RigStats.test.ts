@@ -16,7 +16,7 @@ function dataOf(pcs: GamingPC[], games: Game[] = []): GameData {
 
 function pc(overrides: Partial<GamingPC> & {name: string}): GamingPC {
     return {
-        in_use: "FALSE",
+        in_use: false,
         cost: null,
         currency: null,
         start_date: 0,
@@ -32,7 +32,7 @@ function game(name: string, overrides: Partial<Game> = {}): Game {
         play_time: 0,
         session_count: 0,
         status: "playing",
-        completed: "FALSE",
+        completed: false,
         ...overrides
     };
 }
@@ -42,9 +42,9 @@ function game(name: string, overrides: Partial<Game> = {}): Game {
 describe("buildRigList", () => {
     it("orders the in-use rig first, then retired rigs by most recent end_date", () => {
         const data = dataOf([
-            pc({name: "OLDEST", in_use: "FALSE", end_date: 1_000}),
-            pc({name: "CURRENT", in_use: "TRUE", end_date: 0}),
-            pc({name: "RECENT", in_use: "FALSE", end_date: 5_000})
+            pc({name: "OLDEST", in_use: false, end_date: 1_000}),
+            pc({name: "CURRENT", in_use: true, end_date: 0}),
+            pc({name: "RECENT", in_use: false, end_date: 5_000})
         ]);
 
         const rigs = buildRigList(data);
@@ -53,10 +53,7 @@ describe("buildRigList", () => {
     });
 
     it("marks the in-use rig active and others retired", () => {
-        const data = dataOf([
-            pc({name: "CURRENT", in_use: "TRUE"}),
-            pc({name: "OLD", in_use: "FALSE", end_date: 2_000})
-        ]);
+        const data = dataOf([pc({name: "CURRENT", in_use: true}), pc({name: "OLD", in_use: false, end_date: 2_000})]);
 
         const rigs = buildRigList(data);
         const current = rigs.find((r) => r.name === "CURRENT")!;
@@ -189,7 +186,7 @@ const MAR_2024 = Date.UTC(2024, 2, 10) / 1000;
 describe("buildRigDetail lifespan", () => {
     it("shows a live age for an in-use rig, counted from start_date to now", () => {
         const now = new Date(Date.UTC(2024, 0, 15)); // exactly 3 years after start
-        const data = dataOf([pc({name: "MINWU", in_use: "TRUE", start_date: JAN_2021, end_date: 0})]);
+        const data = dataOf([pc({name: "MINWU", in_use: true, start_date: JAN_2021, end_date: 0})]);
 
         const detail = buildRigDetail(data, "MINWU", now)!;
 
@@ -200,7 +197,7 @@ describe("buildRigDetail lifespan", () => {
     });
 
     it("shows a fixed service span for a retired rig", () => {
-        const data = dataOf([pc({name: "OLD", in_use: "FALSE", start_date: JAN_2021, end_date: MAR_2024})]);
+        const data = dataOf([pc({name: "OLD", in_use: false, start_date: JAN_2021, end_date: MAR_2024})]);
 
         const detail = buildRigDetail(data, "OLD")!;
 
@@ -209,7 +206,7 @@ describe("buildRigDetail lifespan", () => {
     });
 
     it("degrades gracefully when start_date is missing", () => {
-        const data = dataOf([pc({name: "MYSTERY", in_use: "TRUE", start_date: 0, end_date: 0})]);
+        const data = dataOf([pc({name: "MYSTERY", in_use: true, start_date: 0, end_date: 0})]);
 
         const detail = buildRigDetail(data, "MYSTERY")!;
 
