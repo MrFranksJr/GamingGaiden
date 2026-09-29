@@ -906,31 +906,3 @@ function RenderGamingPCForm($PCList) {
     $pictureBox.Image.Dispose(); $pictureBox.Dispose();
     $gamingPCForm.Dispose()
 }
-
-function Set-Theme {
-    param([string]$ThemeName)
-
-    # Update Legacy UI
-    $uiThemeDir = ".\ui\resources\css"
-    if (Test-Path $uiThemeDir)
-    {
-        $uiThemePath = Join-Path $uiThemeDir "theme.css"
-        $uiSourceTheme = Join-Path $uiThemeDir "theme-$ThemeName.css"
-        if (Test-Path $uiSourceTheme)
-        {
-            Copy-Item -Path $uiSourceTheme -Destination $uiThemePath -Force
-        }
-    }
-
-    # Update Rework UI (Frontend)
-    $frontendThemeDir = ".\frontend\resources\css"
-    if (Test-Path $frontendThemeDir)
-    {
-        $frontendThemePath = Join-Path $frontendThemeDir "theme.css"
-        $frontendSourceTheme = Join-Path $frontendThemeDir "theme-$ThemeName.css"
-        if (Test-Path $frontendSourceTheme)
-        {
-            Copy-Item -Path $frontendSourceTheme -Destination $frontendThemePath -Force
-        }
-    }
-}

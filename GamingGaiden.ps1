@@ -95,25 +95,6 @@ try {
     }
 
     #------------------------------------------
-    # Initialize theme.css on startup (default to light theme)
-    $themePaths = @(".\ui\resources\css\theme.css", ".\frontend\resources\css\theme.css")
-    foreach ($themePath in $themePaths)
-    {
-        if (-not (Test-Path $themePath))
-        {
-            $dir = Split-Path $themePath
-            if (Test-Path $dir)
-            {
-                $defaultThemePath = Join-Path $dir "theme-light.css"
-                if (Test-Path $defaultThemePath)
-                {
-                    Copy-Item -Path $defaultThemePath -Destination $themePath -Force
-                }
-            }
-        }
-    }
-
-    #------------------------------------------
     # Tracker Job Scripts
     $TrackerJobInitializationScript = {
         Import-Module ".\modules\PSSQLite";
@@ -230,7 +211,6 @@ try {
     $menuItemSeparator4 = New-Object Windows.Forms.ToolStripSeparator
     $menuItemSeparator5 = New-Object Windows.Forms.ToolStripSeparator
     $menuItemSeparator6 = New-Object Windows.Forms.ToolStripSeparator
-    $menuItemSeparator7 = New-Object Windows.Forms.ToolStripSeparator
     $menuItemSeparator8 = New-Object Windows.Forms.ToolStripSeparator
 
     $IconRunning = [System.Drawing.Icon]::new(".\icons\running.ico")
@@ -255,8 +235,6 @@ try {
     $editGameMenuItem = CreateMenuItem "Edit Game"
     $gamingPCMenuItem = CreateMenuItem "Gaming PCs"
     $openInstallDirectoryMenuItem = CreateMenuItem "Open Install Directory"
-    $lightThemeMenuItem = CreateMenuItem "Light Theme"
-    $darkThemeMenuItem = CreateMenuItem "Dark Theme"
 
     $developerModeMenuItem = CreateMenuItem "Developer Mode: OFF"
     if ((Read-Setting "developer_mode") -eq "true")
@@ -266,9 +244,6 @@ try {
     $settingsSubMenuItem.DropDownItems.Add($addGameMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($editGameMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($menuItemSeparator1)
-    $settingsSubMenuItem.DropDownItems.Add($lightThemeMenuItem)
-    $settingsSubMenuItem.DropDownItems.Add($darkThemeMenuItem)
-    $settingsSubMenuItem.DropDownItems.Add($menuItemSeparator7)
     $settingsSubMenuItem.DropDownItems.Add($developerModeMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($menuItemSeparator8)
     $settingsSubMenuItem.DropDownItems.Add($gamingPCMenuItem)
@@ -375,18 +350,6 @@ try {
     $openInstallDirectoryMenuItem.Add_Click({
             Log "Opening Install Directory"
             Invoke-Item .
-        })
-
-    $lightThemeMenuItem.Add_Click({
-            Log "Switching to light theme"
-            Set-Theme "light"
-            ShowMessage "Light Theme applied. Refresh pages for effect." "Ok" "Info"
-        })
-
-    $darkThemeMenuItem.Add_Click({
-            Log "Switching to dark theme"
-            Set-Theme "dark"
-            ShowMessage "Dark Theme applied. Refresh pages for effect." "Ok" "Info"
         })
 
     $developerModeMenuItem.Add_Click({

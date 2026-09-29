@@ -12,13 +12,13 @@ tray menu, and clean up backend code that existed only to feed the legacy UI.
 
 ## Status
 
-- **Phase**: 3 — Commit 3 **revised** (QuickView removed, bold item, double-click-only); awaiting Windows re-verification.
-- **Last completed commit**: Commit 3 (revised) — slim menu + bold "Open Gaming Gaiden" + double-click → SPA; QuickView deleted.
-- **Next action**: User deploys on Windows, runs revised Commit 3 smoke test (bold item; double-click opens
-  `#summary`; single-click does nothing; QuickView gone). On green → Commit 4 (retire tray theming).
+- **Phase**: 4 — Commit 4 (retire tray theming) committed; **awaiting Windows verification**.
+- **Last completed commit**: Commit 4 — delete Light/Dark items, `Set-Theme`, startup `theme.css` copy.
+- **Next action**: User deploys on Windows, runs Commit 4 smoke test (SPA theme toggle works/persists; no
+  theme items in tray; no log errors). On green → Commit 5 (delete legacy render code).
 - **Frontends today**: app routes entirely to the SPA; legacy render code still on disk (unreferenced).
 - **Target**: one frontend (the SPA); no toggle; slimmed tray menu; dead legacy code removed.
-- **Windows-verified through**: **Commit 2 ✅** (user confirmed "looks fantastic"). Commit 3 revised — pending re-test.
+- **Windows-verified through**: **Commits 2 ✅ and 3 ✅** (user confirmed). Commit 4 — pending re-test.
 
 ---
 
@@ -169,10 +169,19 @@ clean); backend Pester not runnable on macOS — **needs Windows verification**.
 - Frontend gate green (268 tests, tsc clean); `GamingGaiden.ps1` and `UIFunctions.psm1` parse clean.
 
 ### Commit 4 — Retire tray-driven theming
-- [ ] Delete Light/Dark tray items + their handlers.
-- [ ] Delete `Set-Theme` (`SettingsFunctions.psm1`) and the startup `theme.css` copy loop in `GamingGaiden.ps1`.
+- [~] Delete Light/Dark tray items + their handlers.
+- [~] Delete `Set-Theme` (`SettingsFunctions.psm1`) and the startup `theme.css` copy loop in `GamingGaiden.ps1`.
 - **Files**: `GamingGaiden.ps1`, `modules/SettingsFunctions.psm1`.
 - **Smoke test (Windows)**: theme toggling inside the SPA works and persists; no theme items in tray; no log errors.
+
+**Notes (2026-09-29):** Verified first that the SPA owns theming with no PS dependency — `ThemeManager.ts`
+uses `localStorage` + a `data-theme` attribute, and `index.html` links only `common.css` (no `theme.css`).
+Removed: `$lightThemeMenuItem`/`$darkThemeMenuItem` + their `Add_Click` handlers, the orphaned
+`$menuItemSeparator7`, the startup `theme.css` init loop, and the `Set-Theme` function. No theming references
+remain in any PS source. The physical `theme-*.css` files under `ui/` die in Commit 6; any unused ones under
+`frontend/resources/css/` will be checked against `common.css` there (out of scope here — this commit only
+retires the *tray-driven* mechanism). Frontend gate green (28 files/268 tests, tsc clean); both edited PS
+files parse clean.
 
 ### Commit 5 — Delete legacy render code
 - [ ] Remove `RenderGameList`, `RenderSummary`, `RenderGamingTime`, `RenderGamesPerPC`, `RenderMostPlayed`,
