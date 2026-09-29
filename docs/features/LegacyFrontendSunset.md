@@ -12,12 +12,13 @@ tray menu, and clean up backend code that existed only to feed the legacy UI.
 
 ## Status
 
-- **Phase**: 0 — Planning complete, awaiting user sign-off to begin Commit 1.
-- **Last completed commit**: _none yet_
-- **Next action**: User signs off on this plan → agent starts **Commit 1 (verify gap coverage, docs-only)**.
+- **Phase**: 1 — Commit 1 complete (verification passed, no gaps). Ready for Commit 2.
+- **Last completed commit**: Commit 1 — gap-coverage & `ui/`-cache verification (docs-only).
+- **Next action**: Start **Commit 2 (flip the switch)** — rewire tray handlers to call `Invoke-SPA`
+  unconditionally in `GamingGaiden.ps1`.
 - **Frontends today**: two, switched per-menu-item by the `developer_mode` DB setting.
 - **Target**: one frontend (the SPA); no toggle; slimmed tray menu; dead legacy code removed.
-- **Windows-verified through**: _none yet_ (agent works on macOS; author deploys/verifies on Windows).
+- **Windows-verified through**: _none yet_ (Commit 1 is docs-only, no smoke test needed).
 
 ---
 
@@ -98,11 +99,23 @@ Each commit is independently working and revertible. Gate = `npm test` + `npx ts
 Windows-verified, `[x]` = Windows-verified & done.
 
 ### Commit 1 — Verify gap coverage (docs-only, no code)
-- [ ] Sub-agent confirms My Rigs covers Games Per PC, All Games covers Most Played, Summary covers Gaming Time.
-- [ ] Sub-agent confirms no non-legacy code reads `ui/resources/images/cache`.
-- [ ] Record both findings in this doc. If a gap is real, stop and re-grill before proceeding.
+- [x] Sub-agent confirms My Rigs covers Games Per PC, All Games covers Most Played, Summary covers Gaming Time.
+- [x] Sub-agent confirms no non-legacy code reads `ui/resources/images/cache`.
+- [x] Record both findings in this doc. If a gap is real, stop and re-grill before proceeding.
 - **Files**: this doc only.
 - **Smoke test**: none (docs-only).
+
+**Findings (2026-09-29):**
+- **Coverage**: Games Per PC → **My Rigs** (`RigStatsCalculator.buildRigDetail` yields per-rig `gamesPlayed`
+  + ranked games; legacy was just `COUNT GROUP BY gaming_pc_name` — covered, richer). Most Played →
+  **All Games** sortable by playtime + Summary bubble graph ranks top games by hours (legacy was
+  `ORDER BY play_time DESC` — covered). Gaming Time → **Summary** annual/timeline + bubble graph (legacy
+  dumped the raw `daily_playtime` table; that exact table has no 1:1 home — the accepted "different
+  presentation, not parity" trade-off of ADR 0002). **No blocking gaps.**
+- **`ui/` cache is dead**: every `ui\...\cache` reference is legacy render code (`UIFunctions.psm1`),
+  data-entry pre-warm lines already scoped for removal (`SettingsFunctions.psm1`), or boot/build
+  dir-management (scoped for Commits 6/7). All non-legacy readers point at the separate `frontend/` cache
+  (`DataExport.Save-IconToCache` → `resources/images/cache`, no `ui/` prefix). **Safe to delete `ui/` wholesale.**
 
 ### Commit 2 — Flip the switch (the reversible checkpoint)
 - [ ] Every tray handler calls `Invoke-SPA <route>` unconditionally; remove the `if developer_mode` branches.
