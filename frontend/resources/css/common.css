@@ -339,14 +339,14 @@ body {
 .sidebar-menu .nav-link[href="#gaming-time"]:hover .nav-icon,
 .sidebar-menu .nav-link[data-route="#gaming-time"].active .nav-icon,
 .sidebar-menu .nav-link[href="#gaming-time"].active .nav-icon {
-    color: var(--ps-cross-blue);
+    color: var(--ps-square-pink);
 }
 
 .sidebar-menu .nav-link[data-route="#session-history"]:hover .nav-icon,
 .sidebar-menu .nav-link[href="#session-history"]:hover .nav-icon,
 .sidebar-menu .nav-link[data-route="#session-history"].active .nav-icon,
 .sidebar-menu .nav-link[href="#session-history"].active .nav-icon {
-    color: var(--ps-square-pink);
+    color: var(--ps-cross-blue);
 }
 
 .sidebar-menu .nav-label {
@@ -2956,7 +2956,9 @@ body {
     overflow: hidden;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .games-played-bar-fill {
+    /* --bar-width/--bar-color are set inline at runtime in SessionHistoryComponent.ts */
     height: 100%;
     width: var(--bar-width, 0%);
     background: var(--bar-color, transparent);
@@ -3016,4 +3018,20 @@ body {
     height: 6px;
     border-radius: var(--radius-full);
     background: var(--accent-blue);
+}
+
+/* Session History milestone insight (reuses .milestone-card shell) */
+.session-milestone-card {
+    margin-top: 16px;
+}
+
+/* Icon tint varies by insight type so the badge feels alive. */
+.session-milestone-card[data-insight-type="ratio"] .milestone-badge-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.session-milestone-card[data-insight-type="neutral"] .milestone-badge-icon {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
 }

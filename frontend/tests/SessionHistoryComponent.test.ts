@@ -89,4 +89,29 @@ describe("SessionHistoryComponent", () => {
         const cards = document.querySelectorAll(".month-game-card");
         expect(cards.length).toBe(2); // Game A + Game B in April
     });
+
+    it("renders the milestone insight card at the bottom of the day sidebar", () => {
+        renderInto("view=day&date=2025-04-16");
+        const card = document.querySelector("#session-milestone-card.milestone-card");
+        expect(card).not.toBeNull();
+        // headline + message present, icon rendered
+        expect(card?.querySelector(".milestone-title")?.textContent?.trim().length).toBeGreaterThan(0);
+        expect(card?.querySelector(".milestone-message")?.textContent?.trim().length).toBeGreaterThan(0);
+        expect(card?.querySelector(".milestone-badge-icon i")).not.toBeNull();
+        // no progress bar / annotation on the session variant
+        expect(card?.querySelector(".milestone-progress-bar")).toBeNull();
+        expect(card?.querySelector(".milestone-annotation")).toBeNull();
+    });
+
+    it("renders the milestone insight card in the month sidebar", () => {
+        renderInto("view=month&month=2025-04");
+        const card = document.querySelector("#session-milestone-card.milestone-card");
+        expect(card).not.toBeNull();
+        expect(card?.querySelector(".milestone-message")?.textContent?.trim().length).toBeGreaterThan(0);
+    });
+
+    it("does not render a milestone card for an empty day", () => {
+        renderInto("view=day&date=2025-04-17");
+        expect(document.querySelector("#session-milestone-card")).toBeNull();
+    });
 });

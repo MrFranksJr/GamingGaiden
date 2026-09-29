@@ -4,8 +4,11 @@ import {
     DayView,
     GamePlayedRow,
     MonthView,
+    MilestoneInsight,
     buildDayView,
     buildMonthView,
+    buildDayInsight,
+    buildMonthInsight,
     daysWithData,
     monthsWithData,
     recentDaysWithData
@@ -218,6 +221,7 @@ export class SessionHistoryComponent {
     }
 
     private renderDaySidebar(view: DayView, dayKey: string): string {
+        const insight = buildDayInsight(this.data!, dayKey);
         return `
             <div class="session-summary-card">
                 <div class="session-summary-hero">
@@ -231,6 +235,7 @@ export class SessionHistoryComponent {
                     <div class="stat-card"><i class="fa-solid fa-clock"></i><span class="stat-value">${escapeHtml(view.stats.avgSessionFormatted)}</span><span class="stat-label">Avg. session</span></div>
                 </div>
                 ${this.renderGamesPlayed(view.gamesPlayed)}
+                ${this.renderMilestoneInsight(insight)}
             </div>
         `;
     }
@@ -312,6 +317,7 @@ export class SessionHistoryComponent {
     }
 
     private renderMonthSidebar(view: MonthView, monthKey: string): string {
+        const insight = buildMonthInsight(this.data!, monthKey);
         return `
             <div class="session-summary-card">
                 <div class="session-summary-hero">
@@ -325,6 +331,7 @@ export class SessionHistoryComponent {
                     <div class="stat-card"><i class="fa-solid fa-clock"></i><span class="stat-value">${escapeHtml(view.stats.avgSessionFormatted)}</span><span class="stat-label">Avg. session</span></div>
                 </div>
                 ${this.renderGamesPlayed(view.gamesPlayed)}
+                ${this.renderMilestoneInsight(insight)}
             </div>
         `;
     }
@@ -333,7 +340,11 @@ export class SessionHistoryComponent {
 
     private renderGamesPlayed(games: GamePlayedRow[]): string {
         if (games.length === 0) return "";
-        const rows = games.map(game => `
+        const rows = games.map(game => {
+            // Custom properties consumed by `.games-played-bar-fill` in common.css.
+            // Built as a plain string so the IDE does not inject/parse it as a CSS ruleset.
+            const barStyle = ["--bar-width:", String(game.percentage), "%;--bar-color:", escapeHtml(game.color)].join("");
+            return `
             <div class="session-games-played-row">
                 ${posterHtml(game.iconPath, game.gameName, "games-played-poster")}
                 <div class="games-played-info">
@@ -342,16 +353,40 @@ export class SessionHistoryComponent {
                         <span class="games-played-time">${escapeHtml(game.formatted)}</span>
                     </div>
                     <div class="games-played-bar-track">
-                        <div class="games-played-bar-fill" style="--bar-width:${game.percentage}%;--bar-color:${escapeHtml(game.color)}"></div>
+                        <div class="games-played-bar-fill" style="${barStyle}"></div>
                     </div>
                 </div>
                 <span class="games-played-pct">${game.percentage}%</span>
             </div>
-        `).join("");
+        `;
+        }).join("");
         return `
             <div class="session-games-played">
                 <h3 class="session-games-played-title">Games played</h3>
                 ${rows}
+            </div>
+        `;
+    }
+
+    /**
+     * Milestone insight card at the bottom of the sidebar. Reuses the Summary
+     * `.milestone-card` shell (badge icon + sub-label + title + message) but
+     * drops the progress bar/annotation. Icon varies by insight type.
+     */
+    private renderMilestoneInsight(insight: MilestoneInsight | null): string {
+        if (!insight) return "";
+        return `
+            <div class="milestone-card session-milestone-card" id="session-milestone-card" data-insight-type="${escapeHtml(insight.type)}">
+                <div class="milestone-header">
+                    <div class="milestone-badge-icon">
+                        <i class="fa-solid ${escapeHtml(insight.icon)}"></i>
+                    </div>
+                    <div class="milestone-title-group">
+                        <span class="milestone-sub">Milestone Highlight</span>
+                        <h3 class="milestone-title">${escapeHtml(insight.headline)}</h3>
+                    </div>
+                </div>
+                <p class="milestone-message">${escapeHtml(insight.message)}</p>
             </div>
         `;
     }
