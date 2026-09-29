@@ -3054,5 +3054,4 @@ window.gamingGaidenData = {
   ],
   "export_date": "2026-09-22 11:04:21",
   "hash": "e6TfkRmbTEFxa2pb7aewuuEGYdohJ1sSegjYN1ZfWZw="
-}
-;
+};

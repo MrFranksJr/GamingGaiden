@@ -1,7 +1,7 @@
 import {describe, expect, it} from "vitest";
 import {AllGamesComponent} from "../src/components/AllGamesComponent";
 import {GameDetailComponent} from "../src/components/GameDetailComponent";
-import {GamingTimeComponent} from "../src/components/GamingTimeComponent";
+import {MyRigsComponent} from "../src/components/MyRigsComponent";
 import {SessionHistoryComponent} from "../src/components/SessionHistoryComponent";
 import {GameData} from "../src/types/GameData";
 import {mockData} from "./test-utils";
@@ -42,10 +42,21 @@ describe("deterministic component ordering", () => {
         expect(games).toEqual(["Game A", "Game B", "Game A"]);
     });
 
-    it("sorts daily playtime newest first before rendering", () => {
-        document.body.innerHTML = new GamingTimeComponent().render(shuffledData);
-        const dates = Array.from(document.querySelectorAll(".daily-date"), element => element.textContent);
-        expect(dates).toEqual(["2023-01-03", "2023-01-02", "2023-01-01"]);
+    it("ranks a rig's games by playtime descending regardless of input order", () => {
+        const rigData: GameData = {
+            schema_version: 1,
+            gaming_pcs: [{name: "MINWU", in_use: "TRUE", cost: null, currency: null,
+                start_date: 0, end_date: 0, total_play_time: 60}],
+            games: [
+                {name: "Low", play_time: 10, session_count: 1, status: "playing", completed: "FALSE", gaming_pc_name: "MINWU"},
+                {name: "High", play_time: 50, session_count: 1, status: "playing", completed: "FALSE", gaming_pc_name: "MINWU"}
+            ],
+            session_history: [],
+            daily_playtime: []
+        };
+        document.body.innerHTML = new MyRigsComponent().render(rigData);
+        const names = Array.from(document.querySelectorAll(".rig-games .games-played-name"), el => el.textContent);
+        expect(names).toEqual(["High", "Low"]);
     });
 
     it("sorts a game's sessions newest first", () => {

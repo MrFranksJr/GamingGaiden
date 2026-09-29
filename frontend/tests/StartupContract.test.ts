@@ -55,7 +55,7 @@ describe("local-file startup contract", () => {
 
         expect(document.querySelector("a[href='#summary'] .nav-icon i.fa-solid.fa-clipboard-list")).not.toBeNull();
         expect(document.querySelector("a[href='#all-games'] .nav-icon i.fa-solid.fa-gamepad")).not.toBeNull();
-        expect(document.querySelector("a[href='#gaming-time'] .nav-icon i.fa-solid.fa-stopwatch")).not.toBeNull();
+        expect(document.querySelector("a[href='#my-rigs'] .nav-icon i.fa-solid.fa-computer")).not.toBeNull();
         expect(document.querySelector("a[href='#session-history'] .nav-icon i.fa-solid.fa-calendar")).not.toBeNull();
     });
 
@@ -91,8 +91,8 @@ describe("local-file startup contract", () => {
         expect(commonCss).toContain('.nav-link[href="#summary"].active .nav-icon');
         expect(commonCss).toContain('.nav-link[href="#all-games"]:hover .nav-icon');
         expect(commonCss).toContain('.nav-link[href="#all-games"].active .nav-icon');
-        expect(commonCss).toContain('.nav-link[href="#gaming-time"]:hover .nav-icon');
-        expect(commonCss).toContain('.nav-link[href="#gaming-time"].active .nav-icon');
+        expect(commonCss).toContain('.nav-link[href="#my-rigs"]:hover .nav-icon');
+        expect(commonCss).toContain('.nav-link[href="#my-rigs"].active .nav-icon');
         expect(commonCss).toContain('.nav-link[href="#session-history"]:hover .nav-icon');
         expect(commonCss).toContain('.nav-link[href="#session-history"].active .nav-icon');
     });
@@ -108,7 +108,7 @@ describe("local-file startup contract", () => {
         // Extract the declarations block for a given top-level selector.
         const blockFor = (selector: string): string => {
             const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            const match = commonCss.match(new RegExp(`(?:^|\\})\\s*${escaped}\\s*\\{([^}]*)\\}`, "m"));
+            const match = commonCss.match(new RegExp(`(?:^|})\\s*${escaped}\\s*{([^}]*)}`, "m"));
             expect(match, `expected a CSS rule for ${selector}`).not.toBeNull();
             return match![1];
         };

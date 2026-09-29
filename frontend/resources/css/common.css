@@ -335,10 +335,10 @@ body {
     color: var(--ps-circle-red);
 }
 
-.sidebar-menu .nav-link[data-route="#gaming-time"]:hover .nav-icon,
-.sidebar-menu .nav-link[href="#gaming-time"]:hover .nav-icon,
-.sidebar-menu .nav-link[data-route="#gaming-time"].active .nav-icon,
-.sidebar-menu .nav-link[href="#gaming-time"].active .nav-icon {
+.sidebar-menu .nav-link[data-route="#my-rigs"]:hover .nav-icon,
+.sidebar-menu .nav-link[href="#my-rigs"]:hover .nav-icon,
+.sidebar-menu .nav-link[data-route="#my-rigs"].active .nav-icon,
+.sidebar-menu .nav-link[href="#my-rigs"].active .nav-icon {
     color: var(--ps-square-pink);
 }
 
@@ -3034,4 +3034,253 @@ body {
 .session-milestone-card[data-insight-type="neutral"] .milestone-badge-icon {
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+/* ===================== My Rigs ===================== */
+.my-rigs-page {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.my-rigs-header h1 {
+    margin: 0 0 4px 0;
+}
+
+.my-rigs-subtitle {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+/* Rig switcher (only shown with 2+ rigs) */
+.rig-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.rig-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: var(--radius-full);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.rig-chip:hover {
+    background: var(--bg-button-hover);
+    color: var(--text-primary);
+}
+
+.rig-chip.active {
+    border-color: var(--accent-blue);
+    background: var(--accent-blue-light);
+    color: var(--text-primary);
+}
+
+.rig-chip-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--status-in-progress, #10b981);
+}
+
+/* Rig detail */
+.rig-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.rig-hero {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 12px var(--shadow-secondary);
+}
+
+.rig-hero-icon {
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rig-hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.rig-icon-fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-secondary);
+}
+
+.rig-icon-fallback i {
+    font-size: 1.5rem;
+}
+
+.rig-icon-initials {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.rig-hero-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.rig-hero-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rig-hero-name {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.rig-status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.rig-status-pill.in-use {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.rig-status-pill.retired {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+}
+
+.rig-hero-lifespan {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+/* 2x2 stat grid, mirrors the Summary dashboard grid */
+.rig-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.stat-subline {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent-blue, #818cf8);
+}
+
+/* Games on this rig */
+.rig-games {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    box-shadow: 0 4px 12px var(--shadow-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.rig-games-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.rig-games .session-games-played-row {
+    text-decoration: none;
+    color: inherit;
+    border-radius: var(--radius-md);
+    transition: background 0.15s ease;
+}
+
+.rig-games .session-games-played-row:hover {
+    background: var(--bg-button-hover);
+}
+
+.rig-games-empty {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+/* Empty state */
+.rig-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 64px 24px;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.rig-empty-state i {
+    font-size: 2.5rem;
+    opacity: 0.5;
+}
+
+.rig-empty-state h2 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.rig-empty-state p {
+    margin: 0;
+    max-width: 360px;
+}
+
+@media (max-width: 640px) {
+    .rig-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    .rig-hero {
+        flex-direction: column;
+        text-align: center;
+    }
+    .rig-hero-top {
+        flex-direction: column;
+    }
 }

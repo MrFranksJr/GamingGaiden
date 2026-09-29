@@ -4,7 +4,7 @@ import {AllGamesComponent} from "../src/components/AllGamesComponent";
 import {GameData} from "../src/types/GameData";
 import {GameDataValidationError, validateGameData} from "../src/data/GameDataValidator";
 import {mockData} from "./test-utils";
-import {GamingTimeComponent} from "../src/components/GamingTimeComponent";
+import {MyRigsComponent} from "../src/components/MyRigsComponent";
 import {SessionHistoryComponent} from "../src/components/SessionHistoryComponent";
 
 describe("Data Validation", () => {
@@ -86,7 +86,7 @@ describe("Data Validation", () => {
         };
 
         expect(new AllGamesComponent().render(emptyData)).toContain("No games found");
-        expect(new GamingTimeComponent().render(emptyData)).toContain("No daily playtime data found");
+        expect(new MyRigsComponent().render(emptyData)).toContain("No rigs recorded yet");
         expect(new SessionHistoryComponent().render(emptyData)).toContain("No session history was found");
     });
 

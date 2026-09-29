@@ -1,7 +1,7 @@
 ﻿import {AllGamesComponent} from "./components/AllGamesComponent.js";
 import {SummaryComponent} from "./components/SummaryComponent.js";
 import {SessionHistoryComponent} from "./components/SessionHistoryComponent.js";
-import {GamingTimeComponent} from "./components/GamingTimeComponent.js";
+import {MyRigsComponent} from "./components/MyRigsComponent.js";
 import {GameDetailComponent} from "./components/GameDetailComponent.js";
 import {GameData} from "./types/GameData.js";
 import {validateGameData} from "./data/GameDataValidator.js";
@@ -275,6 +275,10 @@ export class Router {
             parameter = queryParams.get("name");
         } else if (routeKey === "#all-games") {
             parameter = queryParams.get("filter") || queryParams.get("status");
+        } else if (routeKey === "#my-rigs") {
+            // My Rigs selects the active rig via the "rig" query param; pass the
+            // raw query string and let the component read it.
+            parameter = query || null;
         } else if (routeKey === "#session-history") {
             // Session History carries multiple params (view/date/month); pass the
             // raw query string and let the component parse it.
@@ -302,7 +306,7 @@ export class Router {
 const routes = {
     "#summary": {name: "summary", title: "Summary Dashboard", component: SummaryComponent},
     "#all-games": {name: "all-games", title: "All Games", component: AllGamesComponent},
-    "#gaming-time": {name: "gaming-time", title: "Time Spent Gaming", component: GamingTimeComponent},
+    "#my-rigs": {name: "my-rigs", title: "My Rigs", component: MyRigsComponent},
     "#session-history": {name: "session-history", title: "Session History", component: SessionHistoryComponent},
     "#game-detail": {name: "game-detail", title: "Game Detail", component: GameDetailComponent}
 };

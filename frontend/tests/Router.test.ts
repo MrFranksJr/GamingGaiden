@@ -3,6 +3,7 @@ import {Router, SIDEBAR_COLLAPSED_STORAGE_KEY} from '../src/app'
 import {SummaryComponent} from '../src/components/SummaryComponent'
 import {AllGamesComponent} from '../src/components/AllGamesComponent'
 import {GameDetailComponent} from '../src/components/GameDetailComponent'
+import {MyRigsComponent} from '../src/components/MyRigsComponent'
 import {mockData} from './test-utils'
 
 describe('Router', () => {
@@ -177,6 +178,34 @@ describe('Router', () => {
         router.handleRoute()
         const sidebarFilters = document.getElementById('sidebar-filters')
         expect(sidebarFilters?.innerHTML).toBe('')
+    })
+
+    it('should pass the rig query param to My Rigs so a switch changes the shown rig', async () => {
+        const routes = {
+            '#summary': {name: 'summary', component: SummaryComponent},
+            '#my-rigs': {name: 'my-rigs', component: MyRigsComponent}
+        }
+        window.gamingGaidenData = {
+            ...mockData,
+            gaming_pcs: [
+                {name: 'MINWU', in_use: 'TRUE', total_play_time: 6000, start_date: 1605063600},
+                {name: 'OLD-RIG', in_use: 'FALSE', total_play_time: 0, start_date: 1451602800, end_date: 1604185200}
+            ]
+        }
+
+        router = new Router(routes)
+        await new Promise(resolve => setTimeout(resolve, 0))
+
+        // Default My Rigs view (no rig param) shows the first rig.
+        window.location.hash = '#my-rigs'
+        router.handleRoute()
+        expect(container.querySelector('.rig-hero-name')?.textContent).toBe('MINWU')
+
+        // Selecting the second rig via the query param must switch the shown rig.
+        window.location.hash = '#my-rigs?rig=OLD-RIG'
+        router.handleRoute()
+
+        expect(container.querySelector('.rig-hero-name')?.textContent).toBe('OLD-RIG')
     })
 
     it('should show a visible error for an unknown route', async () => {
