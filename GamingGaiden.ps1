@@ -227,7 +227,6 @@ try {
     # Setup Tray Icon
     $menuItemSeparator1 = New-Object Windows.Forms.ToolStripSeparator
     $menuItemSeparator2 = New-Object Windows.Forms.ToolStripSeparator
-    $menuItemSeparator3 = New-Object Windows.Forms.ToolStripSeparator
     $menuItemSeparator4 = New-Object Windows.Forms.ToolStripSeparator
     $menuItemSeparator5 = New-Object Windows.Forms.ToolStripSeparator
     $menuItemSeparator6 = New-Object Windows.Forms.ToolStripSeparator
@@ -243,7 +242,7 @@ try {
     $AppNotifyIcon.Icon = $IconRunning
     $AppNotifyIcon.Visible = $true
 
-    $allGamesMenuItem = CreateMenuItem "All Games"
+    $openAppMenuItem = CreateMenuItem "Open Gaming Gaiden"
 
     $exitMenuItem = CreateMenuItem "Exit"
     $StartTrackerMenuItem = CreateMenuItem "Start Tracker"
@@ -276,39 +275,49 @@ try {
     $settingsSubMenuItem.DropDownItems.Add($openInstallDirectoryMenuItem)
     
 
-    $statsSubMenuItem = CreateMenuItem "Statistics"
-    $gamingTimeMenuItem = CreateMenuItem "Time Spent Gaming"
-    $mostPlayedMenuItem = CreateMenuItem "Most Played"
-    $summaryItem = CreateMenuItem "Life Time Summary"
-    $gamesPerPCMenuItem = CreateMenuItem "Games Per PC"
-    $sessionHistoryMenuItem = CreateMenuItem "Session History"
-    $statsSubMenuItem.DropDownItems.Add($summaryItem)
-    $statsSubMenuItem.DropDownItems.Add($gamingTimeMenuItem)
-    $statsSubMenuItem.DropDownItems.Add($sessionHistoryMenuItem)
-    $statsSubMenuItem.DropDownItems.Add($gamesPerPCMenuItem)
-    $statsSubMenuItem.DropDownItems.Add($mostPlayedMenuItem)
-    
-
     $appContextMenu = New-Object System.Windows.Forms.ContextMenuStrip
-    $appContextMenu.Items.AddRange(@($allGamesMenuItem, $menuItemSeparator2, $statsSubMenuItem, $menuItemSeparator3, $settingsSubMenuItem, $menuItemSeparator4, $StartTrackerMenuItem, $StopTrackerMenuItem, $menuItemSeparator5, $helpMenuItem, $aboutMenuItem, $menuItemSeparator6, $exitMenuItem))
+    $appContextMenu.Items.AddRange(@($openAppMenuItem, $menuItemSeparator2, $settingsSubMenuItem, $menuItemSeparator4, $StartTrackerMenuItem, $StopTrackerMenuItem, $menuItemSeparator5, $helpMenuItem, $aboutMenuItem, $menuItemSeparator6, $exitMenuItem))
     $AppNotifyIcon.ContextMenuStrip = $appContextMenu
 
     #------------------------------------------
     # Setup Tray Icon Actions
-    $AppNotifyIcon.Add_Click({
-            if ($_.Button -eq [Windows.Forms.MouseButtons]::Left) {
-                RenderQuickView
-            }
+    #
+    # WinForms NotifyIcon fires Click before DoubleClick, so a naive left-Click
+    # handler would also run on a double-click. We debounce: a left single-click
+    # arms a short timer that opens QuickView; a double-click cancels that timer
+    # and opens the SPA at #summary instead. This guarantees exactly one action.
+    $LeftClickTimer = New-Object Windows.Forms.Timer
+    $LeftClickTimer.Interval = [System.Windows.Forms.SystemInformation]::DoubleClickTime
+    $LeftClickTimer.Add_Tick({
+            $LeftClickTimer.Stop()
+            RenderQuickView
+        })
 
+    $AppNotifyIcon.Add_MouseDown({
             if ($_.Button -eq [Windows.Forms.MouseButtons]::Right) {
                 $AppNotifyIcon.ShowContextMenu
             }
         })
 
+    $AppNotifyIcon.Add_MouseClick({
+            if ($_.Button -eq [Windows.Forms.MouseButtons]::Left) {
+                # Defer QuickView; a following double-click will cancel it.
+                $LeftClickTimer.Stop()
+                $LeftClickTimer.Start()
+            }
+        })
+
+    $AppNotifyIcon.Add_MouseDoubleClick({
+            if ($_.Button -eq [Windows.Forms.MouseButtons]::Left) {
+                $LeftClickTimer.Stop()
+                Invoke-SPA "summary"
+            }
+        })
+
     #------------------------------------------
     # Setup Tray Icon Context Menu Actions
-    $allGamesMenuItem.Add_Click({
-            Invoke-SPA "all-games"
+    $openAppMenuItem.Add_Click({
+            Invoke-SPA "summary"
         })
 
     $StartTrackerMenuItem.Add_Click({
@@ -335,33 +344,9 @@ try {
             Stop-Job -Name "TrackerJob";
             $Timer.Stop()
             $Timer.Dispose()
+            $LeftClickTimer.Stop()
+            $LeftClickTimer.Dispose()
             [System.Windows.Forms.Application]::Exit();
-        })
-
-    #------------------------------------------
-    # Statistics Sub Menu Actions
-    $summaryItem.Add_Click({
-            Invoke-SPA "summary"
-        })
-
-    $gamingTimeMenuItem.Add_Click({
-            # Consolidated into the SPA Summary (annual/timeline + bubble graph); see ADR 0002.
-            Invoke-SPA "summary"
-        })
-
-    $gamesPerPCMenuItem.Add_Click({
-            # Consolidated into the SPA My Rigs view; see ADR 0002.
-            Invoke-SPA "my-rigs"
-        })
-
-    $mostPlayedMenuItem.Add_Click({
-            # Consolidated into the SPA All Games view (sortable by playtime); see ADR 0002.
-            Invoke-SPA "all-games"
-        })
-
-
-    $sessionHistoryMenuItem.Add_Click({
-            Invoke-SPA "session-history"
         })
 
     #------------------------------------------

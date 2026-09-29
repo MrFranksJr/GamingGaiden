@@ -12,13 +12,14 @@ tray menu, and clean up backend code that existed only to feed the legacy UI.
 
 ## Status
 
-- **Phase**: 2 — Commit 2 (flip the switch) committed; **awaiting Windows verification**.
-- **Last completed commit**: Commit 2 — flip tray handlers to `Invoke-SPA` unconditionally.
-- **Next action**: User deploys on Windows, runs Commit 2 smoke test (every menu item opens the SPA at the
-  right route). On green feedback → Commit 3 (lighten tray menu + double-click). If issues → fix & re-commit.
-- **Frontends today**: app now routes entirely to the SPA; legacy render code still on disk (unreferenced).
+- **Phase**: 3 — Commit 3 (lighten tray menu + click behavior) committed; **awaiting Windows verification**.
+- **Last completed commit**: Commit 3 — slim menu ("Open Gaming Gaiden") + debounced double-click → SPA.
+- **Next action**: User deploys on Windows, runs Commit 3 smoke test (slim menu; Open → `#summary`;
+  double-click → `#summary`; single left-click → QuickView). **Watch the QuickView delay** — decide whether
+  to keep the debounce or fall back to single-click → SPA. On green → Commit 4 (retire tray theming).
+- **Frontends today**: app routes entirely to the SPA; legacy render code still on disk (unreferenced).
 - **Target**: one frontend (the SPA); no toggle; slimmed tray menu; dead legacy code removed.
-- **Windows-verified through**: _none yet_ — **Commit 2 pending your smoke test.**
+- **Windows-verified through**: Commit 2 pending; **Commit 3 also pending** your smoke test.
 
 ---
 
@@ -147,11 +148,24 @@ handler still exist (removed in Commit 5) but no longer route anything. Frontend
 clean); backend Pester not runnable on macOS — **needs Windows verification**.
 
 ### Commit 3 — Lighten the tray menu + click behavior
-- [ ] Replace "All Games" + the "Statistics" submenu with a single "Open Gaming Gaiden" item → SPA `#summary`.
-- [ ] Add tray-icon **double-click** → SPA `#summary`; keep single left-click → QuickView; right-click → menu.
+- [~] Replace "All Games" + the "Statistics" submenu with a single "Open Gaming Gaiden" item → SPA `#summary`.
+- [~] Add tray-icon **double-click** → SPA `#summary`; keep single left-click → QuickView; right-click → menu.
 - **Files**: `GamingGaiden.ps1` (menu construction + `Add_Click`/`Add_DoubleClick`).
 - **Smoke test (Windows)**: right-click shows the slim menu; "Open Gaming Gaiden" opens `#summary`;
   double-click opens `#summary`; single left-click still shows QuickView.
+
+**Notes (2026-09-29):**
+- Menu is now: **Open Gaming Gaiden** → Settings → Start/Stop Tracker → Help → About → Exit. Removed the
+  top-level All Games item, the whole Statistics submenu (5 items), their handlers, and the orphaned
+  `$menuItemSeparator3`. The `developer_mode` toggle item still lives under Settings (removed in Commit 5).
+- **Click design — needs Windows attention.** WinForms `NotifyIcon` fires `Click` *before* `DoubleClick`, so
+  a naive left-click handler double-fires. Implemented a debounce: left single-click arms a
+  `SystemInformation.DoubleClickTime` timer that opens QuickView; a double-click cancels it and opens the SPA
+  at `#summary`. Switched to `Add_MouseClick`/`Add_MouseDown`/`Add_MouseDoubleClick`. Timer disposed on exit.
+  **Tradeoff**: QuickView now opens after a ~500ms delay (was instant) so double-click can pre-empt it.
+  **Fallback if the delay annoys**: drop QuickView-on-click and make single left-click → SPA (the "or
+  left-click if double isn't possible" option). Decide after smoke-testing.
+- Frontend gate green (268 tests, tsc clean); `GamingGaiden.ps1` parses clean.
 
 ### Commit 4 — Retire tray-driven theming
 - [ ] Delete Light/Dark tray items + their handlers.
