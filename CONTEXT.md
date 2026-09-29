@@ -29,6 +29,25 @@ _Avoid_: Blurb, banner, achievement. (A "milestone" is now only the top tier of 
 A session's `start_time` is stored as a Unix epoch. The single parser (`TimeUtils.parseSessionStart`) treats a numeric value **below 1e10 as SECONDS** (×1000) and **at or above 1e10 as MILLISECONDS**; non-positive or unparseable input falls back to the epoch (1970-01-01). Legacy/mock data may instead use a human date string ("2023-01-01 10:00"), parsed via `Date.parse`. All real exported data uses 10-digit seconds. There must be exactly one parser: an earlier second copy (`GameDetailStatsCalculator.parseSessionDate`) used a different rule and is now a re-export, so the seconds/ms decision lives in one place.
 _Avoid_: adding a second timestamp parser with its own seconds/ms heuristic.
 
+**Legacy frontend**:
+The original UI: PowerShell `Render*` functions in `UIFunctions.psm1` generate static HTML from
+`.template` files under `ui/templates/`, write it to `ui/*.html`, and open it with `Invoke-Item`. Rendered
+server-side (in PowerShell) on every database change. Being sunset in favour of the SPA.
+_Avoid_: static UI, old UI (informal), the HTML frontend (ambiguous — the SPA is also HTML).
+
+**SPA / next-gen frontend**:
+The TypeScript single-page application under `frontend/`, fed by a single JSON export
+(`Export-GameDataToJson`) and opened with `Invoke-SPA`. Client-side rendered; the in-app sidebar owns
+navigation across Summary, All Games, My Rigs, Session History, and Game Detail. The one surviving frontend
+after the sunset.
+_Avoid_: dynamic UI, new UI (informal), rework (historical name only).
+
+**Developer Mode**:
+A transitional `developer_mode` DB setting (and tray toggle) that switched individual menu items between the
+Legacy frontend and the SPA. A migration scaffold, not a lasting feature — removed once the SPA becomes the
+only frontend.
+_Avoid_: dev mode, debug mode (it never gated debugging, only frontend selection).
+
 **Games-played ranking**:
 The ranked "games played" list shared by Session History (per period) and My Rigs (per rig). One module (`GamesPlayedRanking`) owns the colour palette and the aggregate→rank→colour→percentage→row logic; callers supply pre-summed `{gameName, minutes, iconPath}` and receive ranked rows. Colour is assigned by **playtime rank index**, so a game's colour is not stable across different periods or rigs.
 _Avoid_: re-declaring the palette per screen, or cross-importing it from another screen's module.
