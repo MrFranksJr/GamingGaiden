@@ -279,37 +279,24 @@ try {
     $appContextMenu.Items.AddRange(@($openAppMenuItem, $menuItemSeparator2, $settingsSubMenuItem, $menuItemSeparator4, $StartTrackerMenuItem, $StopTrackerMenuItem, $menuItemSeparator5, $helpMenuItem, $aboutMenuItem, $menuItemSeparator6, $exitMenuItem))
     $AppNotifyIcon.ContextMenuStrip = $appContextMenu
 
+    # Bold the default action (opened on tray double-click), matching the
+    # Windows convention where an icon's default menu action is bold. Derive
+    # from the menu font when available, else fall back to the WinForms default.
+    $menuBaseFont = if ($null -ne $appContextMenu.Font) { $appContextMenu.Font } else { New-Object System.Drawing.Font("Segoe UI", 9) }
+    $openAppMenuItem.Font = New-Object System.Drawing.Font($menuBaseFont, [System.Drawing.FontStyle]::Bold)
+
     #------------------------------------------
     # Setup Tray Icon Actions
-    #
-    # WinForms NotifyIcon fires Click before DoubleClick, so a naive left-Click
-    # handler would also run on a double-click. We debounce: a left single-click
-    # arms a short timer that opens QuickView; a double-click cancels that timer
-    # and opens the SPA at #summary instead. This guarantees exactly one action.
-    $LeftClickTimer = New-Object Windows.Forms.Timer
-    $LeftClickTimer.Interval = [System.Windows.Forms.SystemInformation]::DoubleClickTime
-    $LeftClickTimer.Add_Tick({
-            $LeftClickTimer.Stop()
-            RenderQuickView
-        })
-
+    # Double-click the tray icon opens the SPA at #summary (the default action,
+    # shown in bold in the context menu). Right-click opens the menu.
     $AppNotifyIcon.Add_MouseDown({
             if ($_.Button -eq [Windows.Forms.MouseButtons]::Right) {
                 $AppNotifyIcon.ShowContextMenu
             }
         })
 
-    $AppNotifyIcon.Add_MouseClick({
-            if ($_.Button -eq [Windows.Forms.MouseButtons]::Left) {
-                # Defer QuickView; a following double-click will cancel it.
-                $LeftClickTimer.Stop()
-                $LeftClickTimer.Start()
-            }
-        })
-
     $AppNotifyIcon.Add_MouseDoubleClick({
             if ($_.Button -eq [Windows.Forms.MouseButtons]::Left) {
-                $LeftClickTimer.Stop()
                 Invoke-SPA "summary"
             }
         })
@@ -344,8 +331,6 @@ try {
             Stop-Job -Name "TrackerJob";
             $Timer.Stop()
             $Timer.Dispose()
-            $LeftClickTimer.Stop()
-            $LeftClickTimer.Dispose()
             [System.Windows.Forms.Application]::Exit();
         })
 

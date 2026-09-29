@@ -12,14 +12,13 @@ tray menu, and clean up backend code that existed only to feed the legacy UI.
 
 ## Status
 
-- **Phase**: 3 — Commit 3 (lighten tray menu + click behavior) committed; **awaiting Windows verification**.
-- **Last completed commit**: Commit 3 — slim menu ("Open Gaming Gaiden") + debounced double-click → SPA.
-- **Next action**: User deploys on Windows, runs Commit 3 smoke test (slim menu; Open → `#summary`;
-  double-click → `#summary`; single left-click → QuickView). **Watch the QuickView delay** — decide whether
-  to keep the debounce or fall back to single-click → SPA. On green → Commit 4 (retire tray theming).
+- **Phase**: 3 — Commit 3 **revised** (QuickView removed, bold item, double-click-only); awaiting Windows re-verification.
+- **Last completed commit**: Commit 3 (revised) — slim menu + bold "Open Gaming Gaiden" + double-click → SPA; QuickView deleted.
+- **Next action**: User deploys on Windows, runs revised Commit 3 smoke test (bold item; double-click opens
+  `#summary`; single-click does nothing; QuickView gone). On green → Commit 4 (retire tray theming).
 - **Frontends today**: app routes entirely to the SPA; legacy render code still on disk (unreferenced).
 - **Target**: one frontend (the SPA); no toggle; slimmed tray menu; dead legacy code removed.
-- **Windows-verified through**: Commit 2 pending; **Commit 3 also pending** your smoke test.
+- **Windows-verified through**: **Commit 2 ✅** (user confirmed "looks fantastic"). Commit 3 revised — pending re-test.
 
 ---
 
@@ -80,9 +79,11 @@ never lost across sessions or agents. **Update it on every transition.**
 
 ---
 
-6. **Tray click behavior**: double-click the tray icon opens the SPA at `#summary`; single left-click keeps
-   **QuickView** (the native recent/currently-playing popup — a distinct affordance, kept). Right-click keeps
-   the menu.
+6. **Tray click behavior** _(revised 2026-09-29 after Windows review)_: **double-click** the tray icon opens
+   the SPA at `#summary`; there is **no single-click action**. The "Open Gaming Gaiden" menu item is **bold**
+   (Windows convention for an icon's default double-click action). **QuickView is removed entirely** — the
+   user disliked its look/feel, so `RenderQuickView` and all its code are deleted (not kept). This reverses
+   the original "keep QuickView" call from the grilling session. Right-click still opens the menu.
 7. **`ui/` icon cache is dead once legacy renders go.** The Add/Edit dialogs pre-warm the `ui/...cache` only
    for the legacy All Games list; the SPA rebuilds its own `frontend/...cache` from the DB on every export.
    Removing the dialogs' `ui/` cache writes and deleting `ui/` wholesale eliminates the double-caching and
@@ -148,24 +149,24 @@ handler still exist (removed in Commit 5) but no longer route anything. Frontend
 clean); backend Pester not runnable on macOS — **needs Windows verification**.
 
 ### Commit 3 — Lighten the tray menu + click behavior
-- [~] Replace "All Games" + the "Statistics" submenu with a single "Open Gaming Gaiden" item → SPA `#summary`.
-- [~] Add tray-icon **double-click** → SPA `#summary`; keep single left-click → QuickView; right-click → menu.
-- **Files**: `GamingGaiden.ps1` (menu construction + `Add_Click`/`Add_DoubleClick`).
-- **Smoke test (Windows)**: right-click shows the slim menu; "Open Gaming Gaiden" opens `#summary`;
-  double-click opens `#summary`; single left-click still shows QuickView.
+- [x] Replace "All Games" + the "Statistics" submenu with a single "Open Gaming Gaiden" item → SPA `#summary`.
+- [~] Double-click tray icon → SPA `#summary`; **no single-click action**; right-click → menu.
+- [~] Remove QuickView entirely (`RenderQuickView` + all its code).
+- [~] Bold the "Open Gaming Gaiden" item (Windows default-action convention).
+- **Files**: `GamingGaiden.ps1` (menu construction + tray click handlers), `modules/UIFunctions.psm1`
+  (delete `RenderQuickView`).
+- **Smoke test (Windows)**: right-click shows the slim menu; "Open Gaming Gaiden" is **bold**; double-click
+  the tray icon opens `#summary`; single-click does nothing; QuickView never appears anywhere.
 
 **Notes (2026-09-29):**
-- Menu is now: **Open Gaming Gaiden** → Settings → Start/Stop Tracker → Help → About → Exit. Removed the
-  top-level All Games item, the whole Statistics submenu (5 items), their handlers, and the orphaned
-  `$menuItemSeparator3`. The `developer_mode` toggle item still lives under Settings (removed in Commit 5).
-- **Click design — needs Windows attention.** WinForms `NotifyIcon` fires `Click` *before* `DoubleClick`, so
-  a naive left-click handler double-fires. Implemented a debounce: left single-click arms a
-  `SystemInformation.DoubleClickTime` timer that opens QuickView; a double-click cancels it and opens the SPA
-  at `#summary`. Switched to `Add_MouseClick`/`Add_MouseDown`/`Add_MouseDoubleClick`. Timer disposed on exit.
-  **Tradeoff**: QuickView now opens after a ~500ms delay (was instant) so double-click can pre-empt it.
-  **Fallback if the delay annoys**: drop QuickView-on-click and make single left-click → SPA (the "or
-  left-click if double isn't possible" option). Decide after smoke-testing.
-- Frontend gate green (268 tests, tsc clean); `GamingGaiden.ps1` parses clean.
+- Menu is now: **Open Gaming Gaiden** (bold) → Settings → Start/Stop Tracker → Help → About → Exit. The
+  `developer_mode` toggle item still lives under Settings (removed in Commit 5).
+- **Revised after Windows review**: initial Commit 3 kept a debounced single-click→QuickView. User disliked
+  QuickView, so it's now deleted outright. Tray is double-click→SPA only; the debounce timer was removed.
+  `RenderQuickView` deleted from `UIFunctions.psm1`; no QuickView references remain in any source.
+- Bold font derives from the context-menu font when present, else falls back to `Segoe UI 9pt` (the menu
+  font can be null before the control is shown).
+- Frontend gate green (268 tests, tsc clean); `GamingGaiden.ps1` and `UIFunctions.psm1` parse clean.
 
 ### Commit 4 — Retire tray-driven theming
 - [ ] Delete Light/Dark tray items + their handlers.
