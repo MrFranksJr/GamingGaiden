@@ -30,7 +30,7 @@ https://github.com/user-attachments/assets/4837b88c-e403-4069-a3f5-3f0147e9328a
     - Out of box HWiNFO64 integration with session time and tracking status metrics.
     - Install on multiple gaming pcs and share database to tracks games played, hours played for each pc separately.
 - #### UI and Statistics
-    - Fast browser based UI with search and sorting. Quick view popup for recent games.
+    - Fast browser based UI with search and sorting.
     - Multiple in depth statistics on gaming. Lifetime summary, monthly/yearly time analysis, most played games, games per PC etc.
     - Value for money analysis for gaming pc by calculating gaming cost per hour or per month.
     - Integrated google image search for game icons / box art.
@@ -57,12 +57,12 @@ If you are modifying Gaming Gaiden and want to quickly deploy your changes to th
 
 1. **Deploy.bat (Recommended)**: Double-click `Deploy.bat` in the root directory. This will:
     - Stop the running `GamingGaiden.exe`.
-    - Run `Build.ps1` to re-generate the executable and manual.
-    - Sync all source files (`modules`, `icons`, `ui`) to `C:\ProgramData\GamingGaiden`.
+    - Run `Build.ps1` to re-generate the executable.
+    - Sync all source files (`modules`, `icons`, `frontend`) to `C:\ProgramData\GamingGaiden`.
     - Automatically restart the application.
 
 2. **Manual PowerShell**: Run `.\Deploy.ps1` from an elevated PowerShell terminal.
-    - Use `.\Deploy.ps1 -NoBuild` for near-instant updates of scripts or UI files without re-building the `.exe`.
+    - Use `.\Deploy.ps1 -NoBuild` for near-instant updates of scripts or frontend files without re-building the `.exe`.
 
 ### Rolling back after a deploy
 
@@ -117,4 +117,3 @@ Made with love using
 - Game Cartridge Icon from [FreePik on Flaticon](https://www.flaticon.com/free-icons/game-cartridge)
 - Cute [Ninja Vector by Catalyststuff on Freepik](https://www.freepik.com/free-vector/cute-ninja-gaming-cartoon-vector-icon-illustration-people-technology-icon-concept-isolated-flat_42903434.htm)
 - [Ninja Garden Font](https://www.fontspace.com/ninja-garden-font-f32923) by [Iconian Fonts](https://www.fontspace.com/iconian-fonts)
-

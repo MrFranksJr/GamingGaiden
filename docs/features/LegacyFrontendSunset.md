@@ -12,13 +12,13 @@ tray menu, and clean up backend code that existed only to feed the legacy UI.
 
 ## Status
 
-- **Phase**: 6 — Commit 6 (delete `ui/` + purge build/deploy/Help) committed; **awaiting Windows verification**.
-- **Last completed commit**: Commit 6 — `ui/` deleted wholesale; build/deploy/Help wiring purged.
-- **Next action**: User runs `Deploy.bat` on Windows (Commit 6 smoke test — clean build/deploy with no `ui/`,
-  no Help item, dialogs work). On green → Commit 7 (docs & tests sweep) — the final commit.
-- **Frontends today**: SPA only. Legacy render code **and** assets both gone.
-- **Target**: one frontend (the SPA); no toggle; slimmed tray menu; dead legacy code removed.
-- **Windows-verified through**: **Commits 2 ✅ 3 ✅ 4 ✅ 5 ✅**. Commit 6 — pending re-test.
+- **Phase**: 7 — **DONE.** All commits landed. Legacy frontend fully sunset.
+- **Last completed commit**: Commit 7 — docs & tests sweep.
+- **Next action**: none — effort complete. Final Windows smoke test of Commit 7 (docs-only + `Uninstall.bat`
+  safety-check change) at the user's discretion.
+- **Frontends today**: SPA only. No legacy render code, no `ui/`, no Developer Mode, no tray theming/Help.
+- **Target**: ✅ reached — one frontend (the SPA); no toggle; slimmed tray menu; dead legacy code removed.
+- **Windows-verified through**: **Commits 2 ✅ 3 ✅ 4 ✅ 5 ✅**. Commit 6 pending your `Deploy.bat` test; Commit 7 docs-only.
 
 ---
 
@@ -238,12 +238,36 @@ working means these land together.)_
   no `ui/`/Help/Manual references remain in source.
 
 ### Commit 7 — Docs & tests sweep
-- [ ] Mark legacy removed in `docs/features/FrontendRework.md`; update `Readme.md` / `Manual.md` legacy mentions.
-- [ ] Update/trim backend tests referencing removed behavior; ensure suite green.
+- [x] Mark legacy removed in `docs/features/FrontendRework.md`; update `Readme.md` / `Manual.md` legacy mentions.
+- [x] Update/trim backend tests referencing removed behavior; ensure suite green.
       (Note: `frontend/tests/LegacyAllGamesStatusSorting.test.ts` was already removed in Commit 5.)
-- [ ] Flip this doc's status to Done.
+- [x] Flip this doc's status to Done.
 - **Files**: `docs/**`, `Readme.md`, `Manual.md`, `tests/backend/**`.
 - **Smoke test**: full test suite green; docs read correctly.
+
+**Notes (2026-09-29):**
+- `Readme.md`: removed the "Quick view popup for recent games" feature bullet (QuickView deleted); fixed the
+  Deploy section (`ui` → `frontend` sync; "UI files" → "frontend files"; Build no longer regenerates a manual).
+- `docs/features/FrontendRework.md`: checked the two remaining Phase-4 cleanup boxes and added a "Legacy
+  frontend removed" note pointing at this doc + ADRs 0001/0002.
+- **Backend tests needed no changes**: `tests/backend/` references only kept functions (`Export-GameDataToJson`,
+  `Invoke-SPA`, `ResizeImage`) — no `Render*`/`developer_mode`/QuickView references.
+- `Manual.md` needed no changes — it is task-oriented (Add/Edit Game, tracking) and never referenced the
+  legacy statistics pages by name.
+- Extra cleanups: `Uninstall.bat` safety-check regex now recognises `frontend` instead of the deleted `ui`;
+  dropped the now-unused `System.Web` load from `Build.ps1`.
+- Gate green: frontend 27 files / 267 tests + tsc clean; all PS files parse clean.
+
+---
+
+## Outcome
+
+Legacy frontend fully sunset in 7 commits (flip-first, delete-later). The SPA is the only frontend; the
+Developer Mode toggle, the six `Render*` HTML functions, the `Game`/`GamingPC` view classes, QuickView, the
+`ui/` tree (~7000 lines), tray-driven theming, the Help/Manual path, and all the double-caching are gone.
+Every commit kept its build working and passed the gate (frontend tests + tsc + PowerShell parse). Commits
+2–5 were Windows-verified during the effort; Commit 6 (`Deploy.bat`) and Commit 7 (docs) remain for a final
+Windows pass at the user's discretion.
 
 ---
 

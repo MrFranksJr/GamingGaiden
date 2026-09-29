@@ -1,6 +1,4 @@
-﻿[System.Reflection.Assembly]::LoadWithPartialName('System.Web') | out-null
-
-#------------------------------------------
+﻿#------------------------------------------
 # Pre Build Cleanup
 if (Test-Path .\build\GamingGaiden) {
     Remove-Item -Recurse .\build\GamingGaiden

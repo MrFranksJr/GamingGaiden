@@ -30,7 +30,7 @@ del "%StartupPath%\Gaming Gaiden.lnk" 2>nul
 rd /s /q "%StartMenuPath%" 2>nul
 
 echo Removing application files
-powershell.exe -NoProfile -Command "$items = Get-ChildItem '%InstallDirectory%' -Exclude backups,GamingGaiden.db,Uninstall.bat -ErrorAction SilentlyContinue; $hasExpected = $items | Where-Object { $_.Name -match '^(modules|icons|ui|GamingGaiden\.exe)$' }; if ($items.Count -gt 0 -and -not $hasExpected) { Write-Host 'ERROR: Install directory does not look like Gaming Gaiden. Aborting.'; exit 1 }; $items | Remove-Item -Recurse -Force"
+powershell.exe -NoProfile -Command "$items = Get-ChildItem '%InstallDirectory%' -Exclude backups,GamingGaiden.db,Uninstall.bat -ErrorAction SilentlyContinue; $hasExpected = $items | Where-Object { $_.Name -match '^(modules|icons|frontend|GamingGaiden\.exe)$' }; if ($items.Count -gt 0 -and -not $hasExpected) { Write-Host 'ERROR: Install directory does not look like Gaming Gaiden. Aborting.'; exit 1 }; $items | Remove-Item -Recurse -Force"
 if errorlevel 1 (
     echo.
     echo Uninstall aborted for safety. Directory does not appear to be Gaming Gaiden.

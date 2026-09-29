@@ -46,8 +46,12 @@ Rework the existing static UI into a more scalable, dynamic interface that uses 
 - [x] Implement a TypeScript build step and resolve browser security restrictions for `file:///` URIs.
   - Switched from ES Modules to a bundled IIFE using `esbuild` to bypass CORS on local files.
   - Implemented a JS-based data fallback (`data.js`) to ensure reliable data loading in all browsers.
-- [ ] Once stable, update the main app launch logic to point to `frontend\index.html`.
-- [ ] Clean up legacy static rendering functions in `UIFunctions.psm1`.
+- [x] Once stable, update the main app launch logic to point to `frontend\index.html`.
+- [x] Clean up legacy static rendering functions in `UIFunctions.psm1`.
+
+> **Legacy frontend removed (2026-09).** The Developer Mode toggle, the legacy `Render*` HTML functions,
+> the `ui/` tree, and all their build/deploy wiring have been deleted. The SPA is now the only frontend.
+> See `docs/features/LegacyFrontendSunset.md` and ADRs `0001`/`0002` for the full sunset.
 
 ## Stability foundation
 
