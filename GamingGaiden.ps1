@@ -57,13 +57,6 @@ try {
     Log "Database setup complete"
 
     #------------------------------------------
-    # Ensure cache directory exists
-    if (-Not (Test-Path ".\ui\resources\images\cache")) {
-        New-Item -ItemType Directory -Path ".\ui\resources\images\cache" -Force | Out-Null
-        Log "Created cache directory"
-    }
-
-    #------------------------------------------
     # Initialize current PC if only one PC exists
     if (-Not (Read-Setting "current_pc")) {
         $pcCount = (RunDBQuery "SELECT COUNT(*) as count FROM gaming_pcs").count
@@ -225,7 +218,6 @@ try {
     $exitMenuItem = CreateMenuItem "Exit"
     $StartTrackerMenuItem = CreateMenuItem "Start Tracker"
     $StopTrackerMenuItem = CreateMenuItem "Stop Tracker"
-    $helpMenuItem = CreateMenuItem "Help / FAQs"
     $aboutMenuItem = CreateMenuItem "About"
 
     $settingsSubMenuItem = CreateMenuItem "Settings"
@@ -241,7 +233,7 @@ try {
     
 
     $appContextMenu = New-Object System.Windows.Forms.ContextMenuStrip
-    $appContextMenu.Items.AddRange(@($openAppMenuItem, $menuItemSeparator2, $settingsSubMenuItem, $menuItemSeparator4, $StartTrackerMenuItem, $StopTrackerMenuItem, $menuItemSeparator5, $helpMenuItem, $aboutMenuItem, $menuItemSeparator6, $exitMenuItem))
+    $appContextMenu.Items.AddRange(@($openAppMenuItem, $menuItemSeparator2, $settingsSubMenuItem, $menuItemSeparator4, $StartTrackerMenuItem, $StopTrackerMenuItem, $menuItemSeparator5, $aboutMenuItem, $menuItemSeparator6, $exitMenuItem))
     $AppNotifyIcon.ContextMenuStrip = $appContextMenu
 
     # Bold the default action (opened on tray double-click), matching the
@@ -280,11 +272,6 @@ try {
     $StopTrackerMenuItem.Add_Click({
             StopTrackerJob
             $AppNotifyIcon.ShowBalloonTip(3000, "Tracker Stopped", "Game launch detection disabled.", [System.Windows.Forms.ToolTipIcon]::Info)
-        })
-
-    $helpMenuItem.Add_Click({
-            Log "Showing help"
-            Invoke-Item ".\ui\Manual.html"
         })
 
     $aboutMenuItem.Add_Click({

@@ -10,37 +10,8 @@ if (Test-Path .\build\GamingGaiden.zip) {
 }
 mkdir -f .\build\GamingGaiden | Out-Null
 
-Get-ChildItem -File .\ui\*.html -Exclude 404.html | Remove-Item
-Remove-Item -Recurse .\ui\resources\images\cache -ErrorAction SilentlyContinue
-
 #------------------------------------------
 # Build
-
-# Generate Manual
-if (Get-Command "pandoc.exe" -ErrorAction SilentlyContinue) {
-    pandoc.exe --ascii .\Manual.md -o .\ui\Manual.html
-    if (Test-Path .\ui\Manual.html) {
-        $ManualHTML = Get-Content .\ui\Manual.html -Raw
-
-        # Wrap each h3 and its following content until next h3
-        $ManualHTML = $ManualHTML -replace '<h3[^>]*>([^<]+)</h3>((?:(?!<h3)[\s\S])*?(?=<h3|$))', '<details><summary>$1</summary>$2</details>'
-
-        # Wrap all details in a container for column layout
-        $ManualHTML = $ManualHTML -replace '(<details>[\s\S]*</details>)', '<div class="faq-container">$1</div>'
-
-        $ManualTemplate = Get-Content .\ui\templates\Manual.html.template
-        $FinalHTML = $ManualTemplate -replace "_MARKDOWN_HTML_", $ManualHTML
-        [System.Web.HttpUtility]::HtmlDecode($FinalHTML) | Out-File -encoding UTF8 .\ui\Manual.html
-    } else {
-        Write-Warning "Failed to generate Manual.html even though pandoc was found."
-    }
-} else {
-    Write-Warning "pandoc.exe not found in PATH. Skipping Manual generation."
-    # If Manual.html is missing but needed for the build to not error out elsewhere, create a placeholder
-    if (-not (Test-Path .\ui\Manual.html)) {
-        "Manual generation skipped (pandoc missing)" | Out-File -encoding UTF8 .\ui\Manual.html
-    }
-}
 
 # Build Frontend
 if (Get-Command "npm" -ErrorAction SilentlyContinue)
@@ -58,19 +29,10 @@ else
 # Copy source files
 $FilesToCopy = ".\Install.bat", ".\Uninstall.bat"
 Copy-Item $FilesToCopy -Destination .\build\GamingGaiden\ -Force
-$FoldersToCopy = "modules", "icons", "ui", "frontend"
+$FoldersToCopy = "modules", "icons", "frontend"
 foreach ($folder in $FoldersToCopy)
 {
     robocopy ".\$folder" ".\build\GamingGaiden\$folder" /MIR /NP /NDL /NJH /NJS /XD "node_modules" "tests" | Out-Null
-}
-
-# Add 404 pages
-$templateFiles = Get-ChildItem .\ui\templates\*.template -File
-foreach ($template in $templateFiles) {
-    $htmlFileName = $template.Name -replace '\.template$', ''
-    if ($htmlFileName -ne "Manual.html") {
-        Copy-Item -Path .\ui\404.html -Destination .\build\GamingGaiden\ui\$htmlFileName -Force
-    }
 }
 
 # Generate exe

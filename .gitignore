@@ -8,16 +8,12 @@
 *.sql
 *.bak
 .claude/*
-ui/resources/images/cache/*
-ui/*.html
-!ui/404.html
 backups/*
 build/*
 ignored_*
 CLAUDE.md
 coderules.md
 .serena/
-theme.css
 settings.ini
 KIRO.md
 .junie

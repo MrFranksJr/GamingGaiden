@@ -59,10 +59,6 @@ robocopy (Join-Path $SourceDirectory "modules") (Join-Path $InstallDirectory "mo
 robocopy (Join-Path $SourceDirectory "icons") (Join-Path $InstallDirectory "icons") /MIR /R:3 /W:5 /NP /NDL /NJH /NJS | Out-Null
 robocopy (Join-Path $SourceDirectory "frontend") (Join-Path $InstallDirectory "frontend") /MIR /R:3 /W:5 /NP /NDL /NJH /NJS /XD "node_modules" "tests" | Out-Null
 
-# Sync UI folder but protect the generated HTML files from being purged!
-# We mirror resources but exclude purging of .html files because they are generated in the build step
-robocopy (Join-Path $SourceDirectory "ui") (Join-Path $InstallDirectory "ui") /MIR /XF "*.html" /R:3 /W:5 /NP /NDL /NJH /NJS /XD "cache" "templates" | Out-Null
-
 # Now Sync build artifacts (which includes the .exe and the generated .html files)
 $buildOutput = Join-Path $SourceDirectory "build\GamingGaiden"
 if (Test-Path $buildOutput) {

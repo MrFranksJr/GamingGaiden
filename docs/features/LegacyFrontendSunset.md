@@ -12,14 +12,13 @@ tray menu, and clean up backend code that existed only to feed the legacy UI.
 
 ## Status
 
-- **Phase**: 5 — Commit 5 (delete legacy render code) committed; **awaiting Windows verification**.
-- **Last completed commit**: Commit 5 — removed 6 `Render*` fns + `Game`/`GamingPC` classes, dev-mode toggle,
-  `ui/` cache writes; reduced `UpdateAllStatsInBackground` to the JSON export.
-- **Next action**: User deploys on Windows, runs Commit 5 smoke test (add/edit a game & rig → SPA reflects
-  changes; tracker reboot-on-change fires; no missing-function errors). On green → Commit 6 (delete `ui/`).
-- **Frontends today**: SPA only; legacy *render code* now gone; legacy `ui/` **assets** still on disk (Commit 6).
+- **Phase**: 6 — Commit 6 (delete `ui/` + purge build/deploy/Help) committed; **awaiting Windows verification**.
+- **Last completed commit**: Commit 6 — `ui/` deleted wholesale; build/deploy/Help wiring purged.
+- **Next action**: User runs `Deploy.bat` on Windows (Commit 6 smoke test — clean build/deploy with no `ui/`,
+  no Help item, dialogs work). On green → Commit 7 (docs & tests sweep) — the final commit.
+- **Frontends today**: SPA only. Legacy render code **and** assets both gone.
 - **Target**: one frontend (the SPA); no toggle; slimmed tray menu; dead legacy code removed.
-- **Windows-verified through**: **Commits 2 ✅ 3 ✅ 4 ✅**. Commit 5 — pending re-test.
+- **Windows-verified through**: **Commits 2 ✅ 3 ✅ 4 ✅ 5 ✅**. Commit 6 — pending re-test.
 
 ---
 
@@ -213,20 +212,32 @@ files parse clean.
   Commit 6 scope (deleted with `ui/`), harmless until then.
 - Gate green: frontend 27 files / 267 tests (−1 = deleted legacy test) + tsc clean; all PS files parse clean.
 
-### Commit 6 — Delete legacy assets
-- [ ] Delete `ui/templates/`, generated `ui/*.html`, `ui/404.html`, `ui/resources/{js,css,images}` legacy libs.
-- [ ] Delete `ui/` wholesale (pending Commit 1 cache verification).
-- **Files**: `ui/**`.
-- **Smoke test (Windows)**: full clean deploy; app launches; SPA loads; QuickView + data-entry dialogs still work.
+### Commit 6 — Delete legacy `ui/` + purge its build/deploy/Help wiring
+_(Commits 6 and 7 were merged: deleting `ui/` while leaving build/deploy/Help pointing at it would leave an
+intermediate commit with a broken build and a Help item opening a missing file. Keeping every commit's build
+working means these land together.)_
+- [~] Delete `ui/` wholesale (`ui/templates`, `ui/*.html`, `ui/404.html`, `ui/resources/{js,css,images}`).
+- [~] Remove the `ui/` cache dir-creation lines from `GamingGaiden.ps1`.
+- [~] Remove the Help tray item + its `Invoke-Item ui/Manual.html` handler (Manual not ported; decision 8).
+- [~] `Build.ps1`: removed `ui/*.html` cleanup, `ui/` cache cleanup, the whole Manual pandoc block, the
+      404-per-template loop, and `ui` from the folder-copy list.
+- [~] `Deploy.ps1`: removed the `ui` robocopy sync.
+- **Files**: `ui/**` (deleted), `GamingGaiden.ps1`, `Build.ps1`, `Deploy.ps1`, `.gitignore`.
+- **Smoke test (Windows)**: run `Deploy.bat` → builds & deploys clean with no `ui/`; produced zip contains
+  no `ui/`; app launches; SPA loads; Add/Edit game + Gaming PCs dialogs still work; no Help item in the menu.
 
-### Commit 7 — Purge build/deploy of legacy
-- [ ] `Build.ps1`: remove Manual-into-`ui` pandoc step, 404-per-template loop, `ui` from folder copy, `ui` cleanup.
-- [ ] `Deploy.ps1`: remove `ui` robocopy sync.
-- [ ] Remove Help tray item + its `Invoke-Item ui/Manual.html` handler (Manual not ported; see decision 8).
-- **Files**: `Build.ps1`, `Deploy.ps1`, `GamingGaiden.ps1`.
-- **Smoke test (Windows)**: `Deploy.bat` builds & deploys clean with no `ui/`; produced zip contains no `ui/`.
+**Notes (2026-09-29):**
+- `ui/` deleted wholesale (`git rm -r ui`). Menu is now: **Open Gaming Gaiden** → Settings → Start/Stop
+  Tracker → About → Exit (Help removed).
+- `Build.ps1`: the entire pandoc Manual-generation block is gone (it only ever wrote into `ui/`), plus the
+  pre-build `ui/` cleanup, the 404-per-template loop, and `ui` from `$FoldersToCopy`. (`System.Web` load at
+  the top is now unused but harmless — left to keep the diff focused; can drop in Commit 7 sweep.)
+- Cleaned stale `.gitignore` entries: `ui/resources/images/cache/*`, `ui/*.html`, `!ui/404.html`, `theme.css`.
+- `frontend/resources/css/` holds only `common.css`; no theme-file cleanup needed.
+- Gate green: modules import; frontend 27 files / 267 tests + tsc clean; all edited PS files parse clean;
+  no `ui/`/Help/Manual references remain in source.
 
-### Commit 8 — Docs & tests sweep
+### Commit 7 — Docs & tests sweep
 - [ ] Mark legacy removed in `docs/features/FrontendRework.md`; update `Readme.md` / `Manual.md` legacy mentions.
 - [ ] Update/trim backend tests referencing removed behavior; ensure suite green.
       (Note: `frontend/tests/LegacyAllGamesStatusSorting.test.ts` was already removed in Commit 5.)
