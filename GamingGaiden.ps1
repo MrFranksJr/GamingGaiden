@@ -308,18 +308,7 @@ try {
     #------------------------------------------
     # Setup Tray Icon Context Menu Actions
     $allGamesMenuItem.Add_Click({
-        if ((Read-Setting "developer_mode") -eq "true")
-        {
             Invoke-SPA "all-games"
-        }
-        else
-        {
-            $gamesCheckResult = RenderGameList
-            if ($gamesCheckResult -ne $false)
-            {
-                Invoke-Item ".\ui\AllGames.html"
-            }
-        }
         })
 
     $StartTrackerMenuItem.Add_Click({
@@ -352,63 +341,27 @@ try {
     #------------------------------------------
     # Statistics Sub Menu Actions
     $summaryItem.Add_Click({
-        if ((Read-Setting "developer_mode") -eq "true")
-        {
             Invoke-SPA "summary"
-        }
-        else
-        {
-            $sessionVsPlaytimeCheckResult = RenderSummary
-            if ($sessionVsPlaytimeCheckResult -ne $false)
-            {
-                Invoke-Item ".\ui\Summary.html"
-            }
-        }
         })
 
     $gamingTimeMenuItem.Add_Click({
-        if ((Read-Setting "developer_mode") -eq "true")
-        {
-            Invoke-SPA "gaming-time"
-        }
-        else
-        {
-            $gameTimeCheckResult = RenderGamingTime
-            if ($gameTimeCheckResult -ne $false)
-            {
-                Invoke-Item ".\ui\GamingTime.html"
-            }
-        }
+            # Consolidated into the SPA Summary (annual/timeline + bubble graph); see ADR 0002.
+            Invoke-SPA "summary"
         })
 
     $gamesPerPCMenuItem.Add_Click({
-            $gamesPerPCCheckResult = RenderGamesPerPC
-            if ($gamesPerPCCheckResult -ne $false) {
-                Invoke-Item ".\ui\GamesPerPC.html"
-            }
+            # Consolidated into the SPA My Rigs view; see ADR 0002.
+            Invoke-SPA "my-rigs"
         })
 
     $mostPlayedMenuItem.Add_Click({
-            $mostPlayedCheckResult = RenderMostPlayed
-            if ($mostPlayedCheckResult -ne $false) {
-                Invoke-Item ".\ui\MostPlayed.html"
-            }
+            # Consolidated into the SPA All Games view (sortable by playtime); see ADR 0002.
+            Invoke-SPA "all-games"
         })
 
 
     $sessionHistoryMenuItem.Add_Click({
-        if ((Read-Setting "developer_mode") -eq "true")
-        {
             Invoke-SPA "session-history"
-        }
-        else
-        {
-            $sessionHistoryCheckResult = RenderSessionHistory
-            if ($sessionHistoryCheckResult -ne $false)
-            {
-                Invoke-Item ".\ui\SessionHistory.html"
-            }
-        }
         })
 
     #------------------------------------------
@@ -513,4 +466,3 @@ catch {
     Log "Error: A fatal error has caused an exception. Exception: $($_.Exception.Message)"
     exit 1;
 }
-

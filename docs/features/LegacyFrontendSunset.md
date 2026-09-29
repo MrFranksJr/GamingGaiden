@@ -12,13 +12,13 @@ tray menu, and clean up backend code that existed only to feed the legacy UI.
 
 ## Status
 
-- **Phase**: 1 — Commit 1 complete (verification passed, no gaps). Ready for Commit 2.
-- **Last completed commit**: Commit 1 — gap-coverage & `ui/`-cache verification (docs-only).
-- **Next action**: Start **Commit 2 (flip the switch)** — rewire tray handlers to call `Invoke-SPA`
-  unconditionally in `GamingGaiden.ps1`.
-- **Frontends today**: two, switched per-menu-item by the `developer_mode` DB setting.
+- **Phase**: 2 — Commit 2 (flip the switch) committed; **awaiting Windows verification**.
+- **Last completed commit**: Commit 2 — flip tray handlers to `Invoke-SPA` unconditionally.
+- **Next action**: User deploys on Windows, runs Commit 2 smoke test (every menu item opens the SPA at the
+  right route). On green feedback → Commit 3 (lighten tray menu + double-click). If issues → fix & re-commit.
+- **Frontends today**: app now routes entirely to the SPA; legacy render code still on disk (unreferenced).
 - **Target**: one frontend (the SPA); no toggle; slimmed tray menu; dead legacy code removed.
-- **Windows-verified through**: _none yet_ (Commit 1 is docs-only, no smoke test needed).
+- **Windows-verified through**: _none yet_ — **Commit 2 pending your smoke test.**
 
 ---
 
@@ -118,11 +118,19 @@ Windows-verified, `[x]` = Windows-verified & done.
   (`DataExport.Save-IconToCache` → `resources/images/cache`, no `ui/` prefix). **Safe to delete `ui/` wholesale.**
 
 ### Commit 2 — Flip the switch (the reversible checkpoint)
-- [ ] Every tray handler calls `Invoke-SPA <route>` unconditionally; remove the `if developer_mode` branches.
-- [ ] Stop reading/writing `developer_mode` in the flipped handlers (toggle item removed in Commit 5).
+- [~] Every tray handler calls `Invoke-SPA <route>` unconditionally; remove the `if developer_mode` branches.
+- [~] Stop reading/writing `developer_mode` in the flipped handlers (toggle item removed in Commit 5).
 - **Files**: `GamingGaiden.ps1` (menu-item click handlers).
 - **Smoke test (Windows)**: launch app; open each menu item that opens a view → all open the SPA at the
   right route; tracker still starts; no errors in log.
+
+**Notes (2026-09-29):** All six view handlers now call `Invoke-SPA`: All Games→`all-games`,
+Summary→`summary`, Session History→`session-history`. Per ADR 0002 the legacy-only items were consolidated:
+Games Per PC→`my-rigs`, Most Played→`all-games`, Gaming Time→`summary`. **Caught a latent bug**: the old
+Developer-Mode branch for Gaming Time pointed at `Invoke-SPA "gaming-time"`, but no `#gaming-time` route
+exists in `app.ts` — it would have 404'd. Now points at `summary`. The `developer_mode` toggle item + its
+handler still exist (removed in Commit 5) but no longer route anything. Frontend gate green (268 tests, tsc
+clean); backend Pester not runnable on macOS — **needs Windows verification**.
 
 ### Commit 3 — Lighten the tray menu + click behavior
 - [ ] Replace "All Games" + the "Statistics" submenu with a single "Open Gaming Gaiden" item → SPA `#summary`.
