@@ -22,6 +22,12 @@ export interface RouteDefinition {
     name: string;
     title?: string;
     component: ViewComponentConstructor;
+    /**
+     * Extracts this route's render parameter from the raw query string. Each
+     * route owns its own query keys here, so the router never grows a per-route
+     * parsing ladder. Omit for screens that take the raw query (or no param).
+     */
+    parseParam?: (query: string) => string | null;
 }
 
 export type RouteTable = Record<string, RouteDefinition>;
@@ -47,15 +53,13 @@ export function updateNavIndicatorPosition(activeElement?: HTMLElement | null): 
 
 export function initSidebarToggle(): () => void {
     if (typeof document === "undefined") {
-        return () => {
-        };
+        return () => {};
     }
     const sidebar = document.getElementById("sidebar-nav");
     const toggleBtn = document.getElementById("sidebar-toggle");
     const expandLogo = document.getElementById("sidebar-expand");
     if (!sidebar || !toggleBtn) {
-        return () => {
-        };
+        return () => {};
     }
 
     const setCollapsed = (collapsed: boolean) => {
@@ -201,7 +205,7 @@ export class Router {
 
             const validated = validateGameData(rawData);
             this.data = validated.data;
-            validated.warnings.forEach(warning => console.warn(warning));
+            validated.warnings.forEach((warning) => console.warn(warning));
         } catch (error) {
             console.error("Failed to load game data:", error);
             const message = error instanceof Error ? error.message : "Unknown data error.";
@@ -213,7 +217,7 @@ export class Router {
         if (typeof document === "undefined") return;
         const navLinks = document.querySelectorAll<HTMLAnchorElement>("#sidebar-nav .nav-link");
         let activeElement: HTMLAnchorElement | null = null;
-        navLinks.forEach(link => {
+        navLinks.forEach((link) => {
             const href = link.getAttribute("href") || link.dataset.route;
             if (href === routeKey) {
                 link.classList.add("active");
@@ -235,9 +239,8 @@ export class Router {
         if (!this.data && this.container) {
             return;
         }
-        const initialRoute = (typeof window !== "undefined" && window.gamingGaidenInitialRoute)
-            ? window.gamingGaidenInitialRoute
-            : null;
+        const initialRoute =
+            typeof window !== "undefined" && window.gamingGaidenInitialRoute ? window.gamingGaidenInitialRoute : null;
         let hash = window.location.hash;
         if (!hash && typeof window !== "undefined" && window.location.search) {
             const params = new URLSearchParams(window.location.search);
@@ -269,21 +272,9 @@ export class Router {
             return;
         }
 
-        const queryParams = new URLSearchParams(query);
-        let parameter: string | null = null;
-        if (routeKey === "#game-detail") {
-            parameter = queryParams.get("name");
-        } else if (routeKey === "#all-games") {
-            parameter = queryParams.get("filter") || queryParams.get("status");
-        } else if (routeKey === "#my-rigs") {
-            // My Rigs selects the active rig via the "rig" query param; pass the
-            // raw query string and let the component read it.
-            parameter = query || null;
-        } else if (routeKey === "#session-history") {
-            // Session History carries multiple params (view/date/month); pass the
-            // raw query string and let the component parse it.
-            parameter = query || null;
-        }
+        // Each route owns its query-key knowledge via parseParam; screens that
+        // want the raw query (or no param) simply omit it.
+        const parameter = route.parseParam ? route.parseParam(query) : query || null;
         this.render(route, parameter);
     }
 
@@ -305,10 +296,23 @@ export class Router {
 
 const routes = {
     "#summary": {name: "summary", title: "Summary Dashboard", component: SummaryComponent},
-    "#all-games": {name: "all-games", title: "All Games", component: AllGamesComponent},
+    "#all-games": {
+        name: "all-games",
+        title: "All Games",
+        component: AllGamesComponent,
+        parseParam: (query: string) => {
+            const params = new URLSearchParams(query);
+            return params.get("filter") || params.get("status");
+        }
+    },
     "#my-rigs": {name: "my-rigs", title: "My Rigs", component: MyRigsComponent},
     "#session-history": {name: "session-history", title: "Session History", component: SessionHistoryComponent},
-    "#game-detail": {name: "game-detail", title: "Game Detail", component: GameDetailComponent}
+    "#game-detail": {
+        name: "game-detail",
+        title: "Game Detail",
+        component: GameDetailComponent,
+        parseParam: (query: string) => new URLSearchParams(query).get("name")
+    }
 };
 
 if (typeof document !== "undefined") {
@@ -316,4 +320,3 @@ if (typeof document !== "undefined") {
         new Router(routes);
     });
 }
-

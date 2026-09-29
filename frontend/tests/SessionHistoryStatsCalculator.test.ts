@@ -14,19 +14,33 @@ import {
 const data: GameData = {
     schema_version: 1,
     games: [
-        {name: "Game A", play_time: 300, session_count: 9, status: "playing", completed: "FALSE", icon_path: "resources/images/cache/Game_A.jpg"},
-        {name: "Game B", play_time: 120, session_count: 3, status: "finished", completed: "TRUE", icon_path: "resources/images/cache/Game_B.jpg"},
+        {
+            name: "Game A",
+            play_time: 300,
+            session_count: 9,
+            status: "playing",
+            completed: "FALSE",
+            icon_path: "resources/images/cache/Game_A.jpg"
+        },
+        {
+            name: "Game B",
+            play_time: 120,
+            session_count: 3,
+            status: "finished",
+            completed: "TRUE",
+            icon_path: "resources/images/cache/Game_B.jpg"
+        },
         {name: "Game C", play_time: 60, session_count: 1, status: "dropped", completed: "FALSE", icon_path: null}
     ],
     session_history: [
         // Apr 16, 2025
         {game_name: "Game A", start_time: "2025-04-16 09:00", duration: 120}, // 2h
-        {game_name: "Game A", start_time: "2025-04-16 14:00", duration: 60},  // 1h (same game again)
-        {game_name: "Game B", start_time: "2025-04-16 20:00", duration: 60},  // 1h
+        {game_name: "Game A", start_time: "2025-04-16 14:00", duration: 60}, // 1h (same game again)
+        {game_name: "Game B", start_time: "2025-04-16 20:00", duration: 60}, // 1h
         // Apr 15, 2025
-        {game_name: "Game C", start_time: "2025-04-15 10:00", duration: 60},  // 1h
+        {game_name: "Game C", start_time: "2025-04-15 10:00", duration: 60}, // 1h
         // Mar 03, 2025
-        {game_name: "Game A", start_time: "2025-03-03 18:00", duration: 120}  // 2h
+        {game_name: "Game A", start_time: "2025-03-03 18:00", duration: 120} // 2h
     ],
     daily_playtime: [
         {play_date: "2025-04-16", play_time: 240},
@@ -40,7 +54,7 @@ describe("SessionHistoryStatsCalculator - day view", () => {
     it("returns per-session diary cards for the selected day, ordered by start time", () => {
         const view = buildDayView(data, "2025-04-16");
         expect(view.sessions).toHaveLength(3);
-        expect(view.sessions.map(s => s.gameName)).toEqual(["Game A", "Game A", "Game B"]);
+        expect(view.sessions.map((s) => s.gameName)).toEqual(["Game A", "Game A", "Game B"]);
         expect(view.sessions[0].timeRange).toBe("09:00\u201311:00");
         expect(view.sessions[0].durationFormatted).toBe("2h 0m");
         // status pill derives from the GAME, not the session
@@ -54,7 +68,7 @@ describe("SessionHistoryStatsCalculator - day view", () => {
         const view = buildDayView(data, "2025-04-16");
         // Game A = 180m, Game B = 60m, total 240m
         expect(view.totalMinutes).toBe(240);
-        expect(view.gamesPlayed.map(g => g.gameName)).toEqual(["Game A", "Game B"]);
+        expect(view.gamesPlayed.map((g) => g.gameName)).toEqual(["Game A", "Game B"]);
         expect(view.gamesPlayed[0].minutes).toBe(180);
         expect(view.gamesPlayed[0].percentage).toBe(75);
         expect(view.gamesPlayed[1].percentage).toBe(25);
@@ -85,7 +99,7 @@ describe("SessionHistoryStatsCalculator - month view", () => {
         const view = buildMonthView(data, "2025-04");
         // April: Game A 180m, Game B 60m, Game C 60m
         expect(view.totalMinutes).toBe(300);
-        expect(view.gamesPlayed.map(g => g.gameName)).toEqual(["Game A", "Game B", "Game C"]);
+        expect(view.gamesPlayed.map((g) => g.gameName)).toEqual(["Game A", "Game B", "Game C"]);
         expect(view.gamesPlayed[0].minutes).toBe(180);
         expect(view.stats.gamesCount).toBe(3);
         expect(view.stats.sessionCount).toBe(4);

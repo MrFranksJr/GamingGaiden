@@ -25,7 +25,7 @@ describe("deterministic component ordering", () => {
 
     it("sorts the games list by name", () => {
         document.body.innerHTML = new AllGamesComponent().render(shuffledData);
-        const names = Array.from(document.querySelectorAll(".game-card-title"), element => element.textContent);
+        const names = Array.from(document.querySelectorAll(".game-card-title"), (element) => element.textContent);
         expect(names).toEqual(["Game A", "Game B"]);
     });
 
@@ -36,7 +36,7 @@ describe("deterministic component ordering", () => {
         document.body.innerHTML = new SessionHistoryComponent().render(shuffledData, "view=day&date=1970-01-01");
         const games = Array.from(
             document.querySelectorAll(".session-diary-card .session-card-title"),
-            el => el.textContent
+            (el) => el.textContent
         );
         // start 100 = Game A, 200 = Game B, 300 = Game A
         expect(games).toEqual(["Game A", "Game B", "Game A"]);
@@ -45,26 +45,46 @@ describe("deterministic component ordering", () => {
     it("ranks a rig's games by playtime descending regardless of input order", () => {
         const rigData: GameData = {
             schema_version: 1,
-            gaming_pcs: [{name: "MINWU", in_use: "TRUE", cost: null, currency: null,
-                start_date: 0, end_date: 0, total_play_time: 60}],
+            gaming_pcs: [
+                {
+                    name: "MINWU",
+                    in_use: "TRUE",
+                    cost: null,
+                    currency: null,
+                    start_date: 0,
+                    end_date: 0,
+                    total_play_time: 60
+                }
+            ],
             games: [
-                {name: "Low", play_time: 10, session_count: 1, status: "playing", completed: "FALSE", gaming_pc_name: "MINWU"},
-                {name: "High", play_time: 50, session_count: 1, status: "playing", completed: "FALSE", gaming_pc_name: "MINWU"}
+                {
+                    name: "Low",
+                    play_time: 10,
+                    session_count: 1,
+                    status: "playing",
+                    completed: "FALSE",
+                    gaming_pc_name: "MINWU"
+                },
+                {
+                    name: "High",
+                    play_time: 50,
+                    session_count: 1,
+                    status: "playing",
+                    completed: "FALSE",
+                    gaming_pc_name: "MINWU"
+                }
             ],
             session_history: [],
             daily_playtime: []
         };
         document.body.innerHTML = new MyRigsComponent().render(rigData);
-        const names = Array.from(document.querySelectorAll(".rig-games .games-played-name"), el => el.textContent);
+        const names = Array.from(document.querySelectorAll(".rig-games .games-played-name"), (el) => el.textContent);
         expect(names).toEqual(["High", "Low"]);
     });
 
     it("sorts a game's sessions newest first", () => {
         document.body.innerHTML = new GameDetailComponent().render(shuffledData, "Game A");
-        const starts = Array.from(document.querySelectorAll(".detail-session-start"), element => element.textContent);
-        expect(starts).toEqual([
-            formatDateTime(parseSessionDate(300)!),
-            formatDateTime(parseSessionDate(100)!)
-        ]);
+        const starts = Array.from(document.querySelectorAll(".detail-session-start"), (element) => element.textContent);
+        expect(starts).toEqual([formatDateTime(parseSessionDate(300)!), formatDateTime(parseSessionDate(100)!)]);
     });
 });

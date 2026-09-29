@@ -1,24 +1,17 @@
 import {Game, GameData} from "../types/GameData.js";
-import {escapeHtml, safeCachedImagePath} from "../utils/HtmlUtils.js";
+import {escapeHtml, posterFallbackHtml, safeCachedImagePath} from "../utils/HtmlUtils.js";
 import {categorizeGameStatus, GameStatusCategory} from "../utils/SummaryStatsCalculator.js";
+import {statusPillHtml, statusSlug} from "../utils/GameStatus.js";
 
-function getGameInitials(name: string): string {
-    const trimmed = name.trim();
-    if (!trimmed) return "?";
-    const words = trimmed.split(/\s+/).filter(Boolean);
-    if (words.length === 1) {
-        return words[0].slice(0, 2).toUpperCase();
-    }
-    return (words[0][0] + words[1][0]).toUpperCase();
-}
-
-export function getStatusSlug(category: string): string {
-    return category.toLowerCase().replace(/[\s_]+/g, "-");
-}
+// Re-exported for callers that match the active filter against a status slug.
+export const getStatusSlug = statusSlug;
 
 export function normalizeFilterId(filter?: string | null): string {
     if (!filter) return "all";
-    const slug = filter.trim().toLowerCase().replace(/[\s_]+/g, "-");
+    const slug = filter
+        .trim()
+        .toLowerCase()
+        .replace(/[\s_]+/g, "-");
     const validSlugs = ["all", "in-progress", "completed", "on-hold", "forever", "dropped"];
     if (validSlugs.includes(slug)) {
         return slug;
@@ -89,11 +82,12 @@ export class AllGamesComponent {
 
     render(data: GameData, parameter?: string | null): string {
         if (!data || !data.games) return "<p>No games found.</p>";
-        const validGames = data.games.filter(game => game !== null)
+        const validGames = data.games
+            .filter((game) => game !== null)
             .sort((first, second) => first.name.localeCompare(second.name, undefined, {sensitivity: "base"}));
         if (validGames.length === 0 && data.games.length === 0) return "<p>No games found.</p>";
         if (validGames.length === 0 && data.games.length > 0) {
-            return "<div id=\"error-message\"><h2>Error</h2><p>Data contains invalid entries.</p></div>";
+            return '<div id="error-message"><h2>Error</h2><p>Data contains invalid entries.</p></div>';
         }
 
         this.currentData = data;
@@ -103,30 +97,32 @@ export class AllGamesComponent {
     }
 
     private getFilteredGames(validGames: Game[]): Game[] {
-        let filtered = this.activeFilter === "all"
-            ? validGames
-            : validGames.filter(game => getStatusSlug(categorizeGameStatus(game)) === this.activeFilter);
+        let filtered =
+            this.activeFilter === "all"
+                ? validGames
+                : validGames.filter((game) => getStatusSlug(categorizeGameStatus(game)) === this.activeFilter);
 
         const query = this.searchQuery.trim().toLowerCase();
         if (query) {
-            filtered = filtered.filter(game => game.name.toLowerCase().includes(query));
+            filtered = filtered.filter((game) => game.name.toLowerCase().includes(query));
         }
         return filtered;
     }
 
     private renderViewHtml(validGames: Game[]): string {
         const filteredGames = this.getFilteredGames(validGames);
-        const currentFilterOption = FILTER_OPTIONS.find(f => f.id === this.activeFilter) || FILTER_OPTIONS[0];
+        const currentFilterOption = FILTER_OPTIONS.find((f) => f.id === this.activeFilter) || FILTER_OPTIONS[0];
         const countText = `${filteredGames.length} ${filteredGames.length === 1 ? "game" : "games"}`;
 
-        let gridContentHtml = "";
+        let gridContentHtml: string;
         if (filteredGames.length === 0) {
             const query = this.searchQuery.trim();
             let emptyMsg = `No games found for "${escapeHtml(currentFilterOption.label)}".`;
             if (query) {
-                emptyMsg = this.activeFilter === "all"
-                    ? `No games found matching "${escapeHtml(query)}".`
-                    : `No games found matching "${escapeHtml(query)}" in "${escapeHtml(currentFilterOption.label)}".`;
+                emptyMsg =
+                    this.activeFilter === "all"
+                        ? `No games found matching "${escapeHtml(query)}".`
+                        : `No games found matching "${escapeHtml(query)}" in "${escapeHtml(currentFilterOption.label)}".`;
             }
             gridContentHtml = `
                 <div class="all-games-empty">
@@ -134,16 +130,17 @@ export class AllGamesComponent {
                 </div>
             `;
         } else {
-            const cards = filteredGames.map(game => {
-                const iconPath = safeCachedImagePath(game.icon_path);
-                const statusCategory = categorizeGameStatus(game);
-                const statusSlug = getStatusSlug(statusCategory);
-                const statusPillHtml = `<span class="game-status-pill status-${escapeHtml(statusSlug)}">${escapeHtml(statusCategory)}</span>`;
-                const posterHtml = iconPath
-                    ? `<img src="${escapeHtml(iconPath)}" alt="${escapeHtml(game.name)} cover" class="game-poster-img" loading="lazy">`
-                    : `<div class="poster-fallback" aria-hidden="true"><span class="fallback-icon">🎮</span><span class="fallback-initials">${escapeHtml(getGameInitials(game.name))}</span></div>`;
-                return `<a href="#game-detail?name=${encodeURIComponent(game.name)}" class="game-card" title="${escapeHtml(game.name)}"><div class="game-poster-frame">${posterHtml}${statusPillHtml}</div><div class="game-card-title">${escapeHtml(game.name)}</div></a>`;
-            }).join("");
+            const cards = filteredGames
+                .map((game) => {
+                    const iconPath = safeCachedImagePath(game.icon_path);
+                    const statusCategory = categorizeGameStatus(game);
+                    const pill = statusPillHtml(statusCategory);
+                    const posterHtml = iconPath
+                        ? `<img src="${escapeHtml(iconPath)}" alt="${escapeHtml(game.name)} cover" class="game-poster-img" loading="lazy">`
+                        : posterFallbackHtml(game.name, {ariaHidden: true});
+                    return `<a href="#game-detail?name=${encodeURIComponent(game.name)}" class="game-card" title="${escapeHtml(game.name)}"><div class="game-poster-frame">${posterHtml}${pill}</div><div class="game-card-title">${escapeHtml(game.name)}</div></a>`;
+                })
+                .join("");
             gridContentHtml = `<div id="all-games-grid">${cards}</div>`;
         }
 
@@ -188,7 +185,7 @@ export class AllGamesComponent {
         this.currentContainer = container;
         if (!this.currentData || !this.currentData.games) return;
 
-        const validGames = this.currentData.games.filter(game => game !== null);
+        const validGames = this.currentData.games.filter((game) => game !== null);
         if (validGames.length === 0) return;
 
         this.mountSidebarFilters(validGames);
@@ -255,7 +252,7 @@ export class AllGamesComponent {
         }
 
         const titleEl = container.querySelector(".all-games-title");
-        const currentFilterOption = FILTER_OPTIONS.find(f => f.id === this.activeFilter) || FILTER_OPTIONS[0];
+        const currentFilterOption = FILTER_OPTIONS.find((f) => f.id === this.activeFilter) || FILTER_OPTIONS[0];
         if (titleEl) {
             titleEl.textContent = currentFilterOption.label;
         }
@@ -266,9 +263,10 @@ export class AllGamesComponent {
                 const query = this.searchQuery.trim();
                 let emptyMsg = `No games found for "${currentFilterOption.label}".`;
                 if (query) {
-                    emptyMsg = this.activeFilter === "all"
-                        ? `No games found matching "${query}".`
-                        : `No games found matching "${query}" in "${currentFilterOption.label}".`;
+                    emptyMsg =
+                        this.activeFilter === "all"
+                            ? `No games found matching "${query}".`
+                            : `No games found matching "${query}" in "${currentFilterOption.label}".`;
                 }
                 contentEl.innerHTML = `
                     <div class="all-games-empty">
@@ -276,16 +274,17 @@ export class AllGamesComponent {
                     </div>
                 `;
             } else {
-                const cards = filteredGames.map(game => {
-                    const iconPath = safeCachedImagePath(game.icon_path);
-                    const statusCategory = categorizeGameStatus(game);
-                    const statusSlug = getStatusSlug(statusCategory);
-                    const statusPillHtml = `<span class="game-status-pill status-${escapeHtml(statusSlug)}">${escapeHtml(statusCategory)}</span>`;
-                    const posterHtml = iconPath
-                        ? `<img src="${escapeHtml(iconPath)}" alt="${escapeHtml(game.name)} cover" class="game-poster-img" loading="lazy">`
-                        : `<div class="poster-fallback" aria-hidden="true"><span class="fallback-icon">🎮</span><span class="fallback-initials">${escapeHtml(getGameInitials(game.name))}</span></div>`;
-                    return `<a href="#game-detail?name=${encodeURIComponent(game.name)}" class="game-card" title="${escapeHtml(game.name)}"><div class="game-poster-frame">${posterHtml}${statusPillHtml}</div><div class="game-card-title">${escapeHtml(game.name)}</div></a>`;
-                }).join("");
+                const cards = filteredGames
+                    .map((game) => {
+                        const iconPath = safeCachedImagePath(game.icon_path);
+                        const statusCategory = categorizeGameStatus(game);
+                        const pill = statusPillHtml(statusCategory);
+                        const posterHtml = iconPath
+                            ? `<img src="${escapeHtml(iconPath)}" alt="${escapeHtml(game.name)} cover" class="game-poster-img" loading="lazy">`
+                            : posterFallbackHtml(game.name, {ariaHidden: true});
+                        return `<a href="#game-detail?name=${encodeURIComponent(game.name)}" class="game-card" title="${escapeHtml(game.name)}"><div class="game-poster-frame">${posterHtml}${pill}</div><div class="game-card-title">${escapeHtml(game.name)}</div></a>`;
+                    })
+                    .join("");
                 contentEl.innerHTML = `<div id="all-games-grid">${cards}</div>`;
             }
         }
@@ -317,7 +316,7 @@ export class AllGamesComponent {
             countsByFilter[slug] = (countsByFilter[slug] || 0) + 1;
         }
 
-        const buttonsHtml = FILTER_OPTIONS.map(opt => {
+        const buttonsHtml = FILTER_OPTIONS.map((opt) => {
             const count = countsByFilter[opt.id] || 0;
             const isActive = this.activeFilter === opt.id;
             return `
@@ -364,7 +363,7 @@ export class AllGamesComponent {
     public setFilter(filterId: string): void {
         this.activeFilter = normalizeFilterId(filterId);
         if (this.currentData && this.currentContainer) {
-            const validGames = this.currentData.games.filter(game => game !== null);
+            const validGames = this.currentData.games.filter((game) => game !== null);
             this.updateGridAndCount(this.currentContainer, validGames);
         }
         this.updateSidebarButtonsActiveState();
@@ -386,7 +385,7 @@ export class AllGamesComponent {
                 clearBtn.classList.toggle("visible", Boolean(query.trim()));
             }
             if (this.currentData && this.currentData.games) {
-                const validGames = this.currentData.games.filter(game => game !== null);
+                const validGames = this.currentData.games.filter((game) => game !== null);
                 this.updateGridAndCount(this.currentContainer, validGames);
             }
         }
@@ -399,7 +398,7 @@ export class AllGamesComponent {
     private updateSidebarButtonsActiveState(): void {
         if (typeof document === "undefined") return;
         const buttons = document.querySelectorAll<HTMLButtonElement>(".sidebar-filter-btn");
-        buttons.forEach(btn => {
+        buttons.forEach((btn) => {
             const isMatch = btn.dataset.filter === this.activeFilter;
             btn.classList.toggle("active", isMatch);
             btn.setAttribute("aria-selected", isMatch ? "true" : "false");

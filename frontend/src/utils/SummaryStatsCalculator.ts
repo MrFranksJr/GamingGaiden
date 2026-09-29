@@ -1,5 +1,6 @@
 import {Game, GameData} from "../types/GameData";
 import {toSortableTimestamp} from "./TimeUtils";
+import {gameInitials} from "./HtmlUtils";
 
 /**
  * Minimum tracked session duration (in minutes) that counts toward the
@@ -113,10 +114,7 @@ export function categorizeGameStatus(game: Game): GameStatusCategory {
         return "On Hold";
     }
 
-    const isCompleted = game.completed === "TRUE" ||
-        st === "finished" ||
-        st === "completed" ||
-        st === "done";
+    const isCompleted = game.completed === "TRUE" || st === "finished" || st === "completed" || st === "done";
 
     if (isCompleted) {
         return "Completed";
@@ -126,16 +124,10 @@ export function categorizeGameStatus(game: Game): GameStatusCategory {
 }
 
 /**
- * Extracts initials for game name fallback.
+ * Initials for a game-name poster fallback. Re-exported from the poster view
+ * primitive so existing callers (bubble graph, game detail) keep one import site.
  */
-export function getGameInitials(name: string): string {
-    if (!name || typeof name !== "string") return "?";
-    const cleaned = name.replace(/[^\w\s]/g, " ").trim();
-    const words = cleaned.split(/\s+/).filter(Boolean);
-    if (words.length === 0) return name.slice(0, 2).toUpperCase() || "?";
-    if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-    return (words[0][0] + words[1][0]).toUpperCase();
-}
+export const getGameInitials = gameInitials;
 
 /**
  * Formats duration for recent activity badges (e.g., "+2 h" or "+45 m" or "+2h 30m").
@@ -237,13 +229,18 @@ function getSessionYear(startTime: string | number): number | null {
  */
 export class SummaryStatsCalculator {
     public static compute(data: GameData | null | undefined, referenceNow?: Date): SummaryDashboardMetrics {
-        const validGames = Array.isArray(data?.games) ? data.games.filter(g => g && typeof g.name === "string") : [];
-        const sessions = Array.isArray(data?.session_history) ? data.session_history.filter(s => s && typeof s.game_name === "string") : [];
+        const validGames = Array.isArray(data?.games) ? data.games.filter((g) => g && typeof g.name === "string") : [];
+        const sessions = Array.isArray(data?.session_history)
+            ? data.session_history.filter((s) => s && typeof s.game_name === "string")
+            : [];
         const now = referenceNow || new Date();
 
         // 1. Lifetime Calculations
         const totalGames = validGames.length;
-        const totalPlayTimeMinutes = validGames.reduce((acc, g) => acc + (Number.isFinite(g.play_time) ? Math.max(0, g.play_time) : 0), 0);
+        const totalPlayTimeMinutes = validGames.reduce(
+            (acc, g) => acc + (Number.isFinite(g.play_time) ? Math.max(0, g.play_time) : 0),
+            0
+        );
         const totalPlayTimeHours = Math.round((totalPlayTimeMinutes / 60) * 10) / 10;
         const totalPlayTimeDays = Math.round((totalPlayTimeMinutes / 1440) * 10) / 10;
 
@@ -251,9 +248,13 @@ export class SummaryStatsCalculator {
         const minsInt = Math.floor(totalPlayTimeMinutes % 60);
         const totalPlayTimeFormatted = `${hoursInt.toLocaleString()}h ${minsInt}m`;
 
-        const totalSessions = sessions.length > 0
-            ? sessions.length
-            : validGames.reduce((acc, g) => acc + (Number.isFinite(g.session_count) ? Math.max(0, g.session_count) : 0), 0);
+        const totalSessions =
+            sessions.length > 0
+                ? sessions.length
+                : validGames.reduce(
+                      (acc, g) => acc + (Number.isFinite(g.session_count) ? Math.max(0, g.session_count) : 0),
+                      0
+                  );
 
         // Average session duration is computed ONLY from tracked sessions whose
         // duration meets MIN_SESSION_MINUTES_FOR_AVG. This deliberately does NOT
@@ -262,12 +263,11 @@ export class SummaryStatsCalculator {
         // the average (e.g. a game with 300h imported but only a handful of
         // tracked sessions). It also filters out short setup/tinkering sessions.
         const avgEligibleSessions = sessions.filter(
-            s => Number.isFinite(s.duration) && s.duration >= MIN_SESSION_MINUTES_FOR_AVG
+            (s) => Number.isFinite(s.duration) && s.duration >= MIN_SESSION_MINUTES_FOR_AVG
         );
         const avgEligiblePlayTime = avgEligibleSessions.reduce((acc, s) => acc + s.duration, 0);
-        const avgSessionMinutes = avgEligibleSessions.length > 0
-            ? Math.round(avgEligiblePlayTime / avgEligibleSessions.length)
-            : 0;
+        const avgSessionMinutes =
+            avgEligibleSessions.length > 0 ? Math.round(avgEligiblePlayTime / avgEligibleSessions.length) : 0;
         const avgHours = Math.floor(avgSessionMinutes / 60);
         const avgMins = avgSessionMinutes % 60;
         const avgSessionFormatted = avgHours > 0 ? `${avgHours}h ${avgMins}m` : `${avgMins}m`;
@@ -275,7 +275,7 @@ export class SummaryStatsCalculator {
         // 2. Year-over-Year / Current Year Delta Calculations
         // Identify latest year from data or current calendar year
         let maxSessionYear = 0;
-        sessions.forEach(s => {
+        sessions.forEach((s) => {
             const y = getSessionYear(s.start_time);
             if (y && y > maxSessionYear) maxSessionYear = y;
         });
@@ -283,8 +283,8 @@ export class SummaryStatsCalculator {
         const targetYear = maxSessionYear > 0 ? maxSessionYear : now.getFullYear();
         const prevYear = targetYear - 1;
 
-        const thisYearSessions = sessions.filter(s => getSessionYear(s.start_time) === targetYear);
-        const prevYearSessions = sessions.filter(s => getSessionYear(s.start_time) === prevYear);
+        const thisYearSessions = sessions.filter((s) => getSessionYear(s.start_time) === targetYear);
+        const prevYearSessions = sessions.filter((s) => getSessionYear(s.start_time) === prevYear);
 
         let gamesDelta: StatDelta | undefined;
         let playTimeDelta: StatDelta | undefined;
@@ -292,24 +292,25 @@ export class SummaryStatsCalculator {
         let avgSessionDelta: StatDelta | undefined;
 
         if (thisYearSessions.length > 0) {
-            const thisYearGames = new Set(thisYearSessions.map(s => s.game_name)).size;
+            const thisYearGames = new Set(thisYearSessions.map((s) => s.game_name)).size;
             const thisYearPlayTime = thisYearSessions.reduce((acc, s) => acc + (s.duration || 0), 0);
             // Average uses only sessions meeting the threshold, consistent with
             // the lifetime avgSessionMinutes calculation above.
             const thisYearAvgSessions = thisYearSessions.filter(
-                s => Number.isFinite(s.duration) && s.duration >= MIN_SESSION_MINUTES_FOR_AVG
+                (s) => Number.isFinite(s.duration) && s.duration >= MIN_SESSION_MINUTES_FOR_AVG
             );
             const thisYearAvgPlayTime = thisYearAvgSessions.reduce((acc, s) => acc + s.duration, 0);
             const thisYearAvg = thisYearAvgSessions.length > 0 ? thisYearAvgPlayTime / thisYearAvgSessions.length : 0;
 
             if (prevYearSessions.length > 0) {
-                const prevYearGames = new Set(prevYearSessions.map(s => s.game_name)).size;
+                const prevYearGames = new Set(prevYearSessions.map((s) => s.game_name)).size;
                 const prevYearPlayTime = prevYearSessions.reduce((acc, s) => acc + (s.duration || 0), 0);
                 const prevYearAvgSessions = prevYearSessions.filter(
-                    s => Number.isFinite(s.duration) && s.duration >= MIN_SESSION_MINUTES_FOR_AVG
+                    (s) => Number.isFinite(s.duration) && s.duration >= MIN_SESSION_MINUTES_FOR_AVG
                 );
                 const prevYearAvgPlayTime = prevYearAvgSessions.reduce((acc, s) => acc + s.duration, 0);
-                const prevYearAvg = prevYearAvgSessions.length > 0 ? prevYearAvgPlayTime / prevYearAvgSessions.length : 0;
+                const prevYearAvg =
+                    prevYearAvgSessions.length > 0 ? prevYearAvgPlayTime / prevYearAvgSessions.length : 0;
 
                 const gDiff = thisYearGames - prevYearGames;
                 gamesDelta = {
@@ -346,40 +347,42 @@ export class SummaryStatsCalculator {
 
         // 3. Status Breakdown
         const statusMap: Record<GameStatusCategory, number> = {
-            "Completed": 0,
+            Completed: 0,
             "In Progress": 0,
             "On Hold": 0,
-            "Forever": 0,
-            "Dropped": 0
+            Forever: 0,
+            Dropped: 0
         };
 
-        validGames.forEach(g => {
+        validGames.forEach((g) => {
             const cat = categorizeGameStatus(g);
             statusMap[cat] = (statusMap[cat] || 0) + 1;
         });
 
         const colorMap: Record<GameStatusCategory, string> = {
-            "Completed": "#10b981",    // Emerald / Green
-            "In Progress": "#6366f1",  // Indigo / Purple
-            "On Hold": "#f59e0b",      // Amber / Orange
-            "Forever": "#a855f7",      // Purple / Violet
-            "Dropped": "#ef4444"       // Rose / Red
+            Completed: "#10b981", // Emerald / Green
+            "In Progress": "#6366f1", // Indigo / Purple
+            "On Hold": "#f59e0b", // Amber / Orange
+            Forever: "#a855f7", // Purple / Violet
+            Dropped: "#ef4444" // Rose / Red
         };
 
-        const statuses: StatusCount[] = (["Completed", "In Progress", "On Hold", "Forever", "Dropped"] as const).map(category => {
-            const count = statusMap[category] || 0;
-            const percentage = totalGames > 0 ? Math.round((count / totalGames) * 100) : 0;
-            return {
-                category,
-                count,
-                percentage,
-                color: colorMap[category]
-            };
-        });
+        const statuses: StatusCount[] = (["Completed", "In Progress", "On Hold", "Forever", "Dropped"] as const).map(
+            (category) => {
+                const count = statusMap[category] || 0;
+                const percentage = totalGames > 0 ? Math.round((count / totalGames) * 100) : 0;
+                return {
+                    category,
+                    count,
+                    percentage,
+                    color: colorMap[category]
+                };
+            }
+        );
 
         // 4. Game Bubbles (All library games, sorted descending by playtime)
         const gameIconMap = new Map<string, string | null>();
-        validGames.forEach(g => {
+        validGames.forEach((g) => {
             gameIconMap.set(g.name, g.icon_path || null);
         });
 
@@ -405,7 +408,7 @@ export class SummaryStatsCalculator {
         });
 
         const recent5 = sortedSessions.slice(0, 5);
-        const recentActivity: RecentSessionActivity[] = recent5.map(s => ({
+        const recentActivity: RecentSessionActivity[] = recent5.map((s) => ({
             gameName: s.game_name,
             startTime: s.start_time,
             durationMinutes: s.duration || 0,
@@ -419,13 +422,17 @@ export class SummaryStatsCalculator {
         const eligibleGames = totalGames - foreverCount;
         const completedCount = statusMap["Completed"] || 0;
         const completionPercentage = eligibleGames > 0 ? Math.round((completedCount / eligibleGames) * 100) : 0;
-        const message = eligibleGames === 0
-            ? (totalGames > 0 ? "All games in your library are forever games." : "Your library is empty. Add games to track milestones!")
-            : `You've completed ${completedCount} ${completedCount === 1 ? "game" : "games"} so far! That's ${completionPercentage}% of your library. Keep going!`;
+        const message =
+            eligibleGames === 0
+                ? totalGames > 0
+                    ? "All games in your library are forever games."
+                    : "Your library is empty. Add games to track milestones!"
+                : `You've completed ${completedCount} ${completedCount === 1 ? "game" : "games"} so far! That's ${completionPercentage}% of your library. Keep going!`;
 
-        const annotation = foreverCount > 0
-            ? `*Excludes ${foreverCount} forever ${foreverCount === 1 ? "game" : "games"}`
-            : "*Excludes forever games";
+        const annotation =
+            foreverCount > 0
+                ? `*Excludes ${foreverCount} forever ${foreverCount === 1 ? "game" : "games"}`
+                : "*Excludes forever games";
 
         return {
             stats: {

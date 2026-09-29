@@ -50,6 +50,23 @@ describe("time utilities", () => {
         expect(parseSessionStart("1700000000").getTime()).toBe(epochSeconds * 1000);
     });
 
+    it("treats a 13-digit value as epoch milliseconds, not seconds (parser-divergence regression)", () => {
+        // Regression for R1/A6: before consolidation TimeUtils.parseSessionStart
+        // multiplied every numeric value by 1000, so a millisecond timestamp
+        // (>= 1e10) landed ~50000 years in the future, while the game-detail
+        // parser used a <1e10 heuristic. One policy now: >= 1e10 means ms.
+        const epochMillis = 1_700_000_000_000; // already milliseconds (2023)
+        expect(parseSessionStart(epochMillis).getTime()).toBe(epochMillis);
+        expect(parseSessionStart("1700000000000").getTime()).toBe(epochMillis);
+        expect(parseSessionStart(epochMillis).getFullYear()).toBe(2023);
+    });
+
+    it("returns the epoch for invalid or non-positive input rather than throwing", () => {
+        expect(parseSessionStart("not a date").getTime()).toBe(0);
+        expect(parseSessionStart(Number.NaN).getTime()).toBe(0);
+        expect(parseSessionStart(-5).getTime()).toBe(0);
+    });
+
     it("formats a clock as zero-padded HH:MM", () => {
         expect(formatClock(parseSessionStart("2023-01-01 09:05"))).toBe("09:05");
         expect(formatClock(parseSessionStart("2023-01-01 23:59"))).toBe("23:59");

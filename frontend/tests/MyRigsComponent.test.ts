@@ -4,8 +4,13 @@ import {GameData, GamingPC, Game} from "../src/types/GameData";
 
 function pc(overrides: Partial<GamingPC> & {name: string}): GamingPC {
     return {
-        in_use: "FALSE", cost: null, currency: null,
-        start_date: 0, end_date: 0, total_play_time: 0, ...overrides
+        in_use: "FALSE",
+        cost: null,
+        currency: null,
+        start_date: 0,
+        end_date: 0,
+        total_play_time: 0,
+        ...overrides
     };
 }
 
@@ -24,10 +29,25 @@ function renderInto(data: GameData, param: string | null = null): MyRigsComponen
 }
 
 const soloRig = dataOf(
-    [pc({name: "MINWU", in_use: "TRUE", cost: "2500", currency: "€ ", total_play_time: 6000,
-         start_date: Date.UTC(2020, 10, 10) / 1000})],
-    [game("Big", {gaming_pc_name: "MINWU", play_time: 4000, session_count: 40, icon_path: "resources/images/cache/Big.png"}),
-     game("Small", {gaming_pc_name: "MINWU", play_time: 2000, session_count: 20})]
+    [
+        pc({
+            name: "MINWU",
+            in_use: "TRUE",
+            cost: "2500",
+            currency: "€ ",
+            total_play_time: 6000,
+            start_date: Date.UTC(2020, 10, 10) / 1000
+        })
+    ],
+    [
+        game("Big", {
+            gaming_pc_name: "MINWU",
+            play_time: 4000,
+            session_count: 40,
+            icon_path: "resources/images/cache/Big.png"
+        }),
+        game("Small", {gaming_pc_name: "MINWU", play_time: 2000, session_count: 20})
+    ]
 );
 
 describe("MyRigsComponent", () => {

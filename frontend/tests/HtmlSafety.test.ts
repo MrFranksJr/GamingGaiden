@@ -17,12 +17,14 @@ describe("HTML rendering safety", () => {
     it("renders game fields as text and rejects unsafe icon paths", () => {
         const data: GameData = {
             ...mockData,
-            games: [{
-                ...mockData.games[0],
-                name: hostileName,
-                status: "<script>unsafe()</script>",
-                icon_path: 'x" onerror="alert(1)'
-            }]
+            games: [
+                {
+                    ...mockData.games[0],
+                    name: hostileName,
+                    status: "<script>unsafe()</script>",
+                    icon_path: 'x" onerror="alert(1)'
+                }
+            ]
         };
 
         renderIntoDocument(new AllGamesComponent().render(data));

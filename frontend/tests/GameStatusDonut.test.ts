@@ -27,7 +27,7 @@ describe("GameStatusDonut", () => {
         // Segments should have stroke-width 30px (~20% less thick than 38px)
         const segments = card?.querySelectorAll(".donut-segment");
         expect(segments?.length).toBe(4); // Only non-zero categories
-        segments?.forEach(segment => {
+        segments?.forEach((segment) => {
             expect(segment.getAttribute("stroke-width")).toBe("30");
         });
 

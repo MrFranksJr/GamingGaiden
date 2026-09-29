@@ -3,14 +3,16 @@ import {escapeHtml} from "../../utils/HtmlUtils";
 
 export class RecentActivityCard {
     public static render(activities: RecentSessionActivity[]): string {
-        const itemsHtml = activities.length === 0
-            ? `<div class="recent-empty">No recent activity recorded.</div>`
-            : activities.map(item => {
-                const thumbnailHtml = item.iconPath
-                    ? `<img class="recent-thumb-img" src="${escapeHtml(item.iconPath)}" alt="${escapeHtml(item.gameName)} thumbnail">`
-                    : `<div class="recent-thumb-fallback">${escapeHtml(item.gameName.slice(0, 2).toUpperCase())}</div>`;
+        const itemsHtml =
+            activities.length === 0
+                ? `<div class="recent-empty">No recent activity recorded.</div>`
+                : activities
+                      .map((item) => {
+                          const thumbnailHtml = item.iconPath
+                              ? `<img class="recent-thumb-img" src="${escapeHtml(item.iconPath)}" alt="${escapeHtml(item.gameName)} thumbnail">`
+                              : `<div class="recent-thumb-fallback">${escapeHtml(item.gameName.slice(0, 2).toUpperCase())}</div>`;
 
-                return `
+                          return `
                     <div class="recent-activity-item" data-game="${escapeHtml(item.gameName)}">
                         <div class="recent-thumb-wrapper">
                             ${thumbnailHtml}
@@ -24,7 +26,8 @@ export class RecentActivityCard {
                         </div>
                     </div>
                 `;
-            }).join("");
+                      })
+                      .join("");
 
         return `
             <div class="recent-activity-card" id="recent-activity-card">

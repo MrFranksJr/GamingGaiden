@@ -45,8 +45,8 @@ const BREAKDOWN_STAGGER_MS = 70;
 const ANIM_EASE = "cubic-bezier(0.22,1,0.36,1)";
 
 interface BarLayout {
-    x: number;      // centre x
-    y: number;      // top y (at full height)
+    x: number; // centre x
+    y: number; // top y (at full height)
     width: number;
     height: number; // full (target) height
 }
@@ -98,7 +98,7 @@ export function computeTimelineLayout(
         return {x, y, width: barWidth, height};
     });
 
-    const ticks: TickLayout[] = axis.ticks.map(t => ({
+    const ticks: TickLayout[] = axis.ticks.map((t) => ({
         minutes: t.minutes,
         label: t.label,
         y: baselineY - (t.minutes / ceiling) * innerHeight
@@ -112,8 +112,14 @@ export function computeTimelineLayout(
             label: pt.dateFormatted.slice(0, 5)
         }));
     } else {
-        const indices = [0, Math.floor(numPoints / 4), Math.floor(numPoints / 2), Math.floor((3 * numPoints) / 4), numPoints - 1];
-        xLabels = indices.map(idx => ({
+        const indices = [
+            0,
+            Math.floor(numPoints / 4),
+            Math.floor(numPoints / 2),
+            Math.floor((3 * numPoints) / 4),
+            numPoints - 1
+        ];
+        xLabels = indices.map((idx) => ({
             x: dims.paddingLeft + idx * stepX,
             label: timeline[idx].dateFormatted.slice(0, 5)
         }));
@@ -138,11 +144,11 @@ export class GameDetailComponent {
         if (!data || !data.games) return "<p>No games found.</p>";
         if (!gameName) return "<p>No game was selected.</p>";
 
-        const validGames = data.games.filter(g => g !== null);
-        const game = validGames.find(g => g.name === gameName);
+        const validGames = data.games.filter((g) => g !== null);
+        const game = validGames.find((g) => g.name === gameName);
         if (!game) return `<p>Game "${escapeHtml(gameName)}" not found.</p>`;
 
-        const validSessions = (data.session_history || []).filter(s => s !== null);
+        const validSessions = (data.session_history || []).filter((s) => s !== null);
         const stats = calculateGameDetailStats(game, validSessions);
 
         return this.renderViewHtml(stats);
@@ -306,7 +312,7 @@ export class GameDetailComponent {
         // known; the initial markup is drawn against an estimated width so the
         // chart is valid and testable before mount, and re-laid-out afterwards.
         const numPoints = timeline.length;
-        const maxDuration = Math.max(1, ...timeline.map(p => p.durationMinutes));
+        const maxDuration = Math.max(1, ...timeline.map((p) => p.durationMinutes));
         const axis = computeTimelineAxis(maxDuration);
 
         // Stash for the mount-time layout + animation pass.
@@ -317,18 +323,25 @@ export class GameDetailComponent {
         const estimatedWidth = TIMELINE_ESTIMATED_WIDTH;
         const layout = computeTimelineLayout(timeline, axis, estimatedWidth, dims);
 
-        const gridSvg = layout.ticks.map(t =>
-            `<line class="timeline-grid-line" x1="${dims.paddingLeft}" y1="${t.y.toFixed(2)}" x2="${(estimatedWidth - dims.paddingRight).toFixed(2)}" y2="${t.y.toFixed(2)}" ${t.minutes === 0 ? "" : `stroke-dasharray="3,3"`} />`
-        ).join("");
+        const gridSvg = layout.ticks
+            .map(
+                (t) =>
+                    `<line class="timeline-grid-line" x1="${dims.paddingLeft}" y1="${t.y.toFixed(2)}" x2="${(estimatedWidth - dims.paddingRight).toFixed(2)}" y2="${t.y.toFixed(2)}" ${t.minutes === 0 ? "" : `stroke-dasharray="3,3"`} />`
+            )
+            .join("");
 
-        const yLabelsSvg = layout.ticks.map(t =>
-            `<text class="timeline-axis-label timeline-y-label" x="${(dims.paddingLeft - 8).toFixed(2)}" y="${(t.y + 4).toFixed(2)}" text-anchor="end">${escapeHtml(t.label)}</text>`
-        ).join("");
+        const yLabelsSvg = layout.ticks
+            .map(
+                (t) =>
+                    `<text class="timeline-axis-label timeline-y-label" x="${(dims.paddingLeft - 8).toFixed(2)}" y="${(t.y + 4).toFixed(2)}" text-anchor="end">${escapeHtml(t.label)}</text>`
+            )
+            .join("");
 
-        const barsSvg = layout.bars.map((b, idx) => {
-            const pt = timeline[idx];
-            const tooltip = `${pt.dateFormatted}${pt.timeFormatted ? ` ${pt.timeFormatted}` : ""} · ${pt.durationFormatted}`;
-            return `
+        const barsSvg = layout.bars
+            .map((b, idx) => {
+                const pt = timeline[idx];
+                const tooltip = `${pt.dateFormatted}${pt.timeFormatted ? ` ${pt.timeFormatted}` : ""} · ${pt.durationFormatted}`;
+                return `
                 <g class="timeline-bar-group" tabindex="0" role="img"
                    aria-label="${escapeHtml(pt.dateFormatted)}: ${escapeHtml(pt.durationFormatted)}"
                    data-minutes="${pt.durationMinutes}"
@@ -348,11 +361,15 @@ export class GameDetailComponent {
                             fill="var(--status-forever, #8b5cf6)" />
                 </g>
             `;
-        }).join("");
+            })
+            .join("");
 
-        const xLabelsSvg = layout.xLabels.map(l =>
-            `<text class="timeline-axis-label timeline-x-label" x="${l.x.toFixed(2)}" y="${(dims.chartHeight - 8).toFixed(2)}" text-anchor="middle">${escapeHtml(l.label)}</text>`
-        ).join("");
+        const xLabelsSvg = layout.xLabels
+            .map(
+                (l) =>
+                    `<text class="timeline-axis-label timeline-x-label" x="${l.x.toFixed(2)}" y="${(dims.chartHeight - 8).toFixed(2)}" text-anchor="middle">${escapeHtml(l.label)}</text>`
+            )
+            .join("");
 
         return `
             <div class="game-detail-card timeline-card">
@@ -384,9 +401,10 @@ export class GameDetailComponent {
             Night: "fa-star"
         };
 
-        const timeOfDayRows = stats.timeOfDay.map(slot => {
-            const icon = slotIcons[slot.slot] || "fa-clock";
-            return `
+        const timeOfDayRows = stats.timeOfDay
+            .map((slot) => {
+                const icon = slotIcons[slot.slot] || "fa-clock";
+                return `
                 <div class="breakdown-slot-item">
                     <div class="breakdown-slot-header">
                         <div class="breakdown-slot-label-group">
@@ -404,7 +422,8 @@ export class GameDetailComponent {
                     </div>
                 </div>
             `;
-        }).join("");
+            })
+            .join("");
 
         const weekdayWeekendHtml = `
             <div class="breakdown-split-section">
@@ -463,16 +482,18 @@ export class GameDetailComponent {
             `;
         }
 
-        const sessionRows = sortedSessions.map(s => {
-            const parsed = parseSessionDate(s.start_time);
-            const startFormatted = parsed ? formatDateTime(parsed) : String(s.start_time);
-            return `
+        const sessionRows = sortedSessions
+            .map((s) => {
+                const parsed = parseSessionDate(s.start_time);
+                const startFormatted = parsed ? formatDateTime(parsed) : String(s.start_time);
+                return `
                 <tr class="detail-session-row">
                     <td class="detail-session-start">${escapeHtml(startFormatted)}</td>
                     <td class="detail-session-duration">${s.duration} Min</td>
                 </tr>
             `;
-        }).join("");
+            })
+            .join("");
 
         return `
             <div class="game-detail-card recent-sessions-card">
@@ -534,9 +555,10 @@ export class GameDetailComponent {
         const relayout = () => this.layoutTimelineSvg(svg, wrapper);
 
         // Initial layout on the next frame so the wrapper has a measured width.
-        const raf = typeof requestAnimationFrame !== "undefined"
-            ? requestAnimationFrame.bind(window)
-            : (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0) as unknown as number;
+        const raf =
+            typeof requestAnimationFrame !== "undefined"
+                ? requestAnimationFrame.bind(window)
+                : (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0) as unknown as number;
         this.timelineFrame = raf(() => {
             relayout();
             this.animateTimeline(svg);
@@ -626,9 +648,10 @@ export class GameDetailComponent {
      * height instantly.
      */
     private animateTimeline(svg: SVGSVGElement): void {
-        const prefersReduced = typeof window !== "undefined"
-            && typeof window.matchMedia === "function"
-            && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const prefersReduced =
+            typeof window !== "undefined" &&
+            typeof window.matchMedia === "function" &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (prefersReduced) return;
 
         const rects = Array.from(svg.querySelectorAll<SVGRectElement>(".timeline-bar-anim"));
@@ -640,23 +663,24 @@ export class GameDetailComponent {
         svg.classList.add("is-animating");
 
         // Collapse to baseline, then release to full height on the next frame.
-        rects.forEach(rect => {
+        rects.forEach((rect) => {
             const baselineY = rect.dataset.baselineY;
             if (baselineY === undefined) return;
             rect.style.transition = "none";
             rect.setAttribute("y", baselineY);
             rect.setAttribute("height", "0");
         });
-        dots.forEach(dot => {
+        dots.forEach((dot) => {
             const baselineY = dot.dataset.baselineY;
             if (baselineY === undefined) return;
             dot.style.transition = "none";
             dot.setAttribute("cy", baselineY);
         });
 
-        const raf = typeof requestAnimationFrame !== "undefined"
-            ? requestAnimationFrame.bind(window)
-            : (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0) as unknown as number;
+        const raf =
+            typeof requestAnimationFrame !== "undefined"
+                ? requestAnimationFrame.bind(window)
+                : (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0) as unknown as number;
 
         raf(() => {
             rects.forEach((rect, i) => {
@@ -738,27 +762,27 @@ export class GameDetailComponent {
         const slotFills = Array.from(
             container.querySelectorAll<HTMLElement>(".breakdown-slots-container .breakdown-progress-fill")
         );
-        const splitFills = Array.from(
-            container.querySelectorAll<HTMLElement>(".breakdown-split-bar .split-bar-fill")
-        );
+        const splitFills = Array.from(container.querySelectorAll<HTMLElement>(".breakdown-split-bar .split-bar-fill"));
         const allFills = [...slotFills, ...splitFills];
         if (allFills.length === 0) return;
 
-        const prefersReduced = typeof window !== "undefined"
-            && typeof window.matchMedia === "function"
-            && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const prefersReduced =
+            typeof window !== "undefined" &&
+            typeof window.matchMedia === "function" &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (prefersReduced) return; // Leave inline target widths untouched.
 
         // Capture each target width (set inline at render) and collapse to 0.
-        allFills.forEach(el => {
+        allFills.forEach((el) => {
             el.dataset.targetWidth = el.style.width || "0%";
             el.style.transition = "none";
             el.style.width = "0%";
         });
 
-        const raf = typeof requestAnimationFrame !== "undefined"
-            ? requestAnimationFrame.bind(window)
-            : (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0) as unknown as number;
+        const raf =
+            typeof requestAnimationFrame !== "undefined"
+                ? requestAnimationFrame.bind(window)
+                : (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0) as unknown as number;
 
         this.breakdownFrame = raf(() => {
             // Slot bars: staggered top-to-bottom.
@@ -770,7 +794,7 @@ export class GameDetailComponent {
             // Split bar: closing beat, one stagger step after the last slot,
             // both segments together.
             const splitDelay = slotFills.length * BREAKDOWN_STAGGER_MS;
-            splitFills.forEach(el => {
+            splitFills.forEach((el) => {
                 el.style.transition = `width ${BREAKDOWN_FILL_MS}ms ${ANIM_EASE} ${splitDelay}ms`;
                 el.style.width = el.dataset.targetWidth || "0%";
             });

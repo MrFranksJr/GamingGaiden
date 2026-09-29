@@ -5,8 +5,22 @@ import {GameData} from "../src/types/GameData";
 const data: GameData = {
     schema_version: 1,
     games: [
-        {name: "Game A", play_time: 300, session_count: 9, status: "playing", completed: "FALSE", icon_path: "resources/images/cache/Game_A.jpg"},
-        {name: "Game B", play_time: 120, session_count: 3, status: "finished", completed: "TRUE", icon_path: "resources/images/cache/Game_B.jpg"}
+        {
+            name: "Game A",
+            play_time: 300,
+            session_count: 9,
+            status: "playing",
+            completed: "FALSE",
+            icon_path: "resources/images/cache/Game_A.jpg"
+        },
+        {
+            name: "Game B",
+            play_time: 120,
+            session_count: 3,
+            status: "finished",
+            completed: "TRUE",
+            icon_path: "resources/images/cache/Game_B.jpg"
+        }
     ],
     session_history: [
         {game_name: "Game A", start_time: "2025-04-16 09:00", duration: 120},
@@ -47,8 +61,9 @@ describe("SessionHistoryComponent", () => {
 
     it("links each diary card to the game detail page by name", () => {
         renderInto("view=day&date=2025-04-16");
-        const link = document.querySelector(".session-diary-card a") as HTMLAnchorElement
-            ?? document.querySelector("a.session-diary-card") as HTMLAnchorElement;
+        const link =
+            (document.querySelector(".session-diary-card a") as HTMLAnchorElement) ??
+            (document.querySelector("a.session-diary-card") as HTMLAnchorElement);
         expect(link.getAttribute("href")).toBe("#game-detail?name=Game%20A");
     });
 

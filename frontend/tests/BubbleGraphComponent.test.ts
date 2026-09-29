@@ -297,8 +297,7 @@ describe("BubbleGraphComponent", () => {
             height: 900,
             x: 0,
             y: 0,
-            toJSON: () => {
-            }
+            toJSON: () => {}
         });
 
         vi.spyOn(graphContainer, "getBoundingClientRect").mockReturnValue({
@@ -310,8 +309,7 @@ describe("BubbleGraphComponent", () => {
             height: 620,
             x: 350,
             y: 100,
-            toJSON: () => {
-            }
+            toJSON: () => {}
         });
 
         component.mount(viewContainer, sampleBubbles);
@@ -326,8 +324,7 @@ describe("BubbleGraphComponent", () => {
             height: 100,
             x: 650,
             y: 300,
-            toJSON: () => {
-            }
+            toJSON: () => {}
         });
 
         firstNode.dispatchEvent(new MouseEvent("mouseenter", {bubbles: true}));

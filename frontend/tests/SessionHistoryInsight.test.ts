@@ -8,7 +8,8 @@ import {
     RATIO_BELOW,
     VARIETY_MIN_GAMES,
     buildDayInsight,
-    buildMonthInsight
+    buildMonthInsight,
+    firstInsightPick
 } from "../src/utils/SessionHistoryStatsCalculator";
 
 function s(gameName: string, startTime: string, duration: number): Session {
@@ -17,11 +18,16 @@ function s(gameName: string, startTime: string, duration: number): Session {
 
 function dataOf(sessions: Session[]): GameData {
     // Provide a couple of games so "most-played game" factoids can resolve names/icons.
-    const names = Array.from(new Set(sessions.map(x => x.game_name)));
+    const names = Array.from(new Set(sessions.map((x) => x.game_name)));
     return {
         schema_version: 1,
-        games: names.map(n => ({
-            name: n, play_time: 999, session_count: 99, status: "playing", completed: "FALSE", icon_path: null
+        games: names.map((n) => ({
+            name: n,
+            play_time: 999,
+            session_count: 99,
+            status: "playing",
+            completed: "FALSE",
+            icon_path: null
         })),
         session_history: sessions,
         daily_playtime: [],
@@ -43,7 +49,7 @@ function fillerDays(count: number, minutesEach: number): Session[] {
 describe("insight tuning constants", () => {
     it("exposes the revised thresholds", () => {
         expect(RANK_TOP_N_DAY).toBe(3);
-        expect(RANK_TOP_PCT_DAY).toBeCloseTo(0.10);
+        expect(RANK_TOP_PCT_DAY).toBeCloseTo(0.1);
         expect(RANK_TOP_N_MONTH).toBe(1);
         expect(RATIO_ABOVE).toBeCloseTo(1.2);
         expect(RATIO_BELOW).toBeCloseTo(0.8);
@@ -58,10 +64,7 @@ describe("buildDayInsight - milestone tier", () => {
     });
 
     it("labels the all-time biggest day as a record", () => {
-        const data = dataOf([
-            s("Game A", "2025-04-16 09:00", 600),
-            ...fillerDays(20, 60)
-        ]);
+        const data = dataOf([s("Game A", "2025-04-16 09:00", 600), ...fillerDays(20, 60)]);
         const insight = buildDayInsight(data, "2025-04-16")!;
         expect(insight.type).toBe("record");
         expect(insight.icon).toBe("fa-trophy");
@@ -74,10 +77,7 @@ describe("buildDayInsight - rank cap (the bug that started this)", () => {
     it("does NOT call a mediocre day a rank milestone even though it technically ranks", () => {
         // 130 filler days at 200m; selected day at 96m -> well below average, deep mid/low pack.
         // Must NOT be type 'rank' or 'record'; should degrade to a factoid.
-        const data = dataOf([
-            s("Game A", "2025-04-16 09:00", 96),
-            ...fillerDays(130, 200)
-        ]);
+        const data = dataOf([s("Game A", "2025-04-16 09:00", 96), ...fillerDays(130, 200)]);
         const insight = buildDayInsight(data, "2025-04-16")!;
         expect(insight.type).not.toBe("rank");
         expect(insight.type).not.toBe("record");
@@ -163,14 +163,26 @@ describe("buildDayInsight - Did you know? factoids", () => {
 
 describe("insight determinism", () => {
     it("keeps a genuine milestone stable across calls (records never flicker away)", () => {
-        const data = dataOf([
-            s("Game A", "2025-04-16 09:00", 600),
-            ...fillerDays(20, 60)
-        ]);
+        const data = dataOf([s("Game A", "2025-04-16 09:00", 600), ...fillerDays(20, 60)]);
         for (let i = 0; i < 20; i++) {
             const insight = buildDayInsight(data, "2025-04-16")!;
             expect(insight.type).toBe("record");
             expect(insight.headline).toBe("A personal best!");
+        }
+    });
+
+    it("renders a deterministic factoid when an explicit picker is injected (render seam)", () => {
+        // Same fixture that produced multiple random factoids above; with the
+        // first-candidate picker the message is stable, so a render test can
+        // assert an exact insight instead of just "non-empty".
+        const data = dataOf([
+            s("Game A", "2025-08-10 09:00", 30),
+            s("Game B", "2025-08-10 11:00", 30),
+            ...fillerDays(10, 60)
+        ]);
+        const first = buildDayInsight(data, "2025-08-10", firstInsightPick)!;
+        for (let i = 0; i < 10; i++) {
+            expect(buildDayInsight(data, "2025-08-10", firstInsightPick)!.message).toBe(first.message);
         }
     });
 });

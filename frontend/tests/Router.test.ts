@@ -1,17 +1,17 @@
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
-import {Router, SIDEBAR_COLLAPSED_STORAGE_KEY} from '../src/app'
-import {SummaryComponent} from '../src/components/SummaryComponent'
-import {AllGamesComponent} from '../src/components/AllGamesComponent'
-import {GameDetailComponent} from '../src/components/GameDetailComponent'
-import {MyRigsComponent} from '../src/components/MyRigsComponent'
-import {mockData} from './test-utils'
+import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
+import {Router, SIDEBAR_COLLAPSED_STORAGE_KEY} from "../src/app";
+import {SummaryComponent} from "../src/components/SummaryComponent";
+import {AllGamesComponent} from "../src/components/AllGamesComponent";
+import {GameDetailComponent} from "../src/components/GameDetailComponent";
+import {MyRigsComponent} from "../src/components/MyRigsComponent";
+import {mockData} from "./test-utils";
 
-describe('Router', () => {
-    let container: HTMLElement
-    let router: Router
+describe("Router", () => {
+    let container: HTMLElement;
+    let router: Router;
 
     beforeEach(() => {
-        localStorage.clear()
+        localStorage.clear();
         document.body.innerHTML = `
             <div id="app">
                 <aside id="sidebar-nav">
@@ -52,393 +52,410 @@ describe('Router', () => {
                     </div>
                 </main>
             </div>
-        `
-        container = document.getElementById('view-container')!
-        window.location.hash = ''
+        `;
+        container = document.getElementById("view-container")!;
+        window.location.hash = "";
 
         // Mock fetch using Vitest's stubGlobal
-        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-            ok: true,
-            json: () => Promise.resolve(mockData)
-        }))
-    })
+        vi.stubGlobal(
+            "fetch",
+            vi.fn().mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve(mockData)
+            })
+        );
+    });
 
     afterEach(() => {
-        router?.destroy()
-        localStorage.clear()
-        delete window.gamingGaidenData
-        delete window.gamingGaidenInitialRoute
-        vi.unstubAllGlobals()
-        vi.restoreAllMocks()
-    })
+        router?.destroy();
+        localStorage.clear();
+        delete window.gamingGaidenData;
+        delete window.gamingGaidenInitialRoute;
+        vi.unstubAllGlobals();
+        vi.restoreAllMocks();
+    });
 
-    it('should render initial route from window.gamingGaidenInitialRoute when hash is empty', async () => {
+    it("should render initial route from window.gamingGaidenInitialRoute when hash is empty", async () => {
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent},
-            '#all-games': {name: 'all-games', component: AllGamesComponent}
-        }
-        window.gamingGaidenInitialRoute = '#all-games'
+            "#summary": {name: "summary", component: SummaryComponent},
+            "#all-games": {name: "all-games", component: AllGamesComponent}
+        };
+        window.gamingGaidenInitialRoute = "#all-games";
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(container.innerHTML).toContain('id="all-games-grid"')
-        expect(container.querySelectorAll('.game-card')).toHaveLength(2)
-        const allGamesLink = document.querySelector<HTMLAnchorElement>('a[href="#all-games"]')!
-        expect(allGamesLink.classList.contains('active')).toBe(true)
-    })
+        expect(container.innerHTML).toContain('id="all-games-grid"');
+        expect(container.querySelectorAll(".game-card")).toHaveLength(2);
+        const allGamesLink = document.querySelector<HTMLAnchorElement>('a[href="#all-games"]')!;
+        expect(allGamesLink.classList.contains("active")).toBe(true);
+    });
 
-    it('should load data and render default route', async () => {
+    it("should load data and render default route", async () => {
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent}
-        }
+            "#summary": {name: "summary", component: SummaryComponent}
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0)) // Wait for async init
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for async init
 
-        expect(container.innerHTML).toContain('Summary Dashboard')
-    })
+        expect(container.innerHTML).toContain("Summary Dashboard");
+    });
 
-    it('should prefer data loaded by data.js without using fetch', async () => {
+    it("should prefer data loaded by data.js without using fetch", async () => {
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent}
-        }
-        window.gamingGaidenData = mockData
+            "#summary": {name: "summary", component: SummaryComponent}
+        };
+        window.gamingGaidenData = mockData;
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(fetch).not.toHaveBeenCalled()
-        expect(container.innerHTML).toContain('Summary Dashboard')
-    })
+        expect(fetch).not.toHaveBeenCalled();
+        expect(container.innerHTML).toContain("Summary Dashboard");
+    });
 
-    it('should handle route change', async () => {
+    it("should handle route change", async () => {
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent},
-            '#all-games': {name: 'all-games', component: AllGamesComponent}
-        }
+            "#summary": {name: "summary", component: SummaryComponent},
+            "#all-games": {name: "all-games", component: AllGamesComponent}
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        window.location.hash = '#all-games'
-        router.handleRoute()
+        window.location.hash = "#all-games";
+        router.handleRoute();
 
-        expect(container.innerHTML).toContain('id="all-games-grid"')
-        expect(container.querySelectorAll('.game-card')).toHaveLength(2)
-    })
+        expect(container.innerHTML).toContain('id="all-games-grid"');
+        expect(container.querySelectorAll(".game-card")).toHaveLength(2);
+    });
 
-    it('should synchronize active class on sidebar navigation', async () => {
+    it("should synchronize active class on sidebar navigation", async () => {
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent},
-            '#all-games': {name: 'all-games', component: AllGamesComponent}
-        }
+            "#summary": {name: "summary", component: SummaryComponent},
+            "#all-games": {name: "all-games", component: AllGamesComponent}
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        const summaryLink = document.querySelector<HTMLAnchorElement>('a[href="#summary"]')!
-        const allGamesLink = document.querySelector<HTMLAnchorElement>('a[href="#all-games"]')!
+        const summaryLink = document.querySelector<HTMLAnchorElement>('a[href="#summary"]')!;
+        const allGamesLink = document.querySelector<HTMLAnchorElement>('a[href="#all-games"]')!;
 
-        expect(summaryLink.classList.contains('active')).toBe(true)
-        expect(allGamesLink.classList.contains('active')).toBe(false)
+        expect(summaryLink.classList.contains("active")).toBe(true);
+        expect(allGamesLink.classList.contains("active")).toBe(false);
 
-        window.location.hash = '#all-games'
-        router.handleRoute()
+        window.location.hash = "#all-games";
+        router.handleRoute();
 
-        expect(summaryLink.classList.contains('active')).toBe(false)
-        expect(allGamesLink.classList.contains('active')).toBe(true)
-    })
+        expect(summaryLink.classList.contains("active")).toBe(false);
+        expect(allGamesLink.classList.contains("active")).toBe(true);
+    });
 
-    it('should handle dynamic routes with params', async () => {
+    it("should handle dynamic routes with params", async () => {
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent},
-            '#game-detail': {name: 'game-detail', component: GameDetailComponent},
-            '#all-games': {name: 'all-games', component: AllGamesComponent}
-        }
+            "#summary": {name: "summary", component: SummaryComponent},
+            "#game-detail": {
+                name: "game-detail",
+                component: GameDetailComponent,
+                parseParam: (query: string) => new URLSearchParams(query).get("name")
+            },
+            "#all-games": {
+                name: "all-games",
+                component: AllGamesComponent,
+                parseParam: (query: string) => {
+                    const params = new URLSearchParams(query);
+                    return params.get("filter") || params.get("status");
+                }
+            }
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        window.location.hash = '#game-detail?name=Game%20A'
-        router.handleRoute()
+        window.location.hash = "#game-detail?name=Game%20A";
+        router.handleRoute();
 
-        expect(document.getElementById('detail-game-name')?.textContent).toBe('Game A')
+        expect(document.getElementById("detail-game-name")?.textContent).toBe("Game A");
 
         // Test #all-games with filter param
-        window.location.hash = '#all-games?filter=completed'
-        router.handleRoute()
+        window.location.hash = "#all-games?filter=completed";
+        router.handleRoute();
 
-        expect(container.querySelectorAll('.game-card')).toHaveLength(1)
-        expect(container.querySelector('.game-card-title')?.textContent).toBe('Game B')
-        expect(container.querySelector('.all-games-title')?.textContent).toBe('Completed')
+        expect(container.querySelectorAll(".game-card")).toHaveLength(1);
+        expect(container.querySelector(".game-card-title")?.textContent).toBe("Game B");
+        expect(container.querySelector(".all-games-title")?.textContent).toBe("Completed");
 
         // Navigate back to summary and verify sidebar filter cleanup
-        window.location.hash = '#summary'
-        router.handleRoute()
-        const sidebarFilters = document.getElementById('sidebar-filters')
-        expect(sidebarFilters?.innerHTML).toBe('')
-    })
+        window.location.hash = "#summary";
+        router.handleRoute();
+        const sidebarFilters = document.getElementById("sidebar-filters");
+        expect(sidebarFilters?.innerHTML).toBe("");
+    });
 
-    it('should pass the rig query param to My Rigs so a switch changes the shown rig', async () => {
+    it("should pass the rig query param to My Rigs so a switch changes the shown rig", async () => {
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent},
-            '#my-rigs': {name: 'my-rigs', component: MyRigsComponent}
-        }
+            "#summary": {name: "summary", component: SummaryComponent},
+            "#my-rigs": {name: "my-rigs", component: MyRigsComponent}
+        };
         window.gamingGaidenData = {
             ...mockData,
             gaming_pcs: [
-                {name: 'MINWU', in_use: 'TRUE', total_play_time: 6000, start_date: 1605063600},
-                {name: 'OLD-RIG', in_use: 'FALSE', total_play_time: 0, start_date: 1451602800, end_date: 1604185200}
+                {name: "MINWU", in_use: "TRUE", total_play_time: 6000, start_date: 1605063600},
+                {name: "OLD-RIG", in_use: "FALSE", total_play_time: 0, start_date: 1451602800, end_date: 1604185200}
             ]
-        }
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // Default My Rigs view (no rig param) shows the first rig.
-        window.location.hash = '#my-rigs'
-        router.handleRoute()
-        expect(container.querySelector('.rig-hero-name')?.textContent).toBe('MINWU')
+        window.location.hash = "#my-rigs";
+        router.handleRoute();
+        expect(container.querySelector(".rig-hero-name")?.textContent).toBe("MINWU");
 
         // Selecting the second rig via the query param must switch the shown rig.
-        window.location.hash = '#my-rigs?rig=OLD-RIG'
-        router.handleRoute()
+        window.location.hash = "#my-rigs?rig=OLD-RIG";
+        router.handleRoute();
 
-        expect(container.querySelector('.rig-hero-name')?.textContent).toBe('OLD-RIG')
-    })
+        expect(container.querySelector(".rig-hero-name")?.textContent).toBe("OLD-RIG");
+    });
 
-    it('should show a visible error for an unknown route', async () => {
+    it("should show a visible error for an unknown route", async () => {
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent}
-        }
+            "#summary": {name: "summary", component: SummaryComponent}
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
-        window.location.hash = '#does-not-exist'
-        router.handleRoute()
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        window.location.hash = "#does-not-exist";
+        router.handleRoute();
 
-        expect(container.textContent).toContain('Page not found: #does-not-exist')
-    })
+        expect(container.textContent).toContain("Page not found: #does-not-exist");
+    });
 
-    it('should show a visible validation error for malformed exported data', async () => {
-        vi.spyOn(console, 'error').mockImplementation(() => undefined)
-        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-            ok: true,
-            json: () => Promise.resolve({games: []})
-        }))
+    it("should show a visible validation error for malformed exported data", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+        vi.stubGlobal(
+            "fetch",
+            vi.fn().mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({games: []})
+            })
+        );
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent}
-        }
+            "#summary": {name: "summary", component: SummaryComponent}
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(container.textContent).toContain('Data field "session_history" must be an array.')
-    })
+        expect(container.textContent).toContain('Data field "session_history" must be an array.');
+    });
 
-    it('should keep a visible error when loading the export fails', async () => {
-        vi.spyOn(console, 'error').mockImplementation(() => undefined)
-        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('disk read failed')))
+    it("should keep a visible error when loading the export fails", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+        vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("disk read failed")));
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent}
-        }
+            "#summary": {name: "summary", component: SummaryComponent}
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(container.textContent).toContain('Failed to load data: disk read failed')
-    })
+        expect(container.textContent).toContain("Failed to load data: disk read failed");
+    });
 
-    it('should render an explicit state when a detail route has no game name', async () => {
+    it("should render an explicit state when a detail route has no game name", async () => {
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent},
-            '#game-detail': {name: 'game-detail', component: GameDetailComponent}
-        }
+            "#summary": {name: "summary", component: SummaryComponent},
+            "#game-detail": {name: "game-detail", component: GameDetailComponent}
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
-        window.location.hash = '#game-detail'
-        router.handleRoute()
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        window.location.hash = "#game-detail";
+        router.handleRoute();
 
-        expect(container.textContent).toContain('No game was selected.')
-    })
+        expect(container.textContent).toContain("No game was selected.");
+    });
 
-    it('should toggle sidebar collapsed state and update aria attributes on button click', async () => {
+    it("should toggle sidebar collapsed state and update aria attributes on button click", async () => {
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent}
-        }
+            "#summary": {name: "summary", component: SummaryComponent}
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        const sidebar = document.getElementById('sidebar-nav')!
-        const toggleBtn = document.getElementById('sidebar-toggle')!
-        const expandLogo = document.getElementById('sidebar-expand')!
-        const toggleIcon = toggleBtn.querySelector('.fa-angles-left')!
+        const sidebar = document.getElementById("sidebar-nav")!;
+        const toggleBtn = document.getElementById("sidebar-toggle")!;
+        const expandLogo = document.getElementById("sidebar-expand")!;
+        const toggleIcon = toggleBtn.querySelector(".fa-angles-left")!;
 
-        expect(sidebar.classList.contains('collapsed')).toBe(false)
-        expect(toggleBtn.getAttribute('aria-expanded')).toBe('true')
-        expect(toggleBtn.getAttribute('title')).toBe('Collapse sidebar')
-        expect(toggleIcon).not.toBeNull()
+        expect(sidebar.classList.contains("collapsed")).toBe(false);
+        expect(toggleBtn.getAttribute("aria-expanded")).toBe("true");
+        expect(toggleBtn.getAttribute("title")).toBe("Collapse sidebar");
+        expect(toggleIcon).not.toBeNull();
 
         // Click the angles-left button to collapse
-        toggleBtn.click()
+        toggleBtn.click();
 
-        expect(sidebar.classList.contains('collapsed')).toBe(true)
-        expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')
-        expect(toggleBtn.getAttribute('title')).toBe('Expand sidebar')
+        expect(sidebar.classList.contains("collapsed")).toBe(true);
+        expect(toggleBtn.getAttribute("aria-expanded")).toBe("false");
+        expect(toggleBtn.getAttribute("title")).toBe("Expand sidebar");
         // Toggle button is hidden from AT / tab order while collapsed
-        expect(toggleBtn.getAttribute('aria-hidden')).toBe('true')
-        expect(toggleBtn.getAttribute('tabindex')).toBe('-1')
+        expect(toggleBtn.getAttribute("aria-hidden")).toBe("true");
+        expect(toggleBtn.getAttribute("tabindex")).toBe("-1");
         // Logo becomes the expander
-        expect(expandLogo.getAttribute('tabindex')).toBe('0')
-        expect(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)).toBe('true')
+        expect(expandLogo.getAttribute("tabindex")).toBe("0");
+        expect(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)).toBe("true");
 
         // Click the app logo to expand again
-        expandLogo.click()
+        expandLogo.click();
 
-        expect(sidebar.classList.contains('collapsed')).toBe(false)
-        expect(toggleBtn.getAttribute('aria-expanded')).toBe('true')
-        expect(toggleBtn.getAttribute('title')).toBe('Collapse sidebar')
-        expect(toggleBtn.hasAttribute('aria-hidden')).toBe(false)
+        expect(sidebar.classList.contains("collapsed")).toBe(false);
+        expect(toggleBtn.getAttribute("aria-expanded")).toBe("true");
+        expect(toggleBtn.getAttribute("title")).toBe("Collapse sidebar");
+        expect(toggleBtn.hasAttribute("aria-hidden")).toBe(false);
         // Logo is inert again when expanded
-        expect(expandLogo.getAttribute('tabindex')).toBe('-1')
-        expect(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)).toBe('false')
-    })
+        expect(expandLogo.getAttribute("tabindex")).toBe("-1");
+        expect(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY)).toBe("false");
+    });
 
-    it('should restore collapsed sidebar state from localStorage upon initialization', async () => {
-        localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, 'true')
+    it("should restore collapsed sidebar state from localStorage upon initialization", async () => {
+        localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, "true");
 
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent}
-        }
+            "#summary": {name: "summary", component: SummaryComponent}
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        const sidebar = document.getElementById('sidebar-nav')!
-        const toggleBtn = document.getElementById('sidebar-toggle')!
-        const expandLogo = document.getElementById('sidebar-expand')!
-        const toggleIcon = toggleBtn.querySelector('.fa-angles-left')!
+        const sidebar = document.getElementById("sidebar-nav")!;
+        const toggleBtn = document.getElementById("sidebar-toggle")!;
+        const expandLogo = document.getElementById("sidebar-expand")!;
+        const toggleIcon = toggleBtn.querySelector(".fa-angles-left")!;
 
-        expect(sidebar.classList.contains('collapsed')).toBe(true)
-        expect(toggleBtn.getAttribute('aria-expanded')).toBe('false')
-        expect(toggleBtn.getAttribute('title')).toBe('Expand sidebar')
-        expect(toggleIcon).not.toBeNull()
-        expect(toggleBtn.getAttribute('aria-hidden')).toBe('true')
-        expect(expandLogo.getAttribute('tabindex')).toBe('0')
-    })
+        expect(sidebar.classList.contains("collapsed")).toBe(true);
+        expect(toggleBtn.getAttribute("aria-expanded")).toBe("false");
+        expect(toggleBtn.getAttribute("title")).toBe("Expand sidebar");
+        expect(toggleIcon).not.toBeNull();
+        expect(toggleBtn.getAttribute("aria-hidden")).toBe("true");
+        expect(expandLogo.getAttribute("tabindex")).toBe("0");
+    });
 
-    it('should preserve title tooltip attributes on navigation links for collapsed mode', async () => {
+    it("should preserve title tooltip attributes on navigation links for collapsed mode", async () => {
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent},
-            '#all-games': {name: 'all-games', component: AllGamesComponent}
-        }
+            "#summary": {name: "summary", component: SummaryComponent},
+            "#all-games": {name: "all-games", component: AllGamesComponent}
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        const summaryLink = document.querySelector<HTMLAnchorElement>('a[href="#summary"]')!
-        const allGamesLink = document.querySelector<HTMLAnchorElement>('a[href="#all-games"]')!
+        const summaryLink = document.querySelector<HTMLAnchorElement>('a[href="#summary"]')!;
+        const allGamesLink = document.querySelector<HTMLAnchorElement>('a[href="#all-games"]')!;
 
-        expect(summaryLink.getAttribute('title')).toBe('Summary Dashboard')
-        expect(allGamesLink.getAttribute('title')).toBe('All Games')
-    })
+        expect(summaryLink.getAttribute("title")).toBe("Summary Dashboard");
+        expect(allGamesLink.getAttribute("title")).toBe("All Games");
+    });
 
-    it('should synchronize animated active indicator transform on route transitions', async () => {
+    it("should synchronize animated active indicator transform on route transitions", async () => {
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent},
-            '#all-games': {name: 'all-games', component: AllGamesComponent}
-        }
+            "#summary": {name: "summary", component: SummaryComponent},
+            "#all-games": {name: "all-games", component: AllGamesComponent}
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        const indicator = document.getElementById('nav-indicator')!
-        const allGamesLink = document.querySelector<HTMLAnchorElement>('a[href="#all-games"]')!
-        Object.defineProperty(allGamesLink, 'offsetTop', {configurable: true, value: 44})
-        Object.defineProperty(allGamesLink, 'offsetHeight', {configurable: true, value: 36})
+        const indicator = document.getElementById("nav-indicator")!;
+        const allGamesLink = document.querySelector<HTMLAnchorElement>('a[href="#all-games"]')!;
+        Object.defineProperty(allGamesLink, "offsetTop", {configurable: true, value: 44});
+        Object.defineProperty(allGamesLink, "offsetHeight", {configurable: true, value: 36});
 
-        expect(indicator.style.opacity).toBe('1')
+        expect(indicator.style.opacity).toBe("1");
 
-        window.location.hash = '#all-games'
-        router.handleRoute()
+        window.location.hash = "#all-games";
+        router.handleRoute();
 
-        expect(indicator.style.transform).toBe('translateY(44px)')
-        expect(indicator.style.height).toBe('36px')
-        expect(indicator.style.opacity).toBe('1')
-    })
+        expect(indicator.style.transform).toBe("translateY(44px)");
+        expect(indicator.style.height).toBe("36px");
+        expect(indicator.style.opacity).toBe("1");
+    });
 
-    it('should re-synchronize indicator position and height on transitionend events', async () => {
+    it("should re-synchronize indicator position and height on transitionend events", async () => {
         const routes = {
-            '#summary': {name: 'summary', component: SummaryComponent}
-        }
+            "#summary": {name: "summary", component: SummaryComponent}
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        const sidebar = document.getElementById('sidebar-nav')!
-        const indicator = document.getElementById('nav-indicator')!
-        const summaryLink = document.querySelector<HTMLAnchorElement>('a[href="#summary"]')!
+        const sidebar = document.getElementById("sidebar-nav")!;
+        const indicator = document.getElementById("nav-indicator")!;
+        const summaryLink = document.querySelector<HTMLAnchorElement>('a[href="#summary"]')!;
 
-        Object.defineProperty(summaryLink, 'offsetTop', {configurable: true, value: 0})
-        Object.defineProperty(summaryLink, 'offsetHeight', {configurable: true, value: 38})
+        Object.defineProperty(summaryLink, "offsetTop", {configurable: true, value: 0});
+        Object.defineProperty(summaryLink, "offsetHeight", {configurable: true, value: 38});
 
-        const transitionEvent = new Event('transitionend') as any
-        transitionEvent.propertyName = 'width'
-        sidebar.dispatchEvent(transitionEvent)
+        const transitionEvent = new Event("transitionend") as any;
+        transitionEvent.propertyName = "width";
+        sidebar.dispatchEvent(transitionEvent);
 
-        expect(indicator.style.height).toBe('38px')
-    })
+        expect(indicator.style.height).toBe("38px");
+    });
 
-    it('should call mount and destroy lifecycle methods on components during navigation', async () => {
-        let mounted = false
-        let destroyed = false
+    it("should call mount and destroy lifecycle methods on components during navigation", async () => {
+        let mounted = false;
+        let destroyed = false;
 
         class LifecycleComponent {
             render() {
-                return '<div id="lifecycle-view">Lifecycle</div>'
+                return '<div id="lifecycle-view">Lifecycle</div>';
             }
 
             mount() {
-                mounted = true
+                mounted = true;
             }
 
             destroy() {
-                destroyed = true
+                destroyed = true;
             }
         }
 
         const routes = {
-            '#summary': {name: 'summary', component: LifecycleComponent as any},
-            '#all-games': {name: 'all-games', component: AllGamesComponent}
-        }
+            "#summary": {name: "summary", component: LifecycleComponent as any},
+            "#all-games": {name: "all-games", component: AllGamesComponent}
+        };
 
-        router = new Router(routes)
-        await new Promise(resolve => setTimeout(resolve, 0))
+        router = new Router(routes);
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(mounted).toBe(true)
-        expect(destroyed).toBe(false)
+        expect(mounted).toBe(true);
+        expect(destroyed).toBe(false);
 
-        window.location.hash = '#all-games'
-        router.handleRoute()
+        window.location.hash = "#all-games";
+        router.handleRoute();
 
-        expect(destroyed).toBe(true)
-    })
+        expect(destroyed).toBe(true);
+    });
 
-    it('should initialize theme manager on router instantiation and update theme on select change', async () => {
+    it("should initialize theme manager on router instantiation and update theme on select change", async () => {
         router = new Router({
-            '#summary': {name: 'summary', component: SummaryComponent}
-        })
+            "#summary": {name: "summary", component: SummaryComponent}
+        });
 
-        const select = document.getElementById('theme-select') as HTMLSelectElement
-        expect(select).not.toBeNull()
+        const select = document.getElementById("theme-select") as HTMLSelectElement;
+        expect(select).not.toBeNull();
 
-        select.value = 'dark'
-        select.dispatchEvent(new Event('change'))
+        select.value = "dark";
+        select.dispatchEvent(new Event("change"));
 
-        expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
-        expect(document.documentElement.getAttribute('data-theme-preference')).toBe('dark')
-    })
-})
+        expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+        expect(document.documentElement.getAttribute("data-theme-preference")).toBe("dark");
+    });
+});

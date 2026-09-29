@@ -1,5 +1,32 @@
 import {describe, expect, it} from "vitest";
-import {buildMonthGrid, monthLabel, shiftMonth, shiftYear, todayDayKey, currentMonthKey} from "../src/utils/CalendarModel";
+import {
+    buildMonthGrid,
+    monthLabel,
+    shiftMonth,
+    shiftYear,
+    todayDayKey,
+    currentMonthKey,
+    weekdayNameFull,
+    weekdayNameShort
+} from "../src/utils/CalendarModel";
+
+describe("CalendarModel - weekday names", () => {
+    it("maps JS getDay() indices to full weekday names (0=Sunday)", () => {
+        expect(weekdayNameFull(0)).toBe("Sunday");
+        expect(weekdayNameFull(1)).toBe("Monday");
+        expect(weekdayNameFull(6)).toBe("Saturday");
+    });
+
+    it("maps JS getDay() indices to short weekday names", () => {
+        expect(weekdayNameShort(0)).toBe("Sun");
+        expect(weekdayNameShort(6)).toBe("Sat");
+    });
+
+    it("returns an empty string for an out-of-range index", () => {
+        expect(weekdayNameFull(7)).toBe("");
+        expect(weekdayNameShort(-1)).toBe("");
+    });
+});
 
 describe("CalendarModel - month grid", () => {
     it("builds a Mon-Sun grid with leading blanks for April 2025", () => {
@@ -11,14 +38,14 @@ describe("CalendarModel - month grid", () => {
         expect(grid.weeks[0][1].dayKey).toBe("2025-04-01");
 
         // All real days present
-        const realDays = grid.weeks.flat().filter(c => c.inMonth);
+        const realDays = grid.weeks.flat().filter((c) => c.inMonth);
         expect(realDays).toHaveLength(30);
 
         // has-data + selected flags
-        const apr16 = realDays.find(c => c.dayKey === "2025-04-16")!;
+        const apr16 = realDays.find((c) => c.dayKey === "2025-04-16")!;
         expect(apr16.hasData).toBe(true);
         expect(apr16.isSelected).toBe(true);
-        const apr17 = realDays.find(c => c.dayKey === "2025-04-17")!;
+        const apr17 = realDays.find((c) => c.dayKey === "2025-04-17")!;
         expect(apr17.hasData).toBe(false);
         expect(apr17.isSelected).toBe(false);
     });

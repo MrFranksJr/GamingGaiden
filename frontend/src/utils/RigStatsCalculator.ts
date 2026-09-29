@@ -1,7 +1,6 @@
 import {GamingPC, GameData, Game} from "../types/GameData";
 import {monthShortName} from "./CalendarModel";
-import {formatPlaytimeCompact} from "./TimeUtils";
-import {SESSION_COLOR_PALETTE} from "./SessionHistoryStatsCalculator";
+import {GamePlayedRow, rankGamesPlayed} from "./GamesPlayedRanking";
 
 export interface RigSummary {
     name: string;
@@ -10,26 +9,21 @@ export interface RigSummary {
 }
 
 export interface RigCost {
-    recorded: boolean;          // true when a positive cost was recorded
-    formatted: string;          // "€2500" when recorded, "Not recorded" otherwise
+    recorded: boolean; // true when a positive cost was recorded
+    formatted: string; // "€2500" when recorded, "Not recorded" otherwise
     perHourFormatted: string | null; // "€2.50/h" when cost>0 and hours>0, else null
 }
 
 export interface RigLifespan {
-    isOngoing: boolean;    // true for an in-use rig (live age), false for a fixed span
-    label: string;         // "In use for 3 years" | "Jan 2021 – Mar 2024" | "" when unknown
+    isOngoing: boolean; // true for an in-use rig (live age), false for a fixed span
+    label: string; // "In use for 3 years" | "Jan 2021 – Mar 2024" | "" when unknown
 }
 
-/** One game in the "Games on this rig" ranked list. Mirrors GamePlayedRow. */
-export interface RigGameRow {
-    gameName: string;
-    iconPath: string | null;
-    minutes: number;
-    formatted: string;      // compact "4h 0m"
-    percentage: number;     // rounded integer 0..100, share of rig game playtime
-    color: string;
-    detailHref: string;     // "#game-detail?name=..."
-}
+/**
+ * One game in the "Games on this rig" ranked list. Same shape as a Session
+ * History games-played row — both come from the shared ranking module.
+ */
+export type RigGameRow = GamePlayedRow;
 
 export interface RigDetail {
     name: string;
@@ -109,15 +103,14 @@ function rigNamesFor(game: Game): string[] {
     if (typeof game.gaming_pc_name !== "string") return [];
     return game.gaming_pc_name
         .split(",")
-        .map(name => name.trim())
-        .filter(name => name.length > 0);
+        .map((name) => name.trim())
+        .filter((name) => name.length > 0);
 }
 
 /** Games tagged to the named rig (via comma-split gaming_pc_name). */
 function gamesOnRig(data: GameData, rigName: string): Game[] {
     const games = Array.isArray(data?.games) ? data.games : [];
-    return games.filter((game): game is Game =>
-        game != null && rigNamesFor(game).includes(rigName));
+    return games.filter((game): game is Game => game != null && rigNamesFor(game).includes(rigName));
 }
 
 function safeCount(value: unknown): number {
@@ -125,28 +118,19 @@ function safeCount(value: unknown): number {
 }
 
 /**
- * Ranked "Games on this rig" rows: games tagged to the rig, sorted by play_time
- * desc (ties by name), each with an index-based palette color and its share of
- * the summed game playtime. Share is of the aggregated game playtime, not the
- * rig's stored total_play_time (those can diverge; see docs/features/MyRigsPage.md).
+ * Ranked "Games on this rig" rows: games tagged to the rig, ranked by stored
+ * per-game play_time via the shared games-played module. Share is of the summed
+ * game playtime, not the rig's stored total_play_time (those can diverge; see
+ * docs/features/MyRigsPage.md).
  */
 function buildRigGames(games: Game[]): RigGameRow[] {
-    const totalMinutes = games.reduce((sum, game) => sum + safeCount(game.play_time), 0);
-    return games
-        .slice()
-        .sort((a, b) => (safeCount(b.play_time) - safeCount(a.play_time)) || a.name.localeCompare(b.name))
-        .map((game, index) => {
-            const minutes = safeCount(game.play_time);
-            return {
-                gameName: game.name,
-                iconPath: typeof game.icon_path === "string" ? game.icon_path : null,
-                minutes,
-                formatted: formatPlaytimeCompact(minutes),
-                percentage: totalMinutes > 0 ? Math.round((minutes / totalMinutes) * 100) : 0,
-                color: SESSION_COLOR_PALETTE[index % SESSION_COLOR_PALETTE.length],
-                detailHref: `#game-detail?name=${encodeURIComponent(game.name)}`
-            };
-        });
+    return rankGamesPlayed(
+        games.map((game) => ({
+            gameName: game.name,
+            minutes: safeCount(game.play_time),
+            iconPath: typeof game.icon_path === "string" ? game.icon_path : null
+        }))
+    );
 }
 
 /** Parses the string cost into a number, or null when missing/blank/non-positive. */
@@ -185,7 +169,7 @@ export function buildRigList(data: GameData): RigSummary[] {
             if (useDiff !== 0) return useDiff;
             return endDateValue(b) - endDateValue(a);
         })
-        .map(rig => ({
+        .map((rig) => ({
             name: rig.name,
             isInUse: isInUse(rig),
             iconPath: typeof rig.icon_path === "string" ? rig.icon_path : null
@@ -193,7 +177,7 @@ export function buildRigList(data: GameData): RigSummary[] {
 }
 
 export function buildRigDetail(data: GameData, rigName: string, now: Date = new Date()): RigDetail | null {
-    const rig = validRigs(data).find(r => r.name === rigName);
+    const rig = validRigs(data).find((r) => r.name === rigName);
     if (!rig) return null;
 
     const games = gamesOnRig(data, rigName);

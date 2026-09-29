@@ -1,114 +1,116 @@
-import {describe, expect, it, vi, beforeEach} from 'vitest';
-import {GameDetailComponent} from '../src/components/GameDetailComponent';
-import {mockData} from './test-utils';
-import {GameData} from '../src/types/GameData';
+import {describe, expect, it, vi, beforeEach} from "vitest";
+import {GameDetailComponent} from "../src/components/GameDetailComponent";
+import {mockData} from "./test-utils";
+import {GameData} from "../src/types/GameData";
 
-describe('GameDetailComponent', () => {
+describe("GameDetailComponent", () => {
     beforeEach(() => {
-        document.body.innerHTML = '';
+        document.body.innerHTML = "";
     });
 
-    it('should render details for a specific game', () => {
+    it("should render details for a specific game", () => {
         const component = new GameDetailComponent();
-        document.body.innerHTML = component.render(mockData, 'Game A');
+        document.body.innerHTML = component.render(mockData, "Game A");
 
-        expect(document.getElementById('detail-game-name')?.textContent).toBe('Game A');
-        expect(document.getElementById('detail-playtime')?.textContent).toBe('2 Hr 0 Min');
-        expect(document.getElementById('detail-sessions')?.textContent).toBe('5');
-        expect(document.getElementById('detail-status')?.textContent?.trim()).toBe('In Progress');
-        expect(document.getElementById('detail-finish-date')).toBeNull();
+        expect(document.getElementById("detail-game-name")?.textContent).toBe("Game A");
+        expect(document.getElementById("detail-playtime")?.textContent).toBe("2 Hr 0 Min");
+        expect(document.getElementById("detail-sessions")?.textContent).toBe("5");
+        expect(document.getElementById("detail-status")?.textContent?.trim()).toBe("In Progress");
+        expect(document.getElementById("detail-finish-date")).toBeNull();
 
-        const sessionRows = document.querySelectorAll('.detail-session-row');
+        const sessionRows = document.querySelectorAll(".detail-session-row");
         expect(sessionRows.length).toBe(1);
-        expect(sessionRows[0].querySelector('.detail-session-start')?.textContent).toBe('01-01-2023 10:00');
-        expect(sessionRows[0].querySelector('.detail-session-duration')?.textContent).toBe('30 Min');
+        expect(sessionRows[0].querySelector(".detail-session-start")?.textContent).toBe("01-01-2023 10:00");
+        expect(sessionRows[0].querySelector(".detail-session-duration")?.textContent).toBe("30 Min");
     });
 
-    it('shows a finish date only when one was recorded', () => {
+    it("shows a finish date only when one was recorded", () => {
         const component = new GameDetailComponent();
-        document.body.innerHTML = component.render(mockData, 'Game B');
+        document.body.innerHTML = component.render(mockData, "Game B");
 
-        expect(document.getElementById('detail-finish-date')?.textContent).toBe('01-09-2026');
+        expect(document.getElementById("detail-finish-date")?.textContent).toBe("01-09-2026");
     });
 
-    it('should handle game not found', () => {
+    it("should handle game not found", () => {
         const component = new GameDetailComponent();
-        const html = component.render(mockData, 'NonExistent');
+        const html = component.render(mockData, "NonExistent");
         expect(html).toContain('Game "NonExistent" not found');
     });
 
-    it('renders hero header with poster image, Steam link, and metadata', () => {
+    it("renders hero header with poster image, Steam link, and metadata", () => {
         const component = new GameDetailComponent();
-        document.body.innerHTML = component.render(mockData, 'Game A');
+        document.body.innerHTML = component.render(mockData, "Game A");
 
-        const posterImg = document.querySelector<HTMLImageElement>('#detail-game-icon');
+        const posterImg = document.querySelector<HTMLImageElement>("#detail-game-icon");
         expect(posterImg).not.toBeNull();
-        expect(posterImg?.src).toContain('Game_A.jpg');
+        expect(posterImg?.src).toContain("Game_A.jpg");
 
         // Poster frame should NOT have a status pill
-        const posterPill = document.querySelector('.game-poster-frame .game-status-pill');
+        const posterPill = document.querySelector(".game-poster-frame .game-status-pill");
         expect(posterPill).toBeNull();
 
         // Status badge above title should exist
-        const heroBadge = document.querySelector('.game-detail-hero-badges #detail-status');
+        const heroBadge = document.querySelector(".game-detail-hero-badges #detail-status");
         expect(heroBadge).not.toBeNull();
-        expect(heroBadge?.textContent?.trim()).toBe('In Progress');
+        expect(heroBadge?.textContent?.trim()).toBe("In Progress");
 
         // Meta items should NOT have a redundant status line
-        const metaLabels = Array.from(document.querySelectorAll('.game-detail-hero-meta .meta-label')).map(el => el.textContent);
-        expect(metaLabels).not.toContain('Status:');
+        const metaLabels = Array.from(document.querySelectorAll(".game-detail-hero-meta .meta-label")).map(
+            (el) => el.textContent
+        );
+        expect(metaLabels).not.toContain("Status:");
 
-        const steamBtn = document.querySelector<HTMLAnchorElement>('.steam-store-btn');
+        const steamBtn = document.querySelector<HTMLAnchorElement>(".steam-store-btn");
         expect(steamBtn).not.toBeNull();
-        expect(steamBtn?.href).toContain('store.steampowered.com/search/?term=Game%20A');
-        expect(steamBtn?.target).toBe('_blank');
-        expect(steamBtn?.rel).toContain('noopener');
+        expect(steamBtn?.href).toContain("store.steampowered.com/search/?term=Game%20A");
+        expect(steamBtn?.target).toBe("_blank");
+        expect(steamBtn?.rel).toContain("noopener");
 
-        const backBtn = document.querySelector<HTMLButtonElement>('#game-detail-back-btn');
+        const backBtn = document.querySelector<HTMLButtonElement>("#game-detail-back-btn");
         expect(backBtn).not.toBeNull();
     });
 
-    it('renders each hero meta stat as its own stacked line', () => {
+    it("renders each hero meta stat as its own stacked line", () => {
         const component = new GameDetailComponent();
-        document.body.innerHTML = component.render(mockData, 'Game A');
+        document.body.innerHTML = component.render(mockData, "Game A");
 
-        const metaContainer = document.querySelector('.game-detail-hero-meta');
+        const metaContainer = document.querySelector(".game-detail-hero-meta");
         expect(metaContainer).not.toBeNull();
 
         // Release and Last Played must each be their own meta item (separate lines).
-        const metaItems = metaContainer!.querySelectorAll('.game-detail-meta-item');
+        const metaItems = metaContainer!.querySelectorAll(".game-detail-meta-item");
         expect(metaItems.length).toBe(2);
 
-        const labels = Array.from(metaItems).map(el => el.querySelector('.meta-label')?.textContent?.trim());
-        expect(labels).toContain('Release:');
-        expect(labels).toContain('Last Played:');
+        const labels = Array.from(metaItems).map((el) => el.querySelector(".meta-label")?.textContent?.trim());
+        expect(labels).toContain("Release:");
+        expect(labels).toContain("Last Played:");
     });
 
-    it('wraps the hero and the stat cards grid in a single header row', () => {
+    it("wraps the hero and the stat cards grid in a single header row", () => {
         const component = new GameDetailComponent();
-        document.body.innerHTML = component.render(mockData, 'Game A');
+        document.body.innerHTML = component.render(mockData, "Game A");
 
-        const headerRow = document.querySelector('#game-detail-view > .game-detail-header-row');
+        const headerRow = document.querySelector("#game-detail-view > .game-detail-header-row");
         expect(headerRow).not.toBeNull();
 
         // Both the hero and the 2x2 stat grid live inside the header row.
-        expect(headerRow!.querySelector('.game-detail-hero')).not.toBeNull();
-        expect(headerRow!.querySelector('.game-detail-stats-grid')).not.toBeNull();
+        expect(headerRow!.querySelector(".game-detail-hero")).not.toBeNull();
+        expect(headerRow!.querySelector(".game-detail-stats-grid")).not.toBeNull();
 
         // The stat grid still holds all four cards.
-        expect(headerRow!.querySelectorAll('.game-stat-card').length).toBe(4);
+        expect(headerRow!.querySelectorAll(".game-stat-card").length).toBe(4);
     });
 
-    it('renders poster fallback initials when icon_path is null', () => {
+    it("renders poster fallback initials when icon_path is null", () => {
         const customData: GameData = {
             ...mockData,
             games: [
                 {
-                    name: 'Super Metroid',
+                    name: "Super Metroid",
                     play_time: 120,
                     session_count: 2,
-                    status: 'completed',
-                    completed: 'TRUE',
+                    status: "completed",
+                    completed: "TRUE",
                     icon_path: null
                 }
             ],
@@ -116,56 +118,56 @@ describe('GameDetailComponent', () => {
         };
 
         const component = new GameDetailComponent();
-        document.body.innerHTML = component.render(customData, 'Super Metroid');
+        document.body.innerHTML = component.render(customData, "Super Metroid");
 
-        const fallback = document.querySelector('.poster-fallback');
+        const fallback = document.querySelector(".poster-fallback");
         expect(fallback).not.toBeNull();
-        expect(fallback?.querySelector('.fallback-initials')?.textContent).toBe('SM');
+        expect(fallback?.querySelector(".fallback-initials")?.textContent).toBe("SM");
     });
 
-    it('renders the SVG timeline chart and session breakdown', () => {
+    it("renders the SVG timeline chart and session breakdown", () => {
         const customData: GameData = {
             ...mockData,
             games: [
                 {
-                    name: 'Hades',
+                    name: "Hades",
                     play_time: 300,
                     session_count: 3,
-                    status: 'playing',
-                    completed: 'FALSE',
+                    status: "playing",
+                    completed: "FALSE",
                     icon_path: null
                 }
             ],
             session_history: [
-                {game_name: 'Hades', start_time: 1771631171, duration: 60},
-                {game_name: 'Hades', start_time: 1771703524, duration: 120},
-                {game_name: 'Hades', start_time: 1771765905, duration: 120}
+                {game_name: "Hades", start_time: 1771631171, duration: 60},
+                {game_name: "Hades", start_time: 1771703524, duration: 120},
+                {game_name: "Hades", start_time: 1771765905, duration: 120}
             ]
         };
 
         const component = new GameDetailComponent();
-        document.body.innerHTML = component.render(customData, 'Hades');
+        document.body.innerHTML = component.render(customData, "Hades");
 
-        const timelineSvg = document.querySelector('.session-timeline-svg');
+        const timelineSvg = document.querySelector(".session-timeline-svg");
         expect(timelineSvg).not.toBeNull();
 
-        const timelineBars = document.querySelectorAll('.timeline-bar-anim');
+        const timelineBars = document.querySelectorAll(".timeline-bar-anim");
         expect(timelineBars.length).toBe(3);
 
-        const breakdownSlots = document.querySelectorAll('.breakdown-slot-item');
+        const breakdownSlots = document.querySelectorAll(".breakdown-slot-item");
         expect(breakdownSlots.length).toBe(4); // Morning, Afternoon, Evening, Night
     });
 
-    it('handles empty session history gracefully in timeline and recent sessions cards', () => {
+    it("handles empty session history gracefully in timeline and recent sessions cards", () => {
         const customData: GameData = {
             ...mockData,
             games: [
                 {
-                    name: 'Empty Game',
+                    name: "Empty Game",
                     play_time: 0,
                     session_count: 0,
-                    status: 'in progress',
-                    completed: 'FALSE',
+                    status: "in progress",
+                    completed: "FALSE",
                     icon_path: null
                 }
             ],
@@ -173,28 +175,27 @@ describe('GameDetailComponent', () => {
         };
 
         const component = new GameDetailComponent();
-        document.body.innerHTML = component.render(customData, 'Empty Game');
+        document.body.innerHTML = component.render(customData, "Empty Game");
 
-        expect(document.querySelector('.timeline-card .detail-card-empty')).not.toBeNull();
-        expect(document.querySelector('.recent-sessions-card .detail-card-empty')).not.toBeNull();
-        expect(document.getElementById('detail-playtime')?.textContent).toBe('0 Hr 0 Min');
-        expect(document.getElementById('detail-sessions')?.textContent).toBe('0');
+        expect(document.querySelector(".timeline-card .detail-card-empty")).not.toBeNull();
+        expect(document.querySelector(".recent-sessions-card .detail-card-empty")).not.toBeNull();
+        expect(document.getElementById("detail-playtime")?.textContent).toBe("0 Hr 0 Min");
+        expect(document.getElementById("detail-sessions")?.textContent).toBe("0");
     });
 
-    it('attaches and cleans up back navigation in mount() and destroy()', () => {
+    it("attaches and cleans up back navigation in mount() and destroy()", () => {
         const component = new GameDetailComponent();
-        const container = document.createElement('div');
-        container.innerHTML = component.render(mockData, 'Game A');
+        const container = document.createElement("div");
+        container.innerHTML = component.render(mockData, "Game A");
         document.body.appendChild(container);
 
         // When history has entries
-        Object.defineProperty(window.history, 'length', {value: 3, configurable: true});
-        const historyBackSpy = vi.spyOn(window.history, 'back').mockImplementation(() => {
-        });
+        Object.defineProperty(window.history, "length", {value: 3, configurable: true});
+        const historyBackSpy = vi.spyOn(window.history, "back").mockImplementation(() => {});
 
         component.mount(container);
 
-        const backBtn = container.querySelector<HTMLButtonElement>('#game-detail-back-btn');
+        const backBtn = container.querySelector<HTMLButtonElement>("#game-detail-back-btn");
         expect(backBtn).not.toBeNull();
 
         // Simulate click triggers history.back()
@@ -207,17 +208,17 @@ describe('GameDetailComponent', () => {
         historyBackSpy.mockRestore();
 
         // Fallback when no history entries exist
-        Object.defineProperty(window.history, 'length', {value: 1, configurable: true});
+        Object.defineProperty(window.history, "length", {value: 1, configurable: true});
         component.mount(container);
-        window.location.hash = '#game-detail?name=Game%20A';
+        window.location.hash = "#game-detail?name=Game%20A";
         backBtn?.click();
-        expect(window.location.hash).toBe('#all-games');
+        expect(window.location.hash).toBe("#all-games");
         component.destroy();
     });
 
-    it('handles missing game parameter or empty data gracefully', () => {
+    it("handles missing game parameter or empty data gracefully", () => {
         const component = new GameDetailComponent();
-        expect(component.render(mockData, null)).toContain('No game was selected');
-        expect(component.render(null as any, 'Game A')).toContain('No games found');
+        expect(component.render(mockData, null)).toContain("No game was selected");
+        expect(component.render(null as any, "Game A")).toContain("No games found");
     });
 });

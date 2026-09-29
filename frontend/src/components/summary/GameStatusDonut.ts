@@ -2,11 +2,14 @@ import {GameStatusBreakdown} from "../../utils/SummaryStatsCalculator";
 import {escapeHtml} from "../../utils/HtmlUtils";
 
 export class GameStatusDonut {
-    private static activeHandlers: Map<Element, {
-        mouseenter: (e: Event) => void;
-        mousemove: (e: Event) => void;
-        mouseleave: (e: Event) => void;
-    }> = new Map();
+    private static activeHandlers: Map<
+        Element,
+        {
+            mouseenter: (e: Event) => void;
+            mousemove: (e: Event) => void;
+            mouseleave: (e: Event) => void;
+        }
+    > = new Map();
 
     public static render(breakdown: GameStatusBreakdown): string {
         const total = breakdown.totalGames;
@@ -32,7 +35,7 @@ export class GameStatusDonut {
                 />
             `);
         } else {
-            breakdown.statuses.forEach(status => {
+            breakdown.statuses.forEach((status) => {
                 if (status.count === 0) return;
                 const strokeDasharray = (status.count / total) * circumference;
                 const strokeDashoffset = -currentOffset;
@@ -59,7 +62,9 @@ export class GameStatusDonut {
             });
         }
 
-        const legendItemsHtml = breakdown.statuses.map(status => `
+        const legendItemsHtml = breakdown.statuses
+            .map(
+                (status) => `
             <div class="donut-legend-item">
                 <div class="donut-legend-header">
                     <span class="donut-legend-dot" style="background-color: ${status.color};"></span>
@@ -70,7 +75,9 @@ export class GameStatusDonut {
                     <span class="donut-legend-pct">${status.percentage}%</span>
                 </div>
             </div>
-        `).join("");
+        `
+            )
+            .join("");
 
         return `
             <div class="game-status-card" id="game-status-card">
@@ -105,14 +112,14 @@ export class GameStatusDonut {
     public static mount(container: HTMLElement): void {
         this.destroy(container);
 
-        const card = container.querySelector("#game-status-card") as HTMLElement | null || container;
+        const card = (container.querySelector("#game-status-card") as HTMLElement | null) || container;
         const wrapper = card.querySelector("#donut-chart-wrapper") as HTMLElement | null;
         const tooltip = card.querySelector("#donut-tooltip") as HTMLElement | null;
         if (!wrapper || !tooltip) return;
 
         const segments = card.querySelectorAll<SVGCircleElement>(".donut-segment");
 
-        segments.forEach(segment => {
+        segments.forEach((segment) => {
             const handleEnterOrMove = (e: MouseEvent) => {
                 const status = segment.getAttribute("data-status") || "";
                 const count = segment.getAttribute("data-count") || "0";
@@ -190,7 +197,7 @@ export class GameStatusDonut {
         }
 
         const segments = container.querySelectorAll(".donut-segment");
-        segments.forEach(segment => {
+        segments.forEach((segment) => {
             const handlers = this.activeHandlers.get(segment);
             if (handlers) {
                 segment.removeEventListener("mouseenter", handlers.mouseenter);

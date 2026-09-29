@@ -11,97 +11,123 @@ import {GameData} from "../src/types/GameData";
 describe("SummaryStatsCalculator", () => {
     describe("Helper functions", () => {
         it("categorizes game status properly", () => {
-            expect(categorizeGameStatus({
-                name: "G_Forever",
-                play_time: 200,
-                session_count: 5,
-                status: "forever",
-                completed: "FALSE"
-            })).toBe("Forever");
-            expect(categorizeGameStatus({
-                name: "G_Forever_Cap",
-                play_time: 200,
-                session_count: 5,
-                status: "Forever",
-                completed: "TRUE"
-            })).toBe("Forever");
-            expect(categorizeGameStatus({
-                name: "G1",
-                play_time: 100,
-                session_count: 2,
-                status: "finished",
-                completed: "TRUE"
-            })).toBe("Completed");
-            expect(categorizeGameStatus({
-                name: "G2",
-                play_time: 100,
-                session_count: 2,
-                status: "completed",
-                completed: "FALSE"
-            })).toBe("Completed");
-            expect(categorizeGameStatus({
-                name: "G3",
-                play_time: 0,
-                session_count: 0,
-                status: "done",
-                completed: "FALSE"
-            })).toBe("Completed");
-            expect(categorizeGameStatus({
-                name: "G4_Dropped_With_Completed_True",
-                play_time: 100,
-                session_count: 2,
-                status: "dropped",
-                completed: "TRUE"
-            })).toBe("Dropped");
-            expect(categorizeGameStatus({
-                name: "G5",
-                play_time: 100,
-                session_count: 2,
-                status: "abandoned",
-                completed: "FALSE"
-            })).toBe("Dropped");
-            expect(categorizeGameStatus({
-                name: "G_Hold",
-                play_time: 30,
-                session_count: 1,
-                status: "hold",
-                completed: "TRUE"
-            })).toBe("On Hold");
-            expect(categorizeGameStatus({
-                name: "G_OnHold_Label",
-                play_time: 30,
-                session_count: 1,
-                status: "On Hold",
-                completed: "FALSE"
-            })).toBe("On Hold");
-            expect(categorizeGameStatus({
-                name: "G_ToBePickedUp",
-                play_time: 30,
-                session_count: 1,
-                status: "to be picked up later",
-                completed: "TRUE"
-            })).toBe("On Hold");
-            expect(categorizeGameStatus({
-                name: "G6",
-                play_time: 100,
-                session_count: 2,
-                status: "playing",
-                completed: "FALSE"
-            })).toBe("In Progress");
-            expect(categorizeGameStatus({
-                name: "G7",
-                play_time: 50,
-                session_count: 1,
-                status: "",
-                completed: "FALSE"
-            })).toBe("In Progress");
-            expect(categorizeGameStatus({
-                name: "G8_Newly_Added",
-                play_time: 0,
-                session_count: 0,
-                status: "",
-                completed: "FALSE"
-            })).toBe("In Progress");
+            expect(
+                categorizeGameStatus({
+                    name: "G_Forever",
+                    play_time: 200,
+                    session_count: 5,
+                    status: "forever",
+                    completed: "FALSE"
+                })
+            ).toBe("Forever");
+            expect(
+                categorizeGameStatus({
+                    name: "G_Forever_Cap",
+                    play_time: 200,
+                    session_count: 5,
+                    status: "Forever",
+                    completed: "TRUE"
+                })
+            ).toBe("Forever");
+            expect(
+                categorizeGameStatus({
+                    name: "G1",
+                    play_time: 100,
+                    session_count: 2,
+                    status: "finished",
+                    completed: "TRUE"
+                })
+            ).toBe("Completed");
+            expect(
+                categorizeGameStatus({
+                    name: "G2",
+                    play_time: 100,
+                    session_count: 2,
+                    status: "completed",
+                    completed: "FALSE"
+                })
+            ).toBe("Completed");
+            expect(
+                categorizeGameStatus({
+                    name: "G3",
+                    play_time: 0,
+                    session_count: 0,
+                    status: "done",
+                    completed: "FALSE"
+                })
+            ).toBe("Completed");
+            expect(
+                categorizeGameStatus({
+                    name: "G4_Dropped_With_Completed_True",
+                    play_time: 100,
+                    session_count: 2,
+                    status: "dropped",
+                    completed: "TRUE"
+                })
+            ).toBe("Dropped");
+            expect(
+                categorizeGameStatus({
+                    name: "G5",
+                    play_time: 100,
+                    session_count: 2,
+                    status: "abandoned",
+                    completed: "FALSE"
+                })
+            ).toBe("Dropped");
+            expect(
+                categorizeGameStatus({
+                    name: "G_Hold",
+                    play_time: 30,
+                    session_count: 1,
+                    status: "hold",
+                    completed: "TRUE"
+                })
+            ).toBe("On Hold");
+            expect(
+                categorizeGameStatus({
+                    name: "G_OnHold_Label",
+                    play_time: 30,
+                    session_count: 1,
+                    status: "On Hold",
+                    completed: "FALSE"
+                })
+            ).toBe("On Hold");
+            expect(
+                categorizeGameStatus({
+                    name: "G_ToBePickedUp",
+                    play_time: 30,
+                    session_count: 1,
+                    status: "to be picked up later",
+                    completed: "TRUE"
+                })
+            ).toBe("On Hold");
+            expect(
+                categorizeGameStatus({
+                    name: "G6",
+                    play_time: 100,
+                    session_count: 2,
+                    status: "playing",
+                    completed: "FALSE"
+                })
+            ).toBe("In Progress");
+            expect(
+                categorizeGameStatus({
+                    name: "G7",
+                    play_time: 50,
+                    session_count: 1,
+                    status: "",
+                    completed: "FALSE"
+                })
+            ).toBe("In Progress");
+            expect(
+                categorizeGameStatus({
+                    name: "G8_Newly_Added",
+                    play_time: 0,
+                    session_count: 0,
+                    status: "",
+                    completed: "FALSE"
+                })
+            ).toBe("In Progress");
         });
 
         it("extracts initials correctly", () => {
@@ -222,11 +248,11 @@ describe("SummaryStatsCalculator", () => {
 
             // Status breakdown
             expect(metrics.statusBreakdown.totalGames).toBe(3);
-            const completed = metrics.statusBreakdown.statuses.find(s => s.category === "Completed");
-            const inProgress = metrics.statusBreakdown.statuses.find(s => s.category === "In Progress");
-            const onHold = metrics.statusBreakdown.statuses.find(s => s.category === "On Hold");
-            const forever = metrics.statusBreakdown.statuses.find(s => s.category === "Forever");
-            const dropped = metrics.statusBreakdown.statuses.find(s => s.category === "Dropped");
+            const completed = metrics.statusBreakdown.statuses.find((s) => s.category === "Completed");
+            const inProgress = metrics.statusBreakdown.statuses.find((s) => s.category === "In Progress");
+            const onHold = metrics.statusBreakdown.statuses.find((s) => s.category === "On Hold");
+            const forever = metrics.statusBreakdown.statuses.find((s) => s.category === "Forever");
+            const dropped = metrics.statusBreakdown.statuses.find((s) => s.category === "Dropped");
             expect(completed?.count).toBe(1);
             expect(completed?.percentage).toBe(33);
             expect(inProgress?.count).toBe(2);
@@ -251,7 +277,9 @@ describe("SummaryStatsCalculator", () => {
             // Milestone
             expect(metrics.milestone.completedCount).toBe(1);
             expect(metrics.milestone.completionPercentage).toBe(33);
-            expect(metrics.milestone.message).toContain("You've completed 1 game so far! That's 33% of your library. Keep going!");
+            expect(metrics.milestone.message).toContain(
+                "You've completed 1 game so far! That's 33% of your library. Keep going!"
+            );
             expect(metrics.milestone.annotation).toBe("*Excludes forever games");
         });
 
@@ -307,11 +335,11 @@ describe("SummaryStatsCalculator", () => {
 
             // Status Breakdown contains all 5 categories
             expect(metrics.statusBreakdown.totalGames).toBe(5);
-            const foreverStatus = metrics.statusBreakdown.statuses.find(s => s.category === "Forever");
-            const completedStatus = metrics.statusBreakdown.statuses.find(s => s.category === "Completed");
-            const inProgressStatus = metrics.statusBreakdown.statuses.find(s => s.category === "In Progress");
-            const onHoldStatus = metrics.statusBreakdown.statuses.find(s => s.category === "On Hold");
-            const droppedStatus = metrics.statusBreakdown.statuses.find(s => s.category === "Dropped");
+            const foreverStatus = metrics.statusBreakdown.statuses.find((s) => s.category === "Forever");
+            const completedStatus = metrics.statusBreakdown.statuses.find((s) => s.category === "Completed");
+            const inProgressStatus = metrics.statusBreakdown.statuses.find((s) => s.category === "In Progress");
+            const onHoldStatus = metrics.statusBreakdown.statuses.find((s) => s.category === "On Hold");
+            const droppedStatus = metrics.statusBreakdown.statuses.find((s) => s.category === "Dropped");
 
             expect(foreverStatus?.count).toBe(1);
             expect(foreverStatus?.percentage).toBe(20);
@@ -408,9 +436,7 @@ describe("SummaryStatsCalculator", () => {
             // not drag down the average, but must still be counted and preserved.
             const data: GameData = {
                 schema_version: 1,
-                games: [
-                    {name: "Metro 2033", play_time: 62, session_count: 3, status: "hold", completed: "TRUE"}
-                ],
+                games: [{name: "Metro 2033", play_time: 62, session_count: 3, status: "hold", completed: "TRUE"}],
                 session_history: [
                     {game_name: "Metro 2033", start_time: "2026-05-01T10:00:00Z", duration: 1},
                     {game_name: "Metro 2033", start_time: "2026-05-02T10:00:00Z", duration: 1},
@@ -432,9 +458,7 @@ describe("SummaryStatsCalculator", () => {
         it("returns zero average when no tracked session meets the threshold", () => {
             const data: GameData = {
                 schema_version: 1,
-                games: [
-                    {name: "Only Blips", play_time: 3, session_count: 3, status: "playing", completed: "FALSE"}
-                ],
+                games: [{name: "Only Blips", play_time: 3, session_count: 3, status: "playing", completed: "FALSE"}],
                 session_history: [
                     {game_name: "Only Blips", start_time: "2026-05-01T10:00:00Z", duration: 1},
                     {game_name: "Only Blips", start_time: "2026-05-02T10:00:00Z", duration: 1},
@@ -501,12 +525,8 @@ describe("SummaryStatsCalculator", () => {
         it("handles missing previous year sessions with current year fallback", () => {
             const data: GameData = {
                 schema_version: 1,
-                games: [
-                    {name: "Game A", play_time: 120, session_count: 2, status: "playing", completed: "FALSE"}
-                ],
-                session_history: [
-                    {game_name: "Game A", start_time: "2026-05-01T10:00:00Z", duration: 120}
-                ],
+                games: [{name: "Game A", play_time: 120, session_count: 2, status: "playing", completed: "FALSE"}],
+                session_history: [{game_name: "Game A", start_time: "2026-05-01T10:00:00Z", duration: 120}],
                 daily_playtime: [],
                 gaming_pcs: []
             };
@@ -572,11 +592,11 @@ describe("SummaryStatsCalculator", () => {
             };
 
             const metrics = SummaryStatsCalculator.compute(data);
-            expect(metrics.topGames.find(g => g.name === "Game Forever")?.status).toBe("Forever");
-            expect(metrics.topGames.find(g => g.name === "Game Dropped")?.status).toBe("Dropped");
-            expect(metrics.topGames.find(g => g.name === "Game Hold")?.status).toBe("On Hold");
-            expect(metrics.topGames.find(g => g.name === "Game Finished")?.status).toBe("Completed");
-            expect(metrics.topGames.find(g => g.name === "Game Active")?.status).toBe("In Progress");
+            expect(metrics.topGames.find((g) => g.name === "Game Forever")?.status).toBe("Forever");
+            expect(metrics.topGames.find((g) => g.name === "Game Dropped")?.status).toBe("Dropped");
+            expect(metrics.topGames.find((g) => g.name === "Game Hold")?.status).toBe("On Hold");
+            expect(metrics.topGames.find((g) => g.name === "Game Finished")?.status).toBe("Completed");
+            expect(metrics.topGames.find((g) => g.name === "Game Active")?.status).toBe("In Progress");
         });
     });
 });

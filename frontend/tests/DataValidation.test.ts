@@ -50,15 +50,13 @@ describe("Data Validation", () => {
     });
 
     it("rejects unsupported schema versions", () => {
-        expect(() => validateGameData({...mockData, schema_version: 2}))
-            .toThrow(GameDataValidationError);
+        expect(() => validateGameData({...mockData, schema_version: 2})).toThrow(GameDataValidationError);
     });
 
     it("rejects exports with missing top-level collections", () => {
         const {daily_playtime: _, ...missingDailyPlaytime} = mockData;
 
-        expect(() => validateGameData(missingDailyPlaytime))
-            .toThrow('Data field "daily_playtime" must be an array.');
+        expect(() => validateGameData(missingDailyPlaytime)).toThrow('Data field "daily_playtime" must be an array.');
     });
 
     it("filters malformed entries and reports each affected collection", () => {

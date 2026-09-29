@@ -1,5 +1,14 @@
 import {GameData} from "../types/GameData.js";
-import {escapeHtml, safeCachedImagePath} from "../utils/HtmlUtils.js";
+import {escapeHtml, posterFallbackHtml, safeCachedImagePath} from "../utils/HtmlUtils.js";
+import {statusPillLabel} from "../utils/GameStatus.js";
+import {
+    NavNow,
+    ParsedState,
+    dayNavHref,
+    monthNavHref,
+    parseSessionHistoryState,
+    tabNavHref
+} from "../utils/SessionHistoryNavigation.js";
 import {
     DayView,
     GamePlayedRow,
@@ -21,48 +30,31 @@ import {
     monthNameFull,
     shiftMonth,
     todayDayKey,
-    yearOf
+    weekdayNameFull,
+    weekdayNameShort
 } from "../utils/CalendarModel.js";
 
-type ViewMode = "day" | "month";
-
-interface ParsedState {
-    view: ViewMode;
-    date: string;   // YYYY-MM-DD (day view selection)
-    month: string;  // YYYY-MM (month view selection)
-    calendarMonth: string; // YYYY-MM currently displayed in the calendar
-    year: number;   // year displayed in the month grid
-}
-
 const WEEKDAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-function gameInitials(name: string): string {
-    const words = name.trim().split(/\s+/).filter(Boolean);
-    if (words.length === 0) return "?";
-    if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-    return (words[0][0] + words[1][0]).toUpperCase();
-}
 
 function posterHtml(iconPath: string | null, name: string, extraClass = ""): string {
     const safe = safeCachedImagePath(iconPath);
     if (safe) {
         return `<div class="game-poster-frame ${extraClass}"><img src="${escapeHtml(safe)}" alt="${escapeHtml(name)}" class="game-poster-img"></div>`;
     }
-    return `<div class="game-poster-frame ${extraClass}"><div class="poster-fallback"><span class="fallback-initials">${escapeHtml(gameInitials(name))}</span><span class="fallback-icon">🎮</span></div></div>`;
+    return `<div class="game-poster-frame ${extraClass}">${posterFallbackHtml(name, {order: "initials-first"})}</div>`;
 }
 
 function humanDate(dayKey: string): string {
     const [y, m, d] = dayKey.split("-").map(Number);
     if (!y || !m || !d) return dayKey;
     const date = new Date(y, m - 1, d);
-    const weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()];
-    return `${weekday}, ${monthNameFull(m)} ${d}, ${y}`;
+    return `${weekdayNameFull(date.getDay())}, ${monthNameFull(m)} ${d}, ${y}`;
 }
 
 function weekdayShort(dayKey: string): string {
     const [y, m, d] = dayKey.split("-").map(Number);
     const date = new Date(y, m - 1, d);
-    return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][date.getDay()];
+    return weekdayNameShort(date.getDay());
 }
 
 export class SessionHistoryComponent {
@@ -74,12 +66,12 @@ export class SessionHistoryComponent {
         if (!data || !Array.isArray(data.session_history)) {
             return `<div id="session-history-view"><p class="session-empty-state">No session history was found.</p></div>`;
         }
-        const hasAnySessions = data.session_history.some(session => session != null);
+        const hasAnySessions = data.session_history.some((session) => session != null);
         if (!hasAnySessions) {
             return `<div id="session-history-view"><p class="session-empty-state">No session history was found.</p></div>`;
         }
 
-        const state = this.parseState(parameter);
+        const state = parseSessionHistoryState(parameter, {today: todayDayKey(), thisMonth: currentMonthKey()});
 
         return `
             <div id="session-history-view" class="session-history-page">
@@ -100,19 +92,6 @@ export class SessionHistoryComponent {
                 </div>
             </div>
         `;
-    }
-
-    // ---- state ---------------------------------------------------------------
-
-    private parseState(parameter?: string | null): ParsedState {
-        const params = new URLSearchParams(parameter ?? "");
-        const view: ViewMode = params.get("view") === "month" ? "month" : "day";
-        const date = params.get("date") || todayDayKey();
-        const month = params.get("month") || currentMonthKey();
-        // The calendar can be browsed independently of the selected day via `cal`.
-        const calendarMonth = params.get("cal") || date.slice(0, 7);
-        const year = view === "month" ? yearOf(month) : yearOf(date);
-        return {view, date, month, calendarMonth, year};
     }
 
     // ---- day view ------------------------------------------------------------
@@ -138,8 +117,11 @@ export class SessionHistoryComponent {
         const grid = buildMonthGrid(state.calendarMonth, dataDays, state.date);
         const prev = shiftMonth(state.calendarMonth, -1);
         const next = shiftMonth(state.calendarMonth, 1);
-        const headers = WEEKDAY_HEADERS.map(h => `<span class="calendar-weekday">${h}</span>`).join("");
-        const cells = grid.weeks.flat().map(cell => this.renderCalendarCell(cell)).join("");
+        const headers = WEEKDAY_HEADERS.map((h) => `<span class="calendar-weekday">${h}</span>`).join("");
+        const cells = grid.weeks
+            .flat()
+            .map((cell) => this.renderCalendarCell(cell))
+            .join("");
         return `
             <div class="session-calendar">
                 <div class="calendar-nav">
@@ -165,7 +147,9 @@ export class SessionHistoryComponent {
     private renderRecentDays(data: GameData, selectedDay: string): string {
         const recent = recentDaysWithData(data, 5);
         if (recent.length === 0) return "";
-        const rows = recent.map(day => `
+        const rows = recent
+            .map(
+                (day) => `
             <button class="recent-day-row ${day.dayKey === selectedDay ? "active" : ""}" data-day="${escapeHtml(day.dayKey)}">
                 <span class="recent-day-dot"></span>
                 <span class="recent-day-label">
@@ -175,7 +159,9 @@ export class SessionHistoryComponent {
                 <span class="recent-day-total">${escapeHtml(day.totalFormatted)}</span>
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
-        `).join("");
+        `
+            )
+            .join("");
         return `
             <div class="recent-days">
                 <h3 class="recent-days-title">Recent days</h3>
@@ -185,20 +171,24 @@ export class SessionHistoryComponent {
     }
 
     private renderDiaryCards(view: DayView): string {
-        const cards = view.sessions.map(card => `
+        const cards = view.sessions
+            .map(
+                (card) => `
             <a class="session-diary-card" href="${escapeHtml(card.detailHref)}">
                 ${posterHtml(card.iconPath, card.gameName, "session-card-poster")}
                 <div class="session-card-info">
                     <div class="session-card-top">
                         <span class="session-card-title">${escapeHtml(card.gameName)}</span>
-                        <span class="hero-status-pill status-${escapeHtml(card.statusSlug)}">${escapeHtml(this.statusLabel(card.statusSlug))}</span>
+                        <span class="hero-status-pill status-${escapeHtml(card.statusSlug)}">${escapeHtml(statusPillLabel(card.statusSlug))}</span>
                     </div>
                     <span class="session-card-range">${escapeHtml(card.timeRange)}</span>
                     <span class="session-card-duration">${escapeHtml(card.durationFormatted)}</span>
                 </div>
                 <i class="fa-solid fa-chevron-right session-card-chevron"></i>
             </a>
-        `).join("");
+        `
+            )
+            .join("");
         return `
             <div class="session-diary">
                 <div class="session-diary-header">
@@ -285,7 +275,9 @@ export class SessionHistoryComponent {
     }
 
     private renderMonthCards(view: MonthView, monthKey: string): string {
-        const cards = view.gamesPlayed.map(game => `
+        const cards = view.gamesPlayed
+            .map(
+                (game) => `
             <a class="month-game-card" href="${escapeHtml(game.detailHref)}">
                 ${posterHtml(game.iconPath, game.gameName, "session-card-poster")}
                 <div class="session-card-info">
@@ -294,7 +286,9 @@ export class SessionHistoryComponent {
                 </div>
                 <i class="fa-solid fa-chevron-right session-card-chevron"></i>
             </a>
-        `).join("");
+        `
+            )
+            .join("");
         return `
             <div class="session-diary">
                 <div class="session-diary-header">
@@ -340,11 +334,17 @@ export class SessionHistoryComponent {
 
     private renderGamesPlayed(games: GamePlayedRow[]): string {
         if (games.length === 0) return "";
-        const rows = games.map(game => {
-            // Custom properties consumed by `.games-played-bar-fill` in common.css.
-            // Built as a plain string so the IDE does not inject/parse it as a CSS ruleset.
-            const barStyle = ["--bar-width:", String(game.percentage), "%;--bar-color:", escapeHtml(game.color)].join("");
-            return `
+        const rows = games
+            .map((game) => {
+                // Custom properties consumed by `.games-played-bar-fill` in common.css.
+                // Built as a plain string so the IDE does not inject/parse it as a CSS ruleset.
+                const barStyle = [
+                    "--bar-width:",
+                    String(game.percentage),
+                    "%;--bar-color:",
+                    escapeHtml(game.color)
+                ].join("");
+                return `
             <div class="session-games-played-row">
                 ${posterHtml(game.iconPath, game.gameName, "games-played-poster")}
                 <div class="games-played-info">
@@ -359,7 +359,8 @@ export class SessionHistoryComponent {
                 <span class="games-played-pct">${game.percentage}%</span>
             </div>
         `;
-        }).join("");
+            })
+            .join("");
         return `
             <div class="session-games-played">
                 <h3 class="session-games-played-title">Games played</h3>
@@ -391,17 +392,6 @@ export class SessionHistoryComponent {
         `;
     }
 
-    private statusLabel(slug: string): string {
-        switch (slug) {
-            case "completed": return "Finished";
-            case "in-progress": return "Playing";
-            case "on-hold": return "On Hold";
-            case "forever": return "Forever";
-            case "dropped": return "Dropped";
-            default: return "Playing";
-        }
-    }
-
     // ---- interaction ---------------------------------------------------------
 
     mount(container: HTMLElement): void {
@@ -420,29 +410,22 @@ export class SessionHistoryComponent {
         const tab = target.closest<HTMLElement>(".session-tab");
         if (tab) {
             const view = tab.getAttribute("data-view");
-            this.navigate(view === "month"
-                ? `view=month&month=${currentMonthKey()}`
-                : `view=day&date=${todayDayKey()}`);
+            this.navigate(tabNavHref(view === "month" ? "month" : "day", this.now()));
             return;
         }
 
+        const state = this.currentState();
+
         const calNav = target.closest<HTMLElement>("[data-cal-month]");
         if (calNav) {
-            // Navigate the displayed calendar month while keeping the selected day.
-            const month = calNav.getAttribute("data-cal-month")!;
-            const selected = this.currentSelectedDay();
-            // Move selection into the shown month only if the current selection is elsewhere is NOT desired;
-            // keep selection, just change what the calendar shows via the date's month proxy:
-            this.navigate(`view=day&date=${selected}&cal=${month}`);
+            // Browse the displayed calendar month while keeping the selected day.
+            this.navigate(dayNavHref.calendar(state, calNav.getAttribute("data-cal-month")!));
             return;
         }
 
         const yearNav = target.closest<HTMLElement>("[data-year]");
         if (yearNav) {
-            const year = yearNav.getAttribute("data-year")!;
-            const month = this.currentSelectedMonth();
-            const mm = month.slice(5);
-            this.navigate(`view=month&month=${year}-${mm}`);
+            this.navigate(monthNavHref.year(state, yearNav.getAttribute("data-year")!));
             return;
         }
 
@@ -451,7 +434,7 @@ export class SessionHistoryComponent {
             const dayKey = day.getAttribute("data-day");
             if (dayKey) {
                 event.preventDefault();
-                this.navigate(`view=day&date=${dayKey}`);
+                this.navigate(dayNavHref.select(dayKey));
             }
             return;
         }
@@ -459,20 +442,20 @@ export class SessionHistoryComponent {
         const month = target.closest<HTMLElement>(".month-card[data-month]");
         if (month) {
             const monthKey = month.getAttribute("data-month");
-            if (monthKey) this.navigate(`view=month&month=${monthKey}`);
+            if (monthKey) this.navigate(monthNavHref.select(monthKey));
             return;
         }
         // Diary/month game cards are plain <a href="#game-detail?..."> — let them navigate natively.
     };
 
-    private currentSelectedDay(): string {
-        const params = new URLSearchParams(window.location.hash.split("?", 2)[1] ?? "");
-        return params.get("date") || todayDayKey();
+    private now(): NavNow {
+        return {today: todayDayKey(), thisMonth: currentMonthKey()};
     }
 
-    private currentSelectedMonth(): string {
-        const params = new URLSearchParams(window.location.hash.split("?", 2)[1] ?? "");
-        return params.get("month") || currentMonthKey();
+    /** Parse the live URL hash into the same ParsedState the render path uses. */
+    private currentState(): ParsedState {
+        const query = typeof window !== "undefined" ? window.location.hash.split("?", 2)[1] : "";
+        return parseSessionHistoryState(query, this.now());
     }
 
     private navigate(query: string): void {

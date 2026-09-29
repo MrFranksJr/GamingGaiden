@@ -64,9 +64,13 @@ function parseGame(value: unknown): Game | null {
 }
 
 function parseSession(value: unknown): Session | null {
-    if (!isRecord(value) || !nonEmptyString(value.game_name) ||
+    if (
+        !isRecord(value) ||
+        !nonEmptyString(value.game_name) ||
         !(finiteNumber(value.start_time) || typeof value.start_time === "string") ||
-        !nonNegativeNumber(value.duration)) return null;
+        !nonNegativeNumber(value.duration)
+    )
+        return null;
     return {game_name: value.game_name, start_time: value.start_time, duration: value.duration};
 }
 
@@ -89,11 +93,16 @@ function parseGamingPC(value: unknown): GamingPC | null {
     };
 }
 
-function parseEntries<T>(values: unknown[], collectionName: string, parser: (value: unknown) => T | null,
-                         warnings: string[]): T[] {
+function parseEntries<T>(
+    values: unknown[],
+    collectionName: string,
+    parser: (value: unknown) => T | null,
+    warnings: string[]
+): T[] {
     const parsed = values.map(parser).filter((value): value is T => value !== null);
     const rejectedCount = values.length - parsed.length;
-    if (rejectedCount > 0) warnings.push(`${collectionName}: ignored ${rejectedCount} invalid entr${rejectedCount === 1 ? "y" : "ies"}.`);
+    if (rejectedCount > 0)
+        warnings.push(`${collectionName}: ignored ${rejectedCount} invalid entr${rejectedCount === 1 ? "y" : "ies"}.`);
     return parsed;
 }
 
@@ -109,8 +118,18 @@ export function validateGameData(value: unknown): ValidatedGameData {
     const data: GameData = {
         schema_version: 1,
         games: parseEntries(requiredArray(value, "games"), "games", parseGame, warnings),
-        session_history: parseEntries(requiredArray(value, "session_history"), "session_history", parseSession, warnings),
-        daily_playtime: parseEntries(requiredArray(value, "daily_playtime"), "daily_playtime", parseDailyPlaytime, warnings),
+        session_history: parseEntries(
+            requiredArray(value, "session_history"),
+            "session_history",
+            parseSession,
+            warnings
+        ),
+        daily_playtime: parseEntries(
+            requiredArray(value, "daily_playtime"),
+            "daily_playtime",
+            parseDailyPlaytime,
+            warnings
+        ),
         gaming_pcs: parseEntries(requiredArray(value, "gaming_pcs"), "gaming_pcs", parseGamingPC, warnings),
         export_date: typeof value.export_date === "string" ? value.export_date : undefined,
         hash: typeof value.hash === "string" ? value.hash : undefined

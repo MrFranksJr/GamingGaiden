@@ -109,21 +109,24 @@ describe("AllGamesComponent", () => {
         const component = new AllGamesComponent();
         const dataWithMissingCover: GameData = {
             ...mockData,
-            games: [{
-                name: "Chrono Trigger",
-                play_time: 120,
-                session_count: 3,
-                status: "finished",
-                completed: "TRUE",
-                icon_path: null
-            }, {
-                name: "Hollow Knight",
-                play_time: 200,
-                session_count: 10,
-                status: "playing",
-                completed: "FALSE",
-                icon_path: ""
-            }]
+            games: [
+                {
+                    name: "Chrono Trigger",
+                    play_time: 120,
+                    session_count: 3,
+                    status: "finished",
+                    completed: "TRUE",
+                    icon_path: null
+                },
+                {
+                    name: "Hollow Knight",
+                    play_time: 200,
+                    session_count: 10,
+                    status: "playing",
+                    completed: "FALSE",
+                    icon_path: ""
+                }
+            ]
         };
 
         document.body.innerHTML = component.render(dataWithMissingCover);
@@ -219,7 +222,9 @@ describe("AllGamesComponent", () => {
 
         // Verify button labels and badges
         const allBtn = document.querySelector<HTMLButtonElement>('.sidebar-filter-btn[data-filter="all"]')!;
-        const inProgressBtn = document.querySelector<HTMLButtonElement>('.sidebar-filter-btn[data-filter="in-progress"]')!;
+        const inProgressBtn = document.querySelector<HTMLButtonElement>(
+            '.sidebar-filter-btn[data-filter="in-progress"]'
+        )!;
         const completedBtn = document.querySelector<HTMLButtonElement>('.sidebar-filter-btn[data-filter="completed"]')!;
         const onHoldBtn = document.querySelector<HTMLButtonElement>('.sidebar-filter-btn[data-filter="on-hold"]')!;
         const foreverBtn = document.querySelector<HTMLButtonElement>('.sidebar-filter-btn[data-filter="forever"]')!;
@@ -234,7 +239,7 @@ describe("AllGamesComponent", () => {
         expect(droppedBtn.querySelector(".filter-badge")?.textContent).toBe("0");
 
         // Verify icons render cleanly without inline colors for monochrome styling
-        filterBtns.forEach(btn => {
+        filterBtns.forEach((btn) => {
             const iconSpan = btn.querySelector(".filter-icon");
             expect(iconSpan).not.toBeNull();
             expect(iconSpan?.getAttribute("style")).toBeNull();

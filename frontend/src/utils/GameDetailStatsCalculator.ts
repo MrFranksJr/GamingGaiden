@@ -1,6 +1,7 @@
 import {Game, Session} from "../types/GameData";
-import {formatPlaytime, toSortableTimestamp} from "./TimeUtils";
+import {formatPlaytime, parseSessionStartOrNull, toSortableTimestamp} from "./TimeUtils";
 import {categorizeGameStatus, formatRelativeTime, getGameInitials, GameStatusCategory} from "./SummaryStatsCalculator";
+import {statusSlug} from "./GameStatus";
 
 export type TimeOfDaySlot = "Morning" | "Afternoon" | "Evening" | "Night";
 
@@ -85,29 +86,11 @@ export interface GameDetailStats {
 }
 
 /**
- * Parses any timestamp representation (seconds number/string, ms number/string, ISO string) into a Date object.
+ * Parses any timestamp (epoch seconds/ms number or string, or ISO/date string)
+ * into a Date, or null when missing/invalid. Delegates to the single epoch
+ * policy in TimeUtils; kept as a re-export so game-detail call sites are stable.
  */
-export function parseSessionDate(startTime: string | number | null | undefined): Date | null {
-    if (startTime === null || startTime === undefined) return null;
-    if (typeof startTime === "number") {
-        if (!Number.isFinite(startTime) || startTime <= 0) return null;
-        const d = startTime < 10000000000 ? new Date(startTime * 1000) : new Date(startTime);
-        return isNaN(d.getTime()) ? null : d;
-    }
-    const str = String(startTime).trim();
-    if (!str) return null;
-    const num = Number(str);
-    if (Number.isFinite(num) && num > 0) {
-        const d = num < 10000000000 ? new Date(num * 1000) : new Date(num);
-        return isNaN(d.getTime()) ? null : d;
-    }
-    const parsed = Date.parse(str);
-    if (Number.isFinite(parsed)) {
-        const d = new Date(parsed);
-        return isNaN(d.getTime()) ? null : d;
-    }
-    return null;
-}
+export const parseSessionDate = parseSessionStartOrNull;
 
 /**
  * Categorizes a local Date hour into Morning (06:00-12:00), Afternoon (12:00-18:00), Evening (18:00-24:00), or Night (00:00-06:00).
@@ -168,10 +151,7 @@ export interface TimelineAxis {
  * Round-number ladder (in minutes) used to pick a human-friendly axis ceiling.
  * Sub-hour values stay minute-based; hour values are multiples of 60.
  */
-const AXIS_LADDER_MINUTES = [
-    5, 10, 15, 20, 30, 45,
-    60, 90, 120, 150, 180, 240, 300, 360, 480, 600, 720
-];
+const AXIS_LADDER_MINUTES = [5, 10, 15, 20, 30, 45, 60, 90, 120, 150, 180, 240, 300, 360, 480, 600, 720];
 
 /**
  * Formats a tick value (minutes) into a compact axis label:
@@ -193,9 +173,7 @@ export function formatTickLabel(minutes: number): string {
  * no positive duration.
  */
 export function computeTimelineAxis(maxDurationMinutes: number): TimelineAxis {
-    const maxDuration = Number.isFinite(maxDurationMinutes) && maxDurationMinutes > 0
-        ? maxDurationMinutes
-        : 0;
+    const maxDuration = Number.isFinite(maxDurationMinutes) && maxDurationMinutes > 0 ? maxDurationMinutes : 0;
 
     // No positive duration: render a stable placeholder axis.
     if (maxDuration <= 0) {
@@ -205,8 +183,7 @@ export function computeTimelineAxis(maxDurationMinutes: number): TimelineAxis {
     }
 
     // Axis ceiling: smallest ladder value >= max duration, else round up to hour.
-    const axisCeiling = AXIS_LADDER_MINUTES.find(v => v >= maxDuration)
-        ?? Math.ceil(maxDuration / 60) * 60;
+    const axisCeiling = AXIS_LADDER_MINUTES.find((v) => v >= maxDuration) ?? Math.ceil(maxDuration / 60) * 60;
 
     // Pick a tick step that yields 3-5 ticks (2-4 intervals), preferring round
     // divisors of the ceiling (60, 30, 15, ...) so labels stay milestone-like.
@@ -233,7 +210,7 @@ function buildTicks(axisCeiling: number, tickStep: number): AxisTick[] {
  */
 function pickTickStep(axisCeiling: number): number {
     const candidates = [15, 30, 60, 120, 180, 240, 300, 360];
-    const evenDivisors = candidates.filter(step => axisCeiling % step === 0);
+    const evenDivisors = candidates.filter((step) => axisCeiling % step === 0);
     for (const step of evenDivisors) {
         const intervals = axisCeiling / step;
         if (intervals >= 2 && intervals <= 4) return step;
@@ -259,30 +236,17 @@ function tickCount(axisCeiling: number, step: number): number {
 }
 
 /**
- * Returns slug for status styling (e.g. "completed", "in-progress", "on-hold", "forever", "dropped").
+ * Slug for a status category. Re-exported from the GameStatus module so the
+ * game-detail and session-history call sites keep one import; the slug rule
+ * lives in one place now.
  */
-export function getStatusSlug(category: GameStatusCategory): string {
-    switch (category) {
-        case "Completed":
-            return "completed";
-        case "In Progress":
-            return "in-progress";
-        case "On Hold":
-            return "on-hold";
-        case "Forever":
-            return "forever";
-        case "Dropped":
-            return "dropped";
-        default:
-            return "in-progress";
-    }
-}
+export const getStatusSlug = statusSlug;
 
-const TIME_OF_DAY_CONFIG: Array<{ slot: TimeOfDaySlot; label: string; hoursLabel: string; color: string }> = [
-    {slot: "Morning", label: "Morning", hoursLabel: "06:00 – 12:00", color: "#f59e0b"},    // Amber
-    {slot: "Afternoon", label: "Afternoon", hoursLabel: "12:00 – 18:00", color: "#3b82f6"},  // Blue
-    {slot: "Evening", label: "Evening", hoursLabel: "18:00 – 24:00", color: "#8b5cf6"},    // Purple
-    {slot: "Night", label: "Night", hoursLabel: "00:00 – 06:00", color: "#06b6d4"}         // Cyan
+const TIME_OF_DAY_CONFIG: Array<{slot: TimeOfDaySlot; label: string; hoursLabel: string; color: string}> = [
+    {slot: "Morning", label: "Morning", hoursLabel: "06:00 – 12:00", color: "#f59e0b"}, // Amber
+    {slot: "Afternoon", label: "Afternoon", hoursLabel: "12:00 – 18:00", color: "#3b82f6"}, // Blue
+    {slot: "Evening", label: "Evening", hoursLabel: "18:00 – 24:00", color: "#8b5cf6"}, // Purple
+    {slot: "Night", label: "Night", hoursLabel: "00:00 – 06:00", color: "#06b6d4"} // Cyan
 ];
 
 const DAYS_OF_WEEK = [
@@ -326,7 +290,7 @@ export function calculateGameDetailStats(
     }
 
     // Filter valid sessions belonging to this game
-    const gameSessions = allSessions.filter(s => s && s.game_name === game.name);
+    const gameSessions = allSessions.filter((s) => s && s.game_name === game.name);
 
     // Sort chronologically ascending for timeline
     const chronologicalSessions = [...gameSessions].sort((a, b) => {
@@ -335,7 +299,10 @@ export function calculateGameDetailStats(
 
     // Total Play Time
     const rawPlayTime = Number.isFinite(game.play_time) ? Math.max(0, game.play_time) : 0;
-    const sessionsPlayTime = gameSessions.reduce((sum, s) => sum + (Number.isFinite(s.duration) ? Math.max(0, s.duration) : 0), 0);
+    const sessionsPlayTime = gameSessions.reduce(
+        (sum, s) => sum + (Number.isFinite(s.duration) ? Math.max(0, s.duration) : 0),
+        0
+    );
     // Use game.play_time if available and positive, otherwise fallback to sum of sessions
     const totalPlayTimeMinutes = rawPlayTime > 0 ? rawPlayTime : sessionsPlayTime;
     const totalPlayTimeFormatted = formatPlaytime(totalPlayTimeMinutes);
@@ -388,7 +355,7 @@ export function calculateGameDetailStats(
     }
 
     // Time of Day aggregation
-    const timeOfDayCounts: Record<TimeOfDaySlot, { count: number; minutes: number }> = {
+    const timeOfDayCounts: Record<TimeOfDaySlot, {count: number; minutes: number}> = {
         Morning: {count: 0, minutes: 0},
         Afternoon: {count: 0, minutes: 0},
         Evening: {count: 0, minutes: 0},
@@ -399,8 +366,8 @@ export function calculateGameDetailStats(
     let weekdayMinutes = 0;
     let weekendMinutes = 0;
 
-    const dayCountsMap = new Map<number, { count: number; minutes: number }>();
-    DAYS_OF_WEEK.forEach(d => dayCountsMap.set(d.index, {count: 0, minutes: 0}));
+    const dayCountsMap = new Map<number, {count: number; minutes: number}>();
+    DAYS_OF_WEEK.forEach((d) => dayCountsMap.set(d.index, {count: 0, minutes: 0}));
 
     for (const s of gameSessions) {
         const date = parseSessionDate(s.start_time);
@@ -425,7 +392,7 @@ export function calculateGameDetailStats(
         }
     }
 
-    const timeOfDay: TimeOfDayItem[] = TIME_OF_DAY_CONFIG.map(cfg => {
+    const timeOfDay: TimeOfDayItem[] = TIME_OF_DAY_CONFIG.map((cfg) => {
         const slotData = timeOfDayCounts[cfg.slot];
         const percentage = totalSlotSessions > 0 ? Math.round((slotData.count / totalSlotSessions) * 100) : 0;
         return {
@@ -439,7 +406,7 @@ export function calculateGameDetailStats(
         };
     });
 
-    const dayOfWeek: DayOfWeekItem[] = DAYS_OF_WEEK.map(d => {
+    const dayOfWeek: DayOfWeekItem[] = DAYS_OF_WEEK.map((d) => {
         const stats = dayCountsMap.get(d.index) || {count: 0, minutes: 0};
         const percentage = totalSlotSessions > 0 ? Math.round((stats.count / totalSlotSessions) * 100) : 0;
         return {
@@ -457,8 +424,11 @@ export function calculateGameDetailStats(
     const weekendPercentage = totalWeekMinutes > 0 ? Math.round((weekendMinutes / totalWeekMinutes) * 100) : 0;
 
     // Timeline Points
-    const maxTimelineDuration = Math.max(1, ...chronologicalSessions.map(s => Number.isFinite(s.duration) ? s.duration : 0));
-    const timeline: TimelineSessionPoint[] = chronologicalSessions.map(s => {
+    const maxTimelineDuration = Math.max(
+        1,
+        ...chronologicalSessions.map((s) => (Number.isFinite(s.duration) ? s.duration : 0))
+    );
+    const timeline: TimelineSessionPoint[] = chronologicalSessions.map((s) => {
         const parsed = parseSessionDate(s.start_time);
         const dur = Number.isFinite(s.duration) ? Math.max(0, s.duration) : 0;
         const validDate = parsed || new Date(0);
@@ -467,7 +437,9 @@ export function calculateGameDetailStats(
             startTime: s.start_time,
             date: validDate,
             dateFormatted: parsed ? formatDateOnly(parsed) : String(s.start_time),
-            timeFormatted: parsed ? `${String(parsed.getHours()).padStart(2, "0")}:${String(parsed.getMinutes()).padStart(2, "0")}` : "",
+            timeFormatted: parsed
+                ? `${String(parsed.getHours()).padStart(2, "0")}:${String(parsed.getMinutes()).padStart(2, "0")}`
+                : "",
             durationMinutes: dur,
             durationFormatted: formatPlaytime(dur),
             relativeHeight: Math.max(0.1, dur / maxTimelineDuration) // At least 10% height for visual clarity
@@ -475,7 +447,7 @@ export function calculateGameDetailStats(
     });
 
     // Recent Sessions (Descending chronological for the recent list)
-    const recentSessions: DetailedSessionItem[] = [...chronologicalSessions].reverse().map(s => {
+    const recentSessions: DetailedSessionItem[] = [...chronologicalSessions].reverse().map((s) => {
         const parsed = parseSessionDate(s.start_time);
         const dur = Number.isFinite(s.duration) ? Math.max(0, s.duration) : 0;
         return {

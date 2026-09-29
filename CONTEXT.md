@@ -24,3 +24,11 @@ _Avoid_: PC, machine, computer (unqualified), build (a "build" is the hardware s
 **Period insight**:
 A single line at the bottom of a Session History period sidebar (a day or a month). It is a *hybrid*: when the period genuinely earns one it shows a **milestone** (an all-time record, or a top rank among active periods), otherwise it shows an always-true, non-superlative **"Did you know?"** factoid (ratio versus the active average, most-played game, distinct-game count, etc.), falling back to a neutral "solid session" line only when nothing else is true. Distinct from the Summary screen's **Milestone Highlight** (library-completion progress), though both reuse the same `.milestone-card` visual shell.
 _Avoid_: Blurb, banner, achievement. (A "milestone" is now only the top tier of a period insight, not the whole feature.)
+
+**Session start_time (epoch policy)**:
+A session's `start_time` is stored as a Unix epoch. The single parser (`TimeUtils.parseSessionStart`) treats a numeric value **below 1e10 as SECONDS** (×1000) and **at or above 1e10 as MILLISECONDS**; non-positive or unparseable input falls back to the epoch (1970-01-01). Legacy/mock data may instead use a human date string ("2023-01-01 10:00"), parsed via `Date.parse`. All real exported data uses 10-digit seconds. There must be exactly one parser: an earlier second copy (`GameDetailStatsCalculator.parseSessionDate`) used a different rule and is now a re-export, so the seconds/ms decision lives in one place.
+_Avoid_: adding a second timestamp parser with its own seconds/ms heuristic.
+
+**Games-played ranking**:
+The ranked "games played" list shared by Session History (per period) and My Rigs (per rig). One module (`GamesPlayedRanking`) owns the colour palette and the aggregate→rank→colour→percentage→row logic; callers supply pre-summed `{gameName, minutes, iconPath}` and receive ranked rows. Colour is assigned by **playtime rank index**, so a game's colour is not stable across different periods or rigs.
+_Avoid_: re-declaring the palette per screen, or cross-importing it from another screen's module.

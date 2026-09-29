@@ -49,7 +49,7 @@ describe("buildRigList", () => {
 
         const rigs = buildRigList(data);
 
-        expect(rigs.map(r => r.name)).toEqual(["CURRENT", "RECENT", "OLDEST"]);
+        expect(rigs.map((r) => r.name)).toEqual(["CURRENT", "RECENT", "OLDEST"]);
     });
 
     it("marks the in-use rig active and others retired", () => {
@@ -59,8 +59,8 @@ describe("buildRigList", () => {
         ]);
 
         const rigs = buildRigList(data);
-        const current = rigs.find(r => r.name === "CURRENT")!;
-        const old = rigs.find(r => r.name === "OLD")!;
+        const current = rigs.find((r) => r.name === "CURRENT")!;
+        const old = rigs.find((r) => r.name === "OLD")!;
 
         expect(current.isInUse).toBe(true);
         expect(old.isInUse).toBe(false);
@@ -84,8 +84,10 @@ describe("buildRigDetail", () => {
         // play_time (120 + 60 = 180). The stored total must win.
         const data = dataOf(
             [pc({name: "MINWU", total_play_time: 500})],
-            [game("A", {gaming_pc_name: "MINWU", play_time: 120, session_count: 3}),
-             game("B", {gaming_pc_name: "MINWU", play_time: 60, session_count: 2})]
+            [
+                game("A", {gaming_pc_name: "MINWU", play_time: 120, session_count: 3}),
+                game("B", {gaming_pc_name: "MINWU", play_time: 60, session_count: 2})
+            ]
         );
 
         const detail = buildRigDetail(data, "MINWU")!;
@@ -96,9 +98,11 @@ describe("buildRigDetail", () => {
     it("counts games and sessions by aggregating the games tagged to the rig", () => {
         const data = dataOf(
             [pc({name: "MINWU", total_play_time: 500})],
-            [game("A", {gaming_pc_name: "MINWU", session_count: 3}),
-             game("B", {gaming_pc_name: "MINWU", session_count: 2}),
-             game("C", {gaming_pc_name: "OTHER", session_count: 9})]
+            [
+                game("A", {gaming_pc_name: "MINWU", session_count: 3}),
+                game("B", {gaming_pc_name: "MINWU", session_count: 2}),
+                game("C", {gaming_pc_name: "OTHER", session_count: 9})
+            ]
         );
 
         const detail = buildRigDetail(data, "MINWU")!;
@@ -118,10 +122,7 @@ describe("buildRigDetail", () => {
     });
 
     it("does not attribute untagged games to any rig", () => {
-        const data = dataOf(
-            [pc({name: "MINWU"})],
-            [game("Untagged", {gaming_pc_name: null, session_count: 7})]
-        );
+        const data = dataOf([pc({name: "MINWU"})], [game("Untagged", {gaming_pc_name: null, session_count: 7})]);
 
         expect(buildRigDetail(data, "MINWU")!.gamesPlayed).toBe(0);
     });
@@ -222,14 +223,16 @@ describe("buildRigDetail games list", () => {
     it("ranks the rig's games by play_time descending with a detail href and icon", () => {
         const data = dataOf(
             [pc({name: "MINWU", total_play_time: 300})],
-            [game("Small", {gaming_pc_name: "MINWU", play_time: 60, icon_path: "resources/images/cache/Small.png"}),
-             game("Big", {gaming_pc_name: "MINWU", play_time: 240}),
-             game("Elsewhere", {gaming_pc_name: "OTHER", play_time: 999})]
+            [
+                game("Small", {gaming_pc_name: "MINWU", play_time: 60, icon_path: "resources/images/cache/Small.png"}),
+                game("Big", {gaming_pc_name: "MINWU", play_time: 240}),
+                game("Elsewhere", {gaming_pc_name: "OTHER", play_time: 999})
+            ]
         );
 
         const list = buildRigDetail(data, "MINWU")!.games;
 
-        expect(list.map(g => g.gameName)).toEqual(["Big", "Small"]);
+        expect(list.map((g) => g.gameName)).toEqual(["Big", "Small"]);
         expect(list[0].detailHref).toBe("#game-detail?name=Big");
         expect(list[1].iconPath).toBe("resources/images/cache/Small.png");
     });
@@ -237,8 +240,10 @@ describe("buildRigDetail games list", () => {
     it("computes each game's share of the rig's total game playtime", () => {
         const data = dataOf(
             [pc({name: "MINWU", total_play_time: 300})],
-            [game("Big", {gaming_pc_name: "MINWU", play_time: 240}),
-             game("Small", {gaming_pc_name: "MINWU", play_time: 60})]
+            [
+                game("Big", {gaming_pc_name: "MINWU", play_time: 240}),
+                game("Small", {gaming_pc_name: "MINWU", play_time: 60})
+            ]
         );
 
         const list = buildRigDetail(data, "MINWU")!.games;
@@ -249,11 +254,8 @@ describe("buildRigDetail games list", () => {
     });
 
     it("includes a comma-tagged game in the rig's games list", () => {
-        const data = dataOf(
-            [pc({name: "OLDPC"})],
-            [game("Shared", {gaming_pc_name: "MINWU, OLDPC", play_time: 120})]
-        );
+        const data = dataOf([pc({name: "OLDPC"})], [game("Shared", {gaming_pc_name: "MINWU, OLDPC", play_time: 120})]);
 
-        expect(buildRigDetail(data, "OLDPC")!.games.map(g => g.gameName)).toEqual(["Shared"]);
+        expect(buildRigDetail(data, "OLDPC")!.games.map((g) => g.gameName)).toEqual(["Shared"]);
     });
 });

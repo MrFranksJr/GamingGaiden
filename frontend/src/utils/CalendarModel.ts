@@ -5,16 +5,30 @@
  */
 
 const MONTH_NAMES = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
 ];
+
+// Indexed by JS Date.getDay() (0=Sunday..6=Saturday). Single owner of weekday
+// names so screens don't re-declare their own arrays.
+const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 function pad2(n: number): string {
     return n < 10 ? `0${n}` : `${n}`;
 }
 
 export interface CalendarCell {
-    dayKey: string;   // "" for blank padding cells
+    dayKey: string; // "" for blank padding cells
     dayNumber: number; // 0 for blank padding cells
     inMonth: boolean;
     hasData: boolean;
@@ -70,6 +84,16 @@ export function monthShortName(month: number): string {
 
 export function monthNameFull(month: number): string {
     return MONTH_NAMES[month - 1] ?? "";
+}
+
+/** Full weekday name for a JS Date.getDay() index (0=Sunday..6=Saturday). */
+export function weekdayNameFull(dayIndex: number): string {
+    return WEEKDAY_NAMES[dayIndex] ?? "";
+}
+
+/** Short weekday name ("Sun".."Sat") for a JS Date.getDay() index. */
+export function weekdayNameShort(dayIndex: number): string {
+    return WEEKDAY_NAMES[dayIndex]?.slice(0, 3) ?? "";
 }
 
 export function shiftMonth(monthKey: string, delta: number): string {

@@ -13,13 +13,9 @@ describe("local-file startup contract", () => {
     it("loads data.js before the bundled application", () => {
         const html = readFileSync(resolve("index.html"), "utf8");
         const document = new DOMParser().parseFromString(html, "text/html");
-        const scripts = Array.from(document.querySelectorAll("script")).map(script => script.getAttribute("src"));
+        const scripts = Array.from(document.querySelectorAll("script")).map((script) => script.getAttribute("src"));
 
-        expect(scripts).toEqual([
-            "./resources/data.js",
-            "./resources/route.js",
-            "./resources/js/app.js"
-        ]);
+        expect(scripts).toEqual(["./resources/data.js", "./resources/route.js", "./resources/js/app.js"]);
     });
 
     it("renders the controller logo next to the title in the sidebar header", () => {
@@ -40,7 +36,9 @@ describe("local-file startup contract", () => {
     it("includes font-awesome stylesheet and angles-left icon for sidebar toggle", () => {
         const html = readFileSync(resolve("index.html"), "utf8");
         const document = new DOMParser().parseFromString(html, "text/html");
-        const stylesheets = Array.from(document.querySelectorAll("link[rel='stylesheet']")).map(link => link.getAttribute("href"));
+        const stylesheets = Array.from(document.querySelectorAll("link[rel='stylesheet']")).map((link) =>
+            link.getAttribute("href")
+        );
         expect(stylesheets).toContain("./resources/fontawesome/css/all.min.css");
 
         const toggleBtn = document.getElementById("sidebar-toggle");
@@ -63,7 +61,7 @@ describe("local-file startup contract", () => {
         const html = readFileSync(resolve("index.html"), "utf8");
         const document = new DOMParser().parseFromString(html, "text/html");
         const hrefs = Array.from(document.querySelectorAll("link[rel='stylesheet']"))
-            .map(link => link.getAttribute("href"))
+            .map((link) => link.getAttribute("href"))
             .filter((href): href is string => href !== null);
 
         expect(hrefs.length).toBeGreaterThan(0);
@@ -79,8 +77,7 @@ describe("local-file startup contract", () => {
         // colors are defined in both, so each should appear at least twice.
         const commonCss = readFileSync(resolve("resources/css/common.css"), "utf8");
 
-        const countOccurrences = (haystack: string, needle: string): number =>
-            haystack.split(needle).length - 1;
+        const countOccurrences = (haystack: string, needle: string): number => haystack.split(needle).length - 1;
 
         for (const psVar of ["--ps-triangle-green", "--ps-circle-red", "--ps-cross-blue", "--ps-square-pink"]) {
             // Once in the light/:root block, once in the [data-theme="dark"] block.
@@ -157,7 +154,7 @@ describe("local-file startup contract", () => {
 
         window.eval(bundle);
         document.dispatchEvent(new Event("DOMContentLoaded"));
-        await new Promise(resolvePromise => setTimeout(resolvePromise, 0));
+        await new Promise((resolvePromise) => setTimeout(resolvePromise, 0));
 
         expect(document.getElementById("summary-view")).not.toBeNull();
         expect(document.getElementById("total-games-value")?.textContent).toBe(String(expectedGameCount));

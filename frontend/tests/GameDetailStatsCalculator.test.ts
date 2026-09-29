@@ -44,7 +44,7 @@ describe("GameDetailStatsCalculator", () => {
             // Max 147m -> ceiling 150m; ticks should be round milestones, not 147/74.
             const axis = computeTimelineAxis(147);
             expect(axis.axisCeiling).toBe(150);
-            const labels = axis.ticks.map(t => t.label);
+            const labels = axis.ticks.map((t) => t.label);
             expect(labels).not.toContain("147m");
             expect(labels[0]).toBe("0");
             expect(labels[labels.length - 1]).toBe("2h30");
@@ -209,10 +209,10 @@ describe("GameDetailStatsCalculator", () => {
         it("calculates time-of-day distributions and weekday/weekend split", () => {
             const stats = calculateGameDetailStats(sampleGame, sampleSessions);
 
-            const morning = stats.timeOfDay.find(t => t.slot === "Morning");
-            const afternoon = stats.timeOfDay.find(t => t.slot === "Afternoon");
-            const evening = stats.timeOfDay.find(t => t.slot === "Evening");
-            const night = stats.timeOfDay.find(t => t.slot === "Night");
+            const morning = stats.timeOfDay.find((t) => t.slot === "Morning");
+            const afternoon = stats.timeOfDay.find((t) => t.slot === "Afternoon");
+            const evening = stats.timeOfDay.find((t) => t.slot === "Evening");
+            const night = stats.timeOfDay.find((t) => t.slot === "Night");
 
             expect(morning?.count).toBe(1);
             expect(afternoon?.count).toBe(1);

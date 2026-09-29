@@ -16,9 +16,9 @@ export class SummaryComponent {
             return "<p>No data available for summary.</p>";
         }
 
-        const validGames = data.games.filter(game => game !== null);
+        const validGames = data.games.filter((game) => game !== null);
         if (validGames.length === 0 && data.games.length > 0) {
-            return "<div id=\"error-message\"><h2>Error</h2><p>Data contains invalid entries.</p></div>";
+            return '<div id="error-message"><h2>Error</h2><p>Data contains invalid entries.</p></div>';
         }
 
         const metrics = SummaryStatsCalculator.compute(data);
@@ -27,10 +27,13 @@ export class SummaryComponent {
         const {stats, statusBreakdown, topGames, recentActivity, milestone} = metrics;
 
         // Render Delta Badges Helper
-        const renderDelta = (delta?: {
-            text: string;
-            type: "positive" | "negative" | "neutral"
-        }, idPrefix?: string) => {
+        const renderDelta = (
+            delta?: {
+                text: string;
+                type: "positive" | "negative" | "neutral";
+            },
+            idPrefix?: string
+        ) => {
             if (!delta) return "";
             const idAttr = idPrefix ? ` id="${idPrefix}-delta"` : "";
             return `<span class="stat-delta ${delta.type}"${idAttr}>${escapeHtml(delta.text)}</span>`;

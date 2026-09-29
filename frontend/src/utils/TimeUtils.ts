@@ -17,23 +17,47 @@ export function formatPlaytimeCompact(minutes: number): string {
 }
 
 /**
- * Parses a session start_time into a Date.
+ * Parses a session start_time into a Date, with one explicit epoch policy.
  *
  * Real data stores start_time as Unix epoch SECONDS (sometimes as a numeric
  * string). Legacy/mock data uses human date strings like "2023-01-01 10:00".
- * Numbers and all-numeric strings are treated as epoch seconds; everything
- * else is parsed as a date string.
+ * Epoch policy: a numeric value < 1e10 is treated as SECONDS (×1000), a value
+ * >= 1e10 as MILLISECONDS. Non-positive or unparseable input falls back to the
+ * epoch (new Date(0)) so callers never see an Invalid Date.
  */
 export function parseSessionStart(value: number | string): Date {
+    return parseEpoch(value) ?? new Date(0);
+}
+
+/**
+ * Nullable variant of the same policy: returns null for missing/invalid input
+ * instead of the epoch. Use where "no date" must be distinguishable from 1970.
+ */
+export function parseSessionStartOrNull(value: number | string | null | undefined): Date | null {
+    if (value === null || value === undefined) return null;
+    return parseEpoch(value);
+}
+
+const EPOCH_SECONDS_CEILING = 1e10;
+
+function parseEpoch(value: number | string): Date | null {
     if (typeof value === "number") {
-        return new Date((Number.isFinite(value) ? value : 0) * 1000);
+        return epochNumberToDate(value);
     }
     const trimmed = value.trim();
+    if (!trimmed) return null;
     if (/^\d+$/.test(trimmed)) {
-        return new Date(Number(trimmed) * 1000);
+        return epochNumberToDate(Number(trimmed));
     }
     const parsed = Date.parse(trimmed);
-    return new Date(Number.isFinite(parsed) ? parsed : 0);
+    return Number.isFinite(parsed) ? new Date(parsed) : null;
+}
+
+function epochNumberToDate(value: number): Date | null {
+    if (!Number.isFinite(value) || value <= 0) return null;
+    const millis = value < EPOCH_SECONDS_CEILING ? value * 1000 : value;
+    const date = new Date(millis);
+    return isNaN(date.getTime()) ? null : date;
 }
 
 function pad2(n: number): string {

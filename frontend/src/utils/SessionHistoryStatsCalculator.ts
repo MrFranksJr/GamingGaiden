@@ -9,47 +9,29 @@ import {
 } from "./TimeUtils";
 import {categorizeGameStatus} from "./SummaryStatsCalculator";
 import {getStatusSlug} from "./GameDetailStatsCalculator";
-import {monthNameFull, yearOf} from "./CalendarModel";
+import {monthNameFull, weekdayNameFull, yearOf} from "./CalendarModel";
+import {GAMES_PLAYED_PALETTE, GamePlayedRow, rankGamesPlayed} from "./GamesPlayedRanking";
 
 /**
- * Per-game bar colors for the Session History sidebar. Reuses the exact
- * palette from summary/BubbleGraphComponent.ts so the two screens look
- * consistent. Assignment is INDEX-BASED (by playtime rank within the
- * selected day/month), mirroring the bubble graph — a game's color is
- * therefore not stable across different days. See docs/features/SessionHistoryPage.md.
+ * Per-game bar colours for the Session History sidebar. Re-exported from the
+ * shared games-played ranking module so both this screen and My Rigs draw from
+ * one palette. Assignment is INDEX-BASED by playtime rank within the selected
+ * day/month, so a game's colour is not stable across periods.
+ * See docs/features/SessionHistoryPage.md.
  */
-export const SESSION_COLOR_PALETTE = [
-    "#6366f1", // Indigo
-    "#8b5cf6", // Purple
-    "#38bdf8", // Sky blue
-    "#10b981", // Emerald
-    "#f59e0b", // Amber
-    "#ec4899", // Pink
-    "#14b8a6", // Teal
-    "#a855f7", // Violet
-    "#06b6d4", // Cyan
-    "#f43f5e"  // Rose
-];
+export const SESSION_COLOR_PALETTE = GAMES_PLAYED_PALETTE;
+
+export type {GamePlayedRow};
 
 export interface DiaryCard {
     gameName: string;
     iconPath: string | null;
     statusSlug: string;
-    timeRange: string;        // "HH:MM–HH:MM"
+    timeRange: string; // "HH:MM–HH:MM"
     durationMinutes: number;
     durationFormatted: string; // compact "2h 0m"
-    detailHref: string;        // "#game-detail?name=..."
+    detailHref: string; // "#game-detail?name=..."
     sortKey: number;
-}
-
-export interface GamePlayedRow {
-    gameName: string;
-    iconPath: string | null;
-    minutes: number;
-    formatted: string;
-    percentage: number; // rounded integer 0..100
-    color: string;
-    detailHref: string;
 }
 
 export interface PeriodStats {
@@ -64,7 +46,7 @@ export interface PeriodStats {
 export interface DayView {
     dayKey: string;
     isEmpty: boolean;
-    sessions: DiaryCard[];      // one per session (diary mode)
+    sessions: DiaryCard[]; // one per session (diary mode)
     gamesPlayed: GamePlayedRow[]; // aggregated per game
     totalMinutes: number;
     stats: PeriodStats;
@@ -121,23 +103,17 @@ function aggregateGames(sessions: Session[], games: Map<string, Game>): GamePlay
         const minutes = safeDuration(session.duration);
         totals.set(session.game_name, (totals.get(session.game_name) ?? 0) + minutes);
     }
-    const totalMinutes = Array.from(totals.values()).reduce((sum, m) => sum + m, 0);
-
-    return Array.from(totals.entries())
-        .sort((a, b) => (b[1] - a[1]) || a[0].localeCompare(b[0]))
-        .map(([gameName, minutes], index) => ({
+    return rankGamesPlayed(
+        Array.from(totals.entries()).map(([gameName, minutes]) => ({
             gameName,
-            iconPath: games.get(gameName)?.icon_path ?? null,
             minutes,
-            formatted: formatPlaytimeCompact(minutes),
-            percentage: totalMinutes > 0 ? Math.round((minutes / totalMinutes) * 100) : 0,
-            color: SESSION_COLOR_PALETTE[index % SESSION_COLOR_PALETTE.length],
-            detailHref: detailHref(gameName)
-        }));
+            iconPath: games.get(gameName)?.icon_path ?? null
+        }))
+    );
 }
 
 function computeStats(sessions: Session[]): PeriodStats {
-    const distinctGames = new Set(sessions.map(s => s.game_name));
+    const distinctGames = new Set(sessions.map((s) => s.game_name));
     const sessionCount = sessions.length;
     const totalMinutes = sessions.reduce((sum, s) => sum + safeDuration(s.duration), 0);
     const avgSessionMinutes = sessionCount > 0 ? Math.round(totalMinutes / sessionCount) : 0;
@@ -154,10 +130,10 @@ function computeStats(sessions: Session[]): PeriodStats {
 export function buildDayView(data: GameData, selectedDayKey: string): DayView {
     const games = gameLookup(data);
     const daySessions = validSessions(data)
-        .filter(session => dayKey(session.start_time) === selectedDayKey)
+        .filter((session) => dayKey(session.start_time) === selectedDayKey)
         .sort((a, b) => toSortableTimestamp(a.start_time) - toSortableTimestamp(b.start_time));
 
-    const cards: DiaryCard[] = daySessions.map(session => {
+    const cards: DiaryCard[] = daySessions.map((session) => {
         const minutes = safeDuration(session.duration);
         return {
             gameName: session.game_name,
@@ -184,8 +160,7 @@ export function buildDayView(data: GameData, selectedDayKey: string): DayView {
 
 export function buildMonthView(data: GameData, selectedMonthKey: string): MonthView {
     const games = gameLookup(data);
-    const monthSessions = validSessions(data)
-        .filter(session => monthKey(session.start_time) === selectedMonthKey);
+    const monthSessions = validSessions(data).filter((session) => monthKey(session.start_time) === selectedMonthKey);
 
     const stats = computeStats(monthSessions);
     return {
@@ -256,14 +231,14 @@ export type InsightType = "record" | "rank" | "factoid" | "neutral";
 
 export interface MilestoneInsight {
     type: InsightType;
-    icon: string;      // Font Awesome class, e.g. "fa-trophy"
-    headline: string;  // short bold line
-    message: string;   // sentence with the emphasized values
+    icon: string; // Font Awesome class, e.g. "fa-trophy"
+    headline: string; // short bold line
+    message: string; // sentence with the emphasized values
 }
 
 /** A day rank is a milestone only if it is within the top N AND the top percentile. */
 export const RANK_TOP_N_DAY = 3;
-export const RANK_TOP_PCT_DAY = 0.10;
+export const RANK_TOP_PCT_DAY = 0.1;
 /** A month rank is a milestone only at #1 (top-3-of-~12 is not brag-worthy). */
 export const RANK_TOP_N_MONTH = 1;
 /** "Did you know?" ratio factoid bands, relative to the active average. */
@@ -278,8 +253,6 @@ const ICON_BY_TYPE: Record<InsightType, string> = {
     factoid: "fa-circle-info",
     neutral: "fa-gamepad"
 };
-
-const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 interface Candidate {
     tier: number; // lower = higher priority (0 = milestone, 1 = factoid, 2 = neutral)
@@ -312,7 +285,7 @@ function activePeriodTotals(sessions: Session[], keyOf: (s: Session) => string, 
     const maxMinutes = values.reduce((max, v) => Math.max(max, v), 0);
     const sumMinutes = values.reduce((sum, v) => sum + v, 0);
     const average = activeCount > 0 ? sumMinutes / activeCount : 0;
-    const rank = 1 + values.filter(v => v > selectedMinutes).length;
+    const rank = 1 + values.filter((v) => v > selectedMinutes).length;
     return {values, activeCount, selectedMinutes, maxMinutes, average, rank};
 }
 
@@ -328,16 +301,28 @@ function ratioText(ratio: number): string {
  * we pick one at RANDOM on every call — the factoid changes on each refresh,
  * while a genuine milestone stays stable.
  */
-function selectInsight(candidates: Candidate[]): Candidate {
+function selectInsight(candidates: Candidate[], pick: InsightPicker = randomPick): Candidate {
     const bestTier = candidates.reduce((min, c) => Math.min(min, c.tier), Number.POSITIVE_INFINITY);
-    const inTier = candidates.filter(c => c.tier === bestTier);
-    return inTier[Math.floor(Math.random() * inTier.length)];
+    const inTier = candidates.filter((c) => c.tier === bestTier);
+    return pick(inTier);
 }
+
+/**
+ * Chooses one candidate from the best-tier list. Injectable so tests can render
+ * a deterministic insight; production uses {@link randomPick} so the "Did you
+ * know?" factoid varies on each refresh.
+ */
+export type InsightPicker = (candidates: Candidate[]) => Candidate;
+
+const randomPick: InsightPicker = (candidates) => candidates[Math.floor(Math.random() * candidates.length)];
+
+/** Deterministic picker (always the first best-tier candidate) for tests/seams. */
+export const firstInsightPick: InsightPicker = (candidates) => candidates[0];
 
 /** Per-period per-game aggregate used for the "most-played game" / variety factoids. */
 function periodGames(data: GameData, keyOf: (s: Session) => string, selectedKey: string): GamePlayedRow[] {
     const games = gameLookup(data);
-    const periodSessions = validSessions(data).filter(session => keyOf(session) === selectedKey);
+    const periodSessions = validSessions(data).filter((session) => keyOf(session) === selectedKey);
     return aggregateGames(periodSessions, games);
 }
 
@@ -345,25 +330,33 @@ function finish(chosen: Candidate): MilestoneInsight {
     return {type: chosen.type, icon: ICON_BY_TYPE[chosen.type], headline: chosen.headline, message: chosen.message};
 }
 
-export function buildDayInsight(data: GameData, selectedDayKey: string): MilestoneInsight | null {
-    const t = activePeriodTotals(validSessions(data), s => dayKey(s.start_time), selectedDayKey);
+export function buildDayInsight(
+    data: GameData,
+    selectedDayKey: string,
+    pick: InsightPicker = randomPick
+): MilestoneInsight | null {
+    const t = activePeriodTotals(validSessions(data), (s) => dayKey(s.start_time), selectedDayKey);
     if (t.selectedMinutes <= 0) return null; // empty period -> no card
 
     const total = formatPlaytimeCompact(t.selectedMinutes);
-    const games = periodGames(data, s => dayKey(s.start_time), selectedDayKey);
+    const games = periodGames(data, (s) => dayKey(s.start_time), selectedDayKey);
     const candidates: Candidate[] = [];
 
     // --- Tier 0: milestone ---
     if (t.selectedMinutes === t.maxMinutes && t.activeCount >= 2) {
         candidates.push({
-            tier: 0, type: "record", headline: "A personal best!",
+            tier: 0,
+            type: "record",
+            headline: "A personal best!",
             message: `${total} in a single day — your biggest gaming day on record.`
         });
     } else {
         const topPct = t.activeCount > 0 ? t.rank / t.activeCount : 1;
         if (t.rank <= RANK_TOP_N_DAY && topPct <= RANK_TOP_PCT_DAY) {
             candidates.push({
-                tier: 0, type: "rank", headline: "Among the year's best!",
+                tier: 0,
+                type: "rank",
+                headline: "Among the year's best!",
                 message: `The #${t.rank} biggest gaming day of ${yearOf(selectedDayKey)} — ${total} of play.`
             });
         }
@@ -373,95 +366,163 @@ export function buildDayInsight(data: GameData, selectedDayKey: string): Milesto
     if (t.average > 0) {
         const ratio = t.selectedMinutes / t.average;
         if (ratio >= RATIO_ABOVE) {
-            candidates.push({tier: 1, type: "factoid", headline: "Did you know?",
-                message: `You played ${ratioText(ratio)}× more than a typical gaming day.`});
+            candidates.push({
+                tier: 1,
+                type: "factoid",
+                headline: "Did you know?",
+                message: `You played ${ratioText(ratio)}× more than a typical gaming day.`
+            });
         } else if (ratio <= RATIO_BELOW) {
-            candidates.push({tier: 1, type: "factoid", headline: "Did you know?",
-                message: `A lighter session — about ${ratioText(ratio)}× a typical gaming day.`});
+            candidates.push({
+                tier: 1,
+                type: "factoid",
+                headline: "Did you know?",
+                message: `A lighter session — about ${ratioText(ratio)}× a typical gaming day.`
+            });
         }
     }
     if (games.length > 0) {
-        candidates.push({tier: 1, type: "factoid", headline: "Did you know?",
-            message: `Your most-played game this day was ${games[0].gameName} (${games[0].formatted}).`});
+        candidates.push({
+            tier: 1,
+            type: "factoid",
+            headline: "Did you know?",
+            message: `Your most-played game this day was ${games[0].gameName} (${games[0].formatted}).`
+        });
     }
     if (games.length >= VARIETY_MIN_GAMES) {
-        candidates.push({tier: 1, type: "factoid", headline: "Did you know?",
-            message: `You played ${games.length} different games on this day.`});
+        candidates.push({
+            tier: 1,
+            type: "factoid",
+            headline: "Did you know?",
+            message: `You played ${games.length} different games on this day.`
+        });
     }
     const [wy, wm, wd] = selectedDayKey.split("-").map(Number);
     if (wy && wm && wd) {
-        const weekday = WEEKDAY_NAMES[new Date(wy, wm - 1, wd).getDay()];
-        const sameWeekday = Array.from(daysWithData(data)).filter(k => {
+        const weekday = weekdayNameFull(new Date(wy, wm - 1, wd).getDay());
+        const sameWeekday = Array.from(daysWithData(data)).filter((k) => {
             const [y, m, d] = k.split("-").map(Number);
-            return y && m && d && WEEKDAY_NAMES[new Date(y, m - 1, d).getDay()] === weekday;
+            return y && m && d && weekdayNameFull(new Date(y, m - 1, d).getDay()) === weekday;
         }).length;
-        candidates.push({tier: 1, type: "factoid", headline: "Did you know?",
-            message: `This was a ${weekday} — ${sameWeekday} of your gaming days fall on a ${weekday}.`});
+        candidates.push({
+            tier: 1,
+            type: "factoid",
+            headline: "Did you know?",
+            message: `This was a ${weekday} — ${sameWeekday} of your gaming days fall on a ${weekday}.`
+        });
     }
     const totalActiveDays = t.activeCount;
-    candidates.push({tier: 1, type: "factoid", headline: "Did you know?",
-        message: `This is one of ${totalActiveDays} days you've logged some gaming.`});
+    candidates.push({
+        tier: 1,
+        type: "factoid",
+        headline: "Did you know?",
+        message: `This is one of ${totalActiveDays} days you've logged some gaming.`
+    });
 
     // --- Tier 2: neutral fallback ---
-    candidates.push({tier: 2, type: "neutral", headline: "A solid day of gaming!",
-        message: `You played ${total} on this day.`});
+    candidates.push({
+        tier: 2,
+        type: "neutral",
+        headline: "A solid day of gaming!",
+        message: `You played ${total} on this day.`
+    });
 
-    return finish(selectInsight(candidates));
+    return finish(selectInsight(candidates, pick));
 }
 
-export function buildMonthInsight(data: GameData, selectedMonthKey: string): MilestoneInsight | null {
-    const t = activePeriodTotals(validSessions(data), s => monthKey(s.start_time), selectedMonthKey);
+export function buildMonthInsight(
+    data: GameData,
+    selectedMonthKey: string,
+    pick: InsightPicker = randomPick
+): MilestoneInsight | null {
+    const t = activePeriodTotals(validSessions(data), (s) => monthKey(s.start_time), selectedMonthKey);
     if (t.selectedMinutes <= 0) return null; // empty period -> no card
 
     const [, m] = selectedMonthKey.split("-").map(Number);
     const monthName = monthNameFull(m);
     const total = formatPlaytimeCompact(t.selectedMinutes);
-    const games = periodGames(data, s => monthKey(s.start_time), selectedMonthKey);
+    const games = periodGames(data, (s) => monthKey(s.start_time), selectedMonthKey);
     const candidates: Candidate[] = [];
 
     // --- Tier 0: milestone ---
     if (t.selectedMinutes === t.maxMinutes && t.activeCount >= 2) {
-        candidates.push({tier: 0, type: "record", headline: "A record month!",
-            message: `${total} in ${monthName} — your biggest gaming month ever.`});
+        candidates.push({
+            tier: 0,
+            type: "record",
+            headline: "A record month!",
+            message: `${total} in ${monthName} — your biggest gaming month ever.`
+        });
     } else if (t.rank <= RANK_TOP_N_MONTH) {
-        candidates.push({tier: 0, type: "rank", headline: "Month of the year!",
-            message: `You clocked more hours in ${monthName} than any other month of ${yearOf(selectedMonthKey)}.`});
+        candidates.push({
+            tier: 0,
+            type: "rank",
+            headline: "Month of the year!",
+            message: `You clocked more hours in ${monthName} than any other month of ${yearOf(selectedMonthKey)}.`
+        });
     }
 
     // --- Tier 1: "Did you know?" factoids ---
     if (t.average > 0) {
         const ratio = t.selectedMinutes / t.average;
         if (ratio >= RATIO_ABOVE) {
-            candidates.push({tier: 1, type: "factoid", headline: "Did you know?",
-                message: `You played ${ratioText(ratio)}× more than a typical month.`});
+            candidates.push({
+                tier: 1,
+                type: "factoid",
+                headline: "Did you know?",
+                message: `You played ${ratioText(ratio)}× more than a typical month.`
+            });
         } else if (ratio <= RATIO_BELOW) {
-            candidates.push({tier: 1, type: "factoid", headline: "Did you know?",
-                message: `A quieter month — about ${ratioText(ratio)}× a typical month.`});
+            candidates.push({
+                tier: 1,
+                type: "factoid",
+                headline: "Did you know?",
+                message: `A quieter month — about ${ratioText(ratio)}× a typical month.`
+            });
         }
     }
     if (games.length > 0) {
-        candidates.push({tier: 1, type: "factoid", headline: "Did you know?",
-            message: `${games[0].gameName} was your most-played game in ${monthName} (${games[0].formatted}).`});
+        candidates.push({
+            tier: 1,
+            type: "factoid",
+            headline: "Did you know?",
+            message: `${games[0].gameName} was your most-played game in ${monthName} (${games[0].formatted}).`
+        });
     }
     if (games.length >= VARIETY_MIN_GAMES) {
-        candidates.push({tier: 1, type: "factoid", headline: "Did you know?",
-            message: `You played ${games.length} different games in ${monthName}.`});
+        candidates.push({
+            tier: 1,
+            type: "factoid",
+            headline: "Did you know?",
+            message: `You played ${games.length} different games in ${monthName}.`
+        });
     }
     const activeDaysInMonth = new Set(
         validSessions(data)
-            .filter(s => monthKey(s.start_time) === selectedMonthKey && safeDuration(s.duration) > 0)
-            .map(s => dayKey(s.start_time))
+            .filter((s) => monthKey(s.start_time) === selectedMonthKey && safeDuration(s.duration) > 0)
+            .map((s) => dayKey(s.start_time))
     ).size;
     if (activeDaysInMonth > 0) {
-        candidates.push({tier: 1, type: "factoid", headline: "Did you know?",
-            message: `You gamed on ${activeDaysInMonth} different days in ${monthName}.`});
+        candidates.push({
+            tier: 1,
+            type: "factoid",
+            headline: "Did you know?",
+            message: `You gamed on ${activeDaysInMonth} different days in ${monthName}.`
+        });
     }
-    candidates.push({tier: 1, type: "factoid", headline: "Did you know?",
-        message: `One of ${t.activeCount} months you've logged some gaming.`});
+    candidates.push({
+        tier: 1,
+        type: "factoid",
+        headline: "Did you know?",
+        message: `One of ${t.activeCount} months you've logged some gaming.`
+    });
 
     // --- Tier 2: neutral fallback ---
-    candidates.push({tier: 2, type: "neutral", headline: "A solid month of gaming!",
-        message: `You played ${total} in ${monthName}.`});
+    candidates.push({
+        tier: 2,
+        type: "neutral",
+        headline: "A solid month of gaming!",
+        message: `You played ${total} in ${monthName}.`
+    });
 
-    return finish(selectInsight(candidates));
+    return finish(selectInsight(candidates, pick));
 }
