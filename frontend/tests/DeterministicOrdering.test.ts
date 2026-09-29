@@ -30,9 +30,16 @@ describe("deterministic component ordering", () => {
     });
 
     it("sorts recent sessions newest first before rendering", () => {
-        document.body.innerHTML = new SessionHistoryComponent().render(shuffledData);
-        const starts = Array.from(document.querySelectorAll(".session-start"), element => element.textContent);
-        expect(starts).toEqual(["300", "200", "100"]);
+        // The three shuffled sessions (epoch seconds 300/100/200) all fall on
+        // 1970-01-01. Their diary cards for that day must be ordered by start
+        // time ascending regardless of input order: 100 -> 200 -> 300.
+        document.body.innerHTML = new SessionHistoryComponent().render(shuffledData, "view=day&date=1970-01-01");
+        const games = Array.from(
+            document.querySelectorAll(".session-diary-card .session-card-title"),
+            el => el.textContent
+        );
+        // start 100 = Game A, 200 = Game B, 300 = Game A
+        expect(games).toEqual(["Game A", "Game B", "Game A"]);
     });
 
     it("sorts daily playtime newest first before rendering", () => {

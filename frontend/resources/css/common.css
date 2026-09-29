@@ -2467,3 +2467,553 @@ body {
         grid-template-rows: auto;
     }
 }
+
+/* ============================================================
+   Session History page (next-gen UI)
+   ============================================================ */
+.session-history-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 8px 4px 32px;
+}
+
+.session-history-header h1 {
+    margin: 0;
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.session-history-subtitle {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+/* Tabs */
+.session-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 0;
+}
+
+.session-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.session-tab:hover {
+    color: var(--text-primary);
+}
+
+.session-tab.active {
+    color: var(--accent-blue);
+    border-bottom-color: var(--accent-blue);
+}
+
+/* Three-column body */
+.session-history-body {
+    display: grid;
+    grid-template-columns: minmax(300px, 340px) minmax(0, 1fr) minmax(300px, 360px);
+    gap: 20px;
+    align-items: start;
+}
+
+@media (max-width: 1200px) {
+    .session-history-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+.session-col {
+    min-width: 0;
+}
+
+/* Calendar */
+.session-calendar,
+.session-year-grid,
+.recent-days,
+.session-summary-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    box-shadow: 0 4px 12px var(--shadow-secondary);
+}
+
+.recent-days,
+.session-year-grid {
+    margin-top: 16px;
+}
+
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.calendar-title {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 1.05rem;
+}
+
+.calendar-nav-btn {
+    background: var(--bg-button);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.calendar-nav-btn:hover {
+    background: var(--bg-button-hover);
+    color: var(--text-primary);
+}
+
+.calendar-weekdays,
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.calendar-weekday {
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    padding-bottom: 6px;
+}
+
+.calendar-day {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: var(--bg-tertiary);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.calendar-day:hover {
+    background: var(--bg-button-hover);
+    color: var(--text-primary);
+}
+
+.calendar-day.has-data {
+    color: var(--text-primary);
+}
+
+.calendar-day.selected {
+    border-color: var(--accent-blue);
+    background: var(--accent-blue-light);
+    color: var(--text-primary);
+}
+
+.calendar-day-blank {
+    background: transparent;
+    cursor: default;
+}
+
+.calendar-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: var(--radius-full);
+    background: var(--accent-blue);
+}
+
+/* Recent days list */
+.recent-days-title,
+.session-games-played-title {
+    margin: 0 0 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.recent-day-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: var(--bg-tertiary);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.recent-day-row:hover,
+.recent-day-row.active {
+    background: var(--bg-button-hover);
+    border-color: var(--accent-blue);
+}
+
+.recent-day-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--accent-blue);
+    flex-shrink: 0;
+}
+
+.recent-day-label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1;
+    min-width: 0;
+}
+
+.recent-day-date {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.88rem;
+}
+
+.recent-day-weekday {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.recent-day-total {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+/* Middle column: diary / month cards */
+.session-diary-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.session-diary-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--text-primary);
+}
+
+.session-diary-total {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.session-diary-card,
+.month-game-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    text-decoration: none;
+    box-shadow: 0 2px 8px var(--shadow-secondary);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.session-diary-card:hover,
+.month-game-card:hover {
+    border-color: var(--accent-blue);
+    box-shadow: 0 8px 20px var(--shadow-primary);
+    transform: translateY(-1px);
+}
+
+/* Small square-ish poster override for session thumbnails */
+.session-card-poster,
+.games-played-poster {
+    aspect-ratio: 1 / 1;
+    flex-shrink: 0;
+}
+
+.session-card-poster {
+    width: 64px;
+}
+
+.games-played-poster {
+    width: 36px;
+    border-radius: var(--radius-sm);
+}
+
+.session-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.session-card-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.session-card-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.session-card-range {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.session-card-duration {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.session-card-chevron {
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+/* Status pill (reuses status color tokens) */
+.hero-status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: capitalize;
+    color: #fff;
+}
+
+.hero-status-pill.status-in-progress { background: var(--status-in-progress); }
+.hero-status-pill.status-completed { background: var(--status-completed); }
+.hero-status-pill.status-on-hold { background: var(--status-on-hold); }
+.hero-status-pill.status-forever { background: var(--status-forever); }
+.hero-status-pill.status-dropped { background: var(--status-dropped); }
+
+/* Empty state */
+.session-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
+    padding: 48px 24px;
+    color: var(--text-secondary);
+    background: var(--bg-panel);
+    border: 1px dashed var(--border-light);
+    border-radius: var(--radius-lg);
+}
+
+.session-empty-state i {
+    font-size: 2rem;
+    color: var(--text-muted);
+}
+
+.session-empty-state h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+/* Right column: summary */
+.session-summary-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 16px;
+}
+
+.session-summary-date {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.session-summary-total-label {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 6px;
+}
+
+.session-summary-total {
+    color: var(--text-primary);
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.session-stat-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.session-stat-tiles .stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 12px 8px;
+    text-align: center;
+}
+
+.session-stat-tiles .stat-card i {
+    color: var(--accent-blue);
+    font-size: 1rem;
+}
+
+.session-stat-tiles .stat-value {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 1.05rem;
+}
+
+.session-stat-tiles .stat-label {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+/* Games played bars */
+.session-games-played-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.games-played-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.games-played-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.games-played-name {
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.games-played-time {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.games-played-bar-track {
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.games-played-bar-fill {
+    height: 100%;
+    width: var(--bar-width, 0%);
+    background: var(--bar-color, transparent);
+    border-radius: var(--radius-full);
+}
+
+.games-played-pct {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    width: 34px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* Year grid (By month) */
+.month-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.month-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    aspect-ratio: 1 / 1;
+    background: var(--bg-tertiary);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.month-card:hover {
+    background: var(--bg-button-hover);
+    color: var(--text-primary);
+}
+
+.month-card.has-data {
+    color: var(--text-primary);
+}
+
+.month-card.selected {
+    border-color: var(--accent-blue);
+    background: var(--accent-blue-light);
+    color: var(--text-primary);
+}
+
+.month-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-full);
+    background: var(--accent-blue);
+}

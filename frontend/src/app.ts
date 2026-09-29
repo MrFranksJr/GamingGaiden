@@ -275,6 +275,10 @@ export class Router {
             parameter = queryParams.get("name");
         } else if (routeKey === "#all-games") {
             parameter = queryParams.get("filter") || queryParams.get("status");
+        } else if (routeKey === "#session-history") {
+            // Session History carries multiple params (view/date/month); pass the
+            // raw query string and let the component parse it.
+            parameter = query || null;
         }
         this.render(route, parameter);
     }
@@ -308,5 +312,4 @@ if (typeof document !== "undefined") {
         new Router(routes);
     });
 }
-
 
