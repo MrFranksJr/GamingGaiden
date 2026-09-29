@@ -40,6 +40,20 @@ Bookkeeping is the whole game here. Every commit follows this loop:
 The status header above tracks which commit is "committed but not yet Windows-verified" so the thread is
 never lost across sessions or agents. **Update it on every transition.**
 
+### Toolchain on macOS (what the agent can/can't verify here)
+
+- **`pwsh` is installed** at `/usr/local/microsoft/powershell/7-preview/pwsh` (7.7 preview; not on PATH).
+- **PowerShell parse-validation** (via `[System.Management.Automation.Language.Parser]::ParseFile`) is a
+  reliable macOS gate — run it after every `.ps1`/`.psm1` edit. All 15 source files currently parse clean.
+- **Pester** is installed (both 6.2.0 and 5.7.1; the suite is authored for Pester 5). On macOS it only runs
+  the **OS-neutral** backend tests. Several tests fail on macOS *by environment, not regression*:
+  - `HelperFunctions.Tests.ps1` needs GDI+ (`libgdiplus`) for `System.Drawing` image resizing — Windows-only.
+  - `DataExport`/`UIFunctions` tests that mock a `C:\...` path hit `Join-Path`/PSSQLite Windows-path
+    assumptions on Unix.
+  - Do **not** read these as failures of a commit's change. The authoritative backend run is on Windows.
+- **Runtime behavior** (WinForms tray, registry/HWiNFO, `Invoke-Item`/`Start-Process` browser launch) is
+  Windows-only and always verified by the user's Windows smoke test.
+
 ---
 
 ## Settled decisions (from grilling)
