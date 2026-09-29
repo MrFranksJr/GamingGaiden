@@ -211,8 +211,6 @@ try {
     $menuItemSeparator4 = New-Object Windows.Forms.ToolStripSeparator
     $menuItemSeparator5 = New-Object Windows.Forms.ToolStripSeparator
     $menuItemSeparator6 = New-Object Windows.Forms.ToolStripSeparator
-    $menuItemSeparator8 = New-Object Windows.Forms.ToolStripSeparator
-
     $IconRunning = [System.Drawing.Icon]::new(".\icons\running.ico")
     $IconTracking = [System.Drawing.Icon]::new(".\icons\tracking.ico")
     $IconStopped = [System.Drawing.Icon]::new(".\icons\stopped.ico")
@@ -235,17 +233,9 @@ try {
     $editGameMenuItem = CreateMenuItem "Edit Game"
     $gamingPCMenuItem = CreateMenuItem "Gaming PCs"
     $openInstallDirectoryMenuItem = CreateMenuItem "Open Install Directory"
-
-    $developerModeMenuItem = CreateMenuItem "Developer Mode: OFF"
-    if ((Read-Setting "developer_mode") -eq "true")
-    {
-        $developerModeMenuItem.Text = "Developer Mode: ON"
-    }
     $settingsSubMenuItem.DropDownItems.Add($addGameMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($editGameMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($menuItemSeparator1)
-    $settingsSubMenuItem.DropDownItems.Add($developerModeMenuItem)
-    $settingsSubMenuItem.DropDownItems.Add($menuItemSeparator8)
     $settingsSubMenuItem.DropDownItems.Add($gamingPCMenuItem)
     $settingsSubMenuItem.DropDownItems.Add($openInstallDirectoryMenuItem)
     
@@ -352,29 +342,12 @@ try {
             Invoke-Item .
         })
 
-    $developerModeMenuItem.Add_Click({
-        $currentMode = Read-Setting "developer_mode"
-        if ($currentMode -eq "true")
-        {
-            Write-Setting "developer_mode" "false"
-            $developerModeMenuItem.Text = "Developer Mode: OFF"
-            ShowMessage "Developer Mode disabled. Switched to legacy UI." "Ok" "Info"
-        }
-        else
-        {
-            Write-Setting "developer_mode" "true"
-            $developerModeMenuItem.Text = "Developer Mode: ON"
-            Export-GameDataToJson
-            ShowMessage "Developer Mode enabled. Switched to dynamic UI." "Ok" "Info"
-        }
-    })
-
     #------------------------------------------
     # Launch Application
     Log "Starting tracker on app boot"
     StartTrackerJob
 
-    Log "Pre-rendering statistics pages"
+    Log "Exporting game data for the SPA"
     UpdateAllStatsInBackground
 
     Log "Starting timer to check for Tracking updates"

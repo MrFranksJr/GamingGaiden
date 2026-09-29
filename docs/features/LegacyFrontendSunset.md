@@ -12,13 +12,14 @@ tray menu, and clean up backend code that existed only to feed the legacy UI.
 
 ## Status
 
-- **Phase**: 4 — Commit 4 (retire tray theming) committed; **awaiting Windows verification**.
-- **Last completed commit**: Commit 4 — delete Light/Dark items, `Set-Theme`, startup `theme.css` copy.
-- **Next action**: User deploys on Windows, runs Commit 4 smoke test (SPA theme toggle works/persists; no
-  theme items in tray; no log errors). On green → Commit 5 (delete legacy render code).
-- **Frontends today**: app routes entirely to the SPA; legacy render code still on disk (unreferenced).
+- **Phase**: 5 — Commit 5 (delete legacy render code) committed; **awaiting Windows verification**.
+- **Last completed commit**: Commit 5 — removed 6 `Render*` fns + `Game`/`GamingPC` classes, dev-mode toggle,
+  `ui/` cache writes; reduced `UpdateAllStatsInBackground` to the JSON export.
+- **Next action**: User deploys on Windows, runs Commit 5 smoke test (add/edit a game & rig → SPA reflects
+  changes; tracker reboot-on-change fires; no missing-function errors). On green → Commit 6 (delete `ui/`).
+- **Frontends today**: SPA only; legacy *render code* now gone; legacy `ui/` **assets** still on disk (Commit 6).
 - **Target**: one frontend (the SPA); no toggle; slimmed tray menu; dead legacy code removed.
-- **Windows-verified through**: **Commits 2 ✅ and 3 ✅** (user confirmed). Commit 4 — pending re-test.
+- **Windows-verified through**: **Commits 2 ✅ 3 ✅ 4 ✅**. Commit 5 — pending re-test.
 
 ---
 
@@ -184,14 +185,33 @@ retires the *tray-driven* mechanism). Frontend gate green (28 files/268 tests, t
 files parse clean.
 
 ### Commit 5 — Delete legacy render code
-- [ ] Remove `RenderGameList`, `RenderSummary`, `RenderGamingTime`, `RenderGamesPerPC`, `RenderMostPlayed`,
+- [~] Remove `RenderGameList`, `RenderSummary`, `RenderGamingTime`, `RenderGamesPerPC`, `RenderMostPlayed`,
       `RenderSessionHistory` from `UIFunctions.psm1`.
-- [ ] Reduce `UpdateAllStatsInBackground` to just `Export-GameDataToJson`.
-- [ ] Remove the `developer_mode` toggle menu item + handler.
-- [ ] Remove the `ui/...cache` `Copy-Item` writes from `RenderAddGameForm` / `RenderEditGameForm`.
-- **Files**: `modules/UIFunctions.psm1`, `modules/SettingsFunctions.psm1`, `GamingGaiden.ps1`.
+- [~] Reduce `UpdateAllStatsInBackground` to just `Export-GameDataToJson`.
+- [~] Remove the `developer_mode` toggle menu item + handler.
+- [~] Remove the `ui/...cache` `Copy-Item` writes from `RenderAddGameForm` / `RenderEditGameForm`.
+- **Files**: `modules/UIFunctions.psm1`, `modules/SettingsFunctions.psm1`, `GamingGaiden.ps1`,
+  `frontend/tests/LegacyAllGamesStatusSorting.test.ts` (deleted).
 - **Smoke test (Windows)**: add/edit a game and a rig; confirm SPA reflects changes after export; tracker
   reboot-on-change still fires; no references to removed functions.
+
+**Notes (2026-09-29):**
+- `UIFunctions.psm1` rebuilt 547 → 111 lines: now only `UpdateAllStatsInBackground` (just calls
+  `Export-GameDataToJson`), `Invoke-SPA`, and `RenderAboutDialog`. The unused `Game`/`GamingPC` classes were
+  removed with the renderers (verified referenced nowhere else). Module imports clean and exposes exactly
+  those three functions.
+- Removed the `developer_mode` toggle item, its label-init, submenu insertion, `Add_Click` handler, and the
+  orphaned `$menuItemSeparator8`. The boot log line "Pre-rendering statistics pages" → "Exporting game data
+  for the SPA".
+- Removed the `ui/...cache` pre-warm writes from both Add and Edit game dialogs (kills the double-caching;
+  the SPA export rebuilds `frontend/...cache` from the DB).
+- **Plan reshuffle**: deleted `frontend/tests/LegacyAllGamesStatusSorting.test.ts` here instead of in
+  Commit 8. It asserted the deleted `RenderGameList` markup + legacy DataTables sorting (imports `ui/`
+  jQuery/DataTables raw), so it went red the moment the renderer was removed; leaving it would break the
+  gate across Commits 5–7. Confirmed it was the only frontend test coupled to `ui/` or the PS renderer.
+- The two `ui/resources/images/cache` **directory-creation** lines in `GamingGaiden.ps1` remain — they are
+  Commit 6 scope (deleted with `ui/`), harmless until then.
+- Gate green: frontend 27 files / 267 tests (−1 = deleted legacy test) + tsc clean; all PS files parse clean.
 
 ### Commit 6 — Delete legacy assets
 - [ ] Delete `ui/templates/`, generated `ui/*.html`, `ui/404.html`, `ui/resources/{js,css,images}` legacy libs.
@@ -209,6 +229,7 @@ files parse clean.
 ### Commit 8 — Docs & tests sweep
 - [ ] Mark legacy removed in `docs/features/FrontendRework.md`; update `Readme.md` / `Manual.md` legacy mentions.
 - [ ] Update/trim backend tests referencing removed behavior; ensure suite green.
+      (Note: `frontend/tests/LegacyAllGamesStatusSorting.test.ts` was already removed in Commit 5.)
 - [ ] Flip this doc's status to Done.
 - **Files**: `docs/**`, `Readme.md`, `Manual.md`, `tests/backend/**`.
 - **Smoke test**: full test suite green; docs read correctly.

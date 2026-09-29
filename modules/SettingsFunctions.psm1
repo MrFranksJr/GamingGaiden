@@ -388,13 +388,6 @@ function RenderEditGameForm($GamesList) {
 
             ShowMessage "Updated '$gameName' in Database." "OK" "Asterisk"
 
-            # Clear existing and then pre load image in ui\resources\images\cache folder for rendering 'All Games' list faster
-            $imageFileName = ToBase64 $gameName
-            $gameIconPath = $pictureBoxImagePath.Text
-            $imageFileExtension = $gameIconPath.Split(".")[-1]
-            Remove-Item ".\ui\resources\images\cache\$imageFileName.*"
-            Copy-Item -Path $gameIconPath -Destination ".\ui\resources\images\cache\$imageFileName.$imageFileExtension"
-
             $gamesList = @((RunDBQuery "SELECT name FROM games").name)
             $listBox.Items.Clear(); $listBox.Items.AddRange($gamesList);
             $listBox.SelectedIndex = $listBox.FindString($gameName)
@@ -554,11 +547,6 @@ function RenderAddGameForm() {
                 -GamePlayTime 0 -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus 'FALSE' -GameSessionCount 0 -GameGamingPCName $gameGamingPCName -GameReleaseDate $gameReleaseDate
 
             ShowMessage "Registered '$gameName' in Database." "OK" "Asterisk"
-
-            # Pre Load image in ui\resources\images\cache folder for rendering 'All Games' list faster
-            $imageFileName = ToBase64 $gameName
-            $imageFileExtension = $gameIconPath.Split(".")[-1]
-            Copy-Item -Path $gameIconPath -Destination ".\ui\resources\images\cache\$imageFileName.$imageFileExtension"
         })
     $addGameForm.Controls.Add($buttonOK)
 
