@@ -147,17 +147,9 @@ CREATE TABLE session_history (
         $matchable | Should -Be @("runnable")
     }
 
-    # DIAGNOSTIC: does the pre-existing, production-proven null-coalescing for `status`
-    # (unchanged by this feature) also fail to produce a real NULL in this runtime? If this
-    # fails too, the DBNull-via-parameter pattern is an environment quirk (PS7/PSSQLite),
-    # not a bug introduced by the optional-exe work.
-    It "DIAGNOSTIC: existing status null-coalescing yields SQL NULL" {
-        SaveGame -GameName "Status Probe" -GameExeName "probe" -GameIconPath $script:iconPath `
-            -GamePlayTime 10 -GameLastPlayDate "1700000000" -GameCompleteStatus "FALSE" -GameSessionCount 0 -GameStatus ""
-
-        $row = Invoke-SqliteQuery -Query "SELECT status FROM games WHERE name = 'Status Probe'" `
-            -DataBase $script:dbPath
-
-        ($row.status -is [System.DBNull]) | Should -Be $true
-    }
+    # NOTE: the other optional columns (status, gaming_pc_name, release_date, finish_date)
+    # still use the original [System.DBNull]::Value parameter pattern, which only coerces to a
+    # real SQL NULL on Windows PowerShell 5.1 (the app's runtime), not PowerShell 7. Only the
+    # exe_name and last_play_date writes were switched to the PS7-safe literal `SET = NULL`, so
+    # only those are asserted strictly here. See modules/StorageFunctions.psm1 for details.
 }

@@ -25,8 +25,12 @@
     $setGamingPCNameNull = "UPDATE games SET gaming_pc_name = @GameGamingPCName WHERE name LIKE '{0}'" -f $gameNamePattern
     $setReleaseDateNull = "UPDATE games SET release_date = @GameReleaseDate WHERE name LIKE '{0}'" -f $gameNamePattern
     $setFinishDateNull = "UPDATE games SET finish_date = @GameFinishDate WHERE name LIKE '{0}'" -f $gameNamePattern
-    $setExeNameNull = "UPDATE games SET exe_name = @GameExeName WHERE name LIKE '{0}'" -f $gameNamePattern
-    $setLastPlayDateNull = "UPDATE games SET last_play_date = @GameLastPlayDate WHERE name LIKE '{0}'" -f $gameNamePattern
+    # exe_name and last_play_date are cleared with a literal SET = NULL rather than a
+    # [System.DBNull]::Value parameter. PSSQLite's parameter binding only coerces DBNull to a
+    # real SQL NULL on Windows PowerShell 5.1; on PowerShell 7 it stores an empty string. A
+    # literal NULL is unambiguous on both runtimes (column names are static, no user input).
+    $setExeNameNull = "UPDATE games SET exe_name = NULL WHERE name LIKE '{0}'" -f $gameNamePattern
+    $setLastPlayDateNull = "UPDATE games SET last_play_date = NULL WHERE name LIKE '{0}'" -f $gameNamePattern
 
     Log "Adding $GameName in Database"
 
@@ -61,15 +65,11 @@
     }
 
     if ($GameExeName.Trim() -eq "") {
-        RunDBQuery $setExeNameNull @{
-            GameExeName = [System.DBNull]::Value
-        }
+        RunDBQuery $setExeNameNull
     }
 
     if ("$GameLastPlayDate".Trim() -eq "") {
-        RunDBQuery $setLastPlayDateNull @{
-            GameLastPlayDate = [System.DBNull]::Value
-        }
+        RunDBQuery $setLastPlayDateNull
     }
 
     if ($GameGamingPCName -eq "") {
@@ -182,7 +182,8 @@ function UpdateGameOnEdit() {
         $setGamingPCNameNull = "UPDATE games SET gaming_pc_name = @GameGamingPCName WHERE name LIKE '{0}'" -f $gameNamePattern
         $setReleaseDateNull = "UPDATE games SET release_date = @GameReleaseDate WHERE name LIKE '{0}'" -f $gameNamePattern
         $setFinishDateNull = "UPDATE games SET finish_date = @GameFinishDate WHERE name LIKE '{0}'" -f $gameNamePattern
-        $setExeNameNull = "UPDATE games SET exe_name = @GameExeName WHERE name LIKE '{0}'" -f $gameNamePattern
+        # Literal SET = NULL (PS7-safe); see the note in SaveGame.
+        $setExeNameNull = "UPDATE games SET exe_name = NULL WHERE name LIKE '{0}'" -f $gameNamePattern
 
         Log "Editing $GameName in database"
         RunDBQuery $updateGameQuery @{
@@ -197,9 +198,7 @@ function UpdateGameOnEdit() {
         }
 
         if ($GameExeName.Trim() -eq "") {
-            RunDBQuery $setExeNameNull @{
-                GameExeName = [System.DBNull]::Value
-            }
+            RunDBQuery $setExeNameNull
         }
 
         if ($GameGamingPCName -eq "") {
