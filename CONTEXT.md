@@ -51,3 +51,15 @@ _Avoid_: dev mode, debug mode (it never gated debugging, only frontend selection
 **Games-played ranking**:
 The ranked "games played" list shared by Session History (per period) and My Rigs (per rig). One module (`GamesPlayedRanking`) owns the colour palette and the aggregate→rank→colour→percentage→row logic; callers supply pre-summed `{gameName, minutes, iconPath}` and receive ranked rows. Colour is assigned by **playtime rank index**, so a game's colour is not stable across different periods or rigs.
 _Avoid_: re-declaring the palette per screen, or cross-importing it from another screen's module.
+
+**Backfilled game**:
+A game added to the library for historical/legacy reasons rather than for tracking — the player no longer has (or never pointed the tracker at) its executable. It carries a name, art, and a hand-entered lifetime `play_time` total, but **no `exe_name`** (stored as SQL `NULL`) and therefore never matches a running process. It also has **no session or daily-playtime rows**, so its hours appear in library totals and the All Games / completion views but not in the Session History calendar or daily charts. Its `last_play_date` defaults to the release date if given, otherwise `NULL` ("never tracked").
+_Avoid_: manual game, fake game, dummy entry. (It is a real library entry; it just isn't tracked.)
+
+**Command trigger**:
+A small file the app watches to receive a one-shot instruction from outside its own process — currently `%TEMP%\GmGdn-Command.txt`, holding a command such as `add-game` or `edit-game:<name>`. The tray app's existing 1-second WinForms timer reads and deletes it, then pops the matching native dialog. This is how the SPA's `(+)` and Edit buttons reach the running tray app (via the `gaminggaiden://` protocol handler that writes the trigger). It reuses the same "communicate through a temp file" pattern the tracker already uses for `GmGdn-TrackingGame.txt`.
+_Avoid_: IPC, message queue, API call (there is no server or pipe — it is a watched file).
+
+**Protocol handler**:
+The Windows registration for the `gaminggaiden://` custom URI scheme (`HKCU\Software\Classes\gaminggaiden`). Clicking a `gaminggaiden://…` link in the SPA launches it; the handler writes a **command trigger** for the running tray app rather than starting a second instance. The tray app **self-registers** the scheme idempotently at startup, so deployment (`Deploy.bat`) and install (`Install.bat`) need no registry step.
+_Avoid_: deep link (ambiguous — the SPA also uses `#hash` routes, which are unrelated), URL scheme (informal).
