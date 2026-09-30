@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS games (
             -DataBase (Join-Path $TestDrive "GamingGaiden.db")
 
         # A true SQL NULL comes back as [System.DBNull], not an empty string.
-        ($row.exe_name -is [System.DBNull]) | Should Be $true
+        ($row.exe_name -is [System.DBNull]) | Should -Be $true
     }
 
     It "Stores the exe_name verbatim when provided (normal tracked game)" {
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS games (
         $row = Invoke-SqliteQuery -Query "SELECT exe_name FROM games WHERE name = 'Tracked Game'" `
             -DataBase (Join-Path $TestDrive "GamingGaiden.db")
 
-        $row.exe_name | Should Be "coolgame"
+        $row.exe_name | Should -Be "coolgame"
     }
 
     It "Stores SQL NULL for last_play_date when it is blank (backfilled game)" {
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS games (
         $row = Invoke-SqliteQuery -Query "SELECT last_play_date FROM games WHERE name = 'No Date Game'" `
             -DataBase (Join-Path $TestDrive "GamingGaiden.db")
 
-        ($row.last_play_date -is [System.DBNull]) | Should Be $true
+        ($row.last_play_date -is [System.DBNull]) | Should -Be $true
     }
 
     It "Clears exe_name to SQL NULL when an edit blanks the exe (same name)" {
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS games (
         $row = Invoke-SqliteQuery -Query "SELECT exe_name FROM games WHERE name = 'Editable Game'" `
             -DataBase (Join-Path $TestDrive "GamingGaiden.db")
 
-        ($row.exe_name -is [System.DBNull]) | Should Be $true
+        ($row.exe_name -is [System.DBNull]) | Should -Be $true
     }
 
     It "Keeps exe_name NULL through a rename edit (delete + re-add path)" {
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS games (
         $row = Invoke-SqliteQuery -Query "SELECT exe_name FROM games WHERE name = 'New Name'" `
             -DataBase (Join-Path $TestDrive "GamingGaiden.db")
 
-        ($row.exe_name -is [System.DBNull]) | Should Be $true
+        ($row.exe_name -is [System.DBNull]) | Should -Be $true
     }
 
     It "A backfilled (NULL exe) game never yields a matchable exe for the tracker" {
@@ -130,6 +130,6 @@ CREATE TABLE IF NOT EXISTS games (
 
         $matchable = @($exeList | Where-Object { $null -ne $_ -and $_ -ne "" })
 
-        $matchable | Should Be @("runnable")
+        $matchable | Should -Be @("runnable")
     }
 }

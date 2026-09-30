@@ -13,7 +13,9 @@
         [string]$GameFinishDate = ""
     )
 
-    $gameIconBytes = (Get-Content -Path $GameIconPath -Encoding byte -Raw);
+    # Read raw bytes via .NET so this works on both Windows PowerShell 5.1 (the app's
+    # runtime) and PowerShell 7 (the test runtime); PS7 dropped `-Encoding byte`.
+    $gameIconBytes = [System.IO.File]::ReadAllBytes($GameIconPath);
 
     $addGameQuery = "INSERT INTO games (name, exe_name, icon, play_time, last_play_date, completed, session_count, status, gaming_pc_name, release_date, finish_date)" +
             "VALUES (@GameName, @GameExeName, @gameIconBytes, @GamePlayTime, @GameLastPlayDate, @GameCompleteStatus, @GameSessionCount, @GameStatus, @GameGamingPCName, @GameReleaseDate, @GameFinishDate)"
@@ -103,7 +105,7 @@ function SavePC() {
         [int]$PCTotalPlaytime = 0
     )
 
-    $PCIconBytes = (Get-Content -Path $PCIconPath -Encoding byte -Raw);
+    $PCIconBytes = [System.IO.File]::ReadAllBytes($PCIconPath);
 
     $addPCQuery = "INSERT INTO gaming_pcs (name, icon, cost, currency, start_date, end_date, in_use, total_play_time)" +
     "VALUES (@PCName, @PCIconBytes, @PCCost, @PCCurrency, @PCStartDate, @PCEndDate, @PCCurrentStatus, @PCTotalPlaytime)"
@@ -170,7 +172,7 @@ function UpdateGameOnEdit() {
         [string]$GameFinishDate = ""
     )
 
-    $gameIconBytes = (Get-Content -Path $GameIconPath -Encoding byte -Raw);
+    $gameIconBytes = [System.IO.File]::ReadAllBytes($GameIconPath);
 
     $gameNamePattern = SQLEscapedMatchPattern($OriginalGameName.Trim())
 
@@ -268,7 +270,7 @@ function UpdatePC() {
 
     if ($OriginalPCName -eq $PCName) {
 
-        $PCIconBytes = (Get-Content -Path $PCIconPath -Encoding byte -Raw);
+        $PCIconBytes = [System.IO.File]::ReadAllBytes($PCIconPath);
 
         $updatePCQuery = "UPDATE gaming_pcs SET icon = @PCIconBytes, cost = @PCCost, currency = @PCCurrency, start_date = @PCStartDate, end_date = @PCEndDate, in_use = @PCCurrentStatus, total_play_time = @PCTotalPlaytime WHERE name LIKE '{0}'" -f $PCNamePattern
 
