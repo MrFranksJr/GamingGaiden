@@ -2,16 +2,16 @@
 #
 # SaveGame / UpdateGameOnEdit call RunDBQuery without an explicit -DatabasePath, so they
 # default to ".\GamingGaiden.db" relative to the current working directory. Each test runs
-# from a fresh $TestDrive working directory with its own games table so the real database is
-# never touched.
+# from its OWN fresh directory + database (created in BeforeEach) so tests never share state
+# and the real database is never touched.
 
 $sqliteModulePath = Join-Path $PSScriptRoot "..\..\modules\PSSQLite\1.1.0\PSSQLite.psd1"
 $helperPath = Join-Path $PSScriptRoot "..\..\modules\HelperFunctions.psm1"
 $storagePath = Join-Path $PSScriptRoot "..\..\modules\StorageFunctions.psm1"
 
 # PSSQLite bundles a native (Windows) System.Data.SQLite provider. On platforms where it
-# cannot load (e.g. CI on macOS/Linux dev machines) these tests can't touch a real database,
-# so skip them rather than fail spuriously. The canonical run is on Windows.
+# cannot load (e.g. macOS/Linux dev machines) these tests can't touch a real database, so
+# skip them rather than fail spuriously. The canonical run is on Windows.
 $script:SqliteAvailable = $true
 try {
     Import-Module $sqliteModulePath -Force -ErrorAction Stop
@@ -29,13 +29,18 @@ Describe "StorageFunctions - optional exe" -Skip:(-not $script:SqliteAvailable) 
         Mock Log {} -ModuleName StorageFunctions
         Mock Log {} -ModuleName HelperFunctions
 
-        # Work from an isolated directory so ".\GamingGaiden.db" resolves inside $TestDrive.
+        # A UNIQUE working directory per test guarantees a fresh ".\GamingGaiden.db" with no
+        # rows carried over from a previous test.
         $script:originalLocation = Get-Location
-        Set-Location $TestDrive
+        $script:workDir = Join-Path $TestDrive ([System.Guid]::NewGuid().ToString("N"))
+        New-Item -ItemType Directory -Path $script:workDir -Force | Out-Null
+        Set-Location $script:workDir
+        $script:dbPath = Join-Path $script:workDir "GamingGaiden.db"
 
-        # Minimal games table matching the production schema's relevant columns.
+        # Full-enough schema: games plus session_history (the rename path in UpdateGameOnEdit
+        # rewrites session_history references).
         $createGamesTable = @"
-CREATE TABLE IF NOT EXISTS games (
+CREATE TABLE games (
     name TEXT PRIMARY KEY NOT NULL,
     exe_name TEXT,
     icon BLOB,
@@ -49,10 +54,19 @@ CREATE TABLE IF NOT EXISTS games (
     finish_date TEXT
 )
 "@
-        Invoke-SqliteQuery -Query $createGamesTable -DataBase (Join-Path $TestDrive "GamingGaiden.db") | Out-Null
+        $createSessionHistoryTable = @"
+CREATE TABLE session_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    game_name TEXT NOT NULL,
+    start_time INTEGER NOT NULL,
+    duration INTEGER NOT NULL
+)
+"@
+        Invoke-SqliteQuery -Query $createGamesTable -DataBase $script:dbPath | Out-Null
+        Invoke-SqliteQuery -Query $createSessionHistoryTable -DataBase $script:dbPath | Out-Null
 
-        # A throwaway icon file so SaveGame's Get-Content on the icon path succeeds.
-        $script:iconPath = Join-Path $TestDrive "icon.png"
+        # A throwaway icon file so SaveGame's byte-read of the icon path succeeds.
+        $script:iconPath = Join-Path $script:workDir "icon.png"
         [System.IO.File]::WriteAllBytes($script:iconPath, [byte[]](0x89, 0x50, 0x4E, 0x47))
     }
 
@@ -65,7 +79,7 @@ CREATE TABLE IF NOT EXISTS games (
             -GamePlayTime 600 -GameLastPlayDate "" -GameCompleteStatus "FALSE" -GameSessionCount 0
 
         $row = Invoke-SqliteQuery -Query "SELECT exe_name FROM games WHERE name = 'Legacy Game'" `
-            -DataBase (Join-Path $TestDrive "GamingGaiden.db")
+            -DataBase $script:dbPath
 
         # A true SQL NULL comes back as [System.DBNull], not an empty string.
         ($row.exe_name -is [System.DBNull]) | Should -Be $true
@@ -76,7 +90,7 @@ CREATE TABLE IF NOT EXISTS games (
             -GamePlayTime 120 -GameLastPlayDate "1700000000" -GameCompleteStatus "FALSE" -GameSessionCount 0
 
         $row = Invoke-SqliteQuery -Query "SELECT exe_name FROM games WHERE name = 'Tracked Game'" `
-            -DataBase (Join-Path $TestDrive "GamingGaiden.db")
+            -DataBase $script:dbPath
 
         $row.exe_name | Should -Be "coolgame"
     }
@@ -86,7 +100,7 @@ CREATE TABLE IF NOT EXISTS games (
             -GamePlayTime 300 -GameLastPlayDate "" -GameCompleteStatus "FALSE" -GameSessionCount 0
 
         $row = Invoke-SqliteQuery -Query "SELECT last_play_date FROM games WHERE name = 'No Date Game'" `
-            -DataBase (Join-Path $TestDrive "GamingGaiden.db")
+            -DataBase $script:dbPath
 
         ($row.last_play_date -is [System.DBNull]) | Should -Be $true
     }
@@ -99,7 +113,7 @@ CREATE TABLE IF NOT EXISTS games (
             -GameIconPath $script:iconPath -GamePlayTime 60 -GameCompleteStatus "FALSE" -GameStatus ""
 
         $row = Invoke-SqliteQuery -Query "SELECT exe_name FROM games WHERE name = 'Editable Game'" `
-            -DataBase (Join-Path $TestDrive "GamingGaiden.db")
+            -DataBase $script:dbPath
 
         ($row.exe_name -is [System.DBNull]) | Should -Be $true
     }
@@ -112,7 +126,7 @@ CREATE TABLE IF NOT EXISTS games (
             -GameIconPath $script:iconPath -GamePlayTime 90 -GameCompleteStatus "FALSE" -GameStatus ""
 
         $row = Invoke-SqliteQuery -Query "SELECT exe_name FROM games WHERE name = 'New Name'" `
-            -DataBase (Join-Path $TestDrive "GamingGaiden.db")
+            -DataBase $script:dbPath
 
         ($row.exe_name -is [System.DBNull]) | Should -Be $true
     }
@@ -126,7 +140,7 @@ CREATE TABLE IF NOT EXISTS games (
 
         # Mirror DetectGame's query and its guard predicate.
         $exeList = [string[]] @((Invoke-SqliteQuery -Query "SELECT exe_name FROM games ORDER BY last_play_date DESC" `
-            -DataBase (Join-Path $TestDrive "GamingGaiden.db")).exe_name)
+            -DataBase $script:dbPath).exe_name)
 
         $matchable = @($exeList | Where-Object { $null -ne $_ -and $_ -ne "" })
 
