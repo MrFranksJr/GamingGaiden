@@ -94,10 +94,13 @@ Pester test first, then implement.
   URL-decodes the name, and ignores unknown/empty actions. The dispatcher trims, ignores whitespace, and
   logs unrecognised commands. Trigger lives in per-user `%TEMP%`.
 - [x] **B6. Uninstall nicety.** `Uninstall.bat` now `reg delete HKCU\Software\Classes\gaminggaiden /f`.
-- [ ] **B7. Verify (user, on Windows).** Deploy, then with the tray app running invoke
-  `gaminggaiden://add-game` and `gaminggaiden://edit-game?name=…` (e.g. from a browser address bar or a
-  test link); confirm the correct dialog appears, the edit dialog is preselected on the named game, no
-  duplicate `GamingGaiden` process spawns, and no console window flashes.
+- [x] **B7. Verified on Windows.** Deployed via `Deploy.bat`; the app self-registered the scheme and both
+  `gaminggaiden://add-game` and `gaminggaiden://edit-game?name=…` open the correct native dialog (Edit
+  preselected on the game), no console flash, no duplicate process.
+  - **Gotcha found & fixed:** the browser normalises the URI to `gaminggaiden://edit-game/?name=…` — a slash
+    is inserted *before* the query. The handler originally only trimmed a *trailing* slash, so the action
+    parsed as `edit-game/` and fell through (add worked because its slash was trailing). Fixed by
+    `Trim('/')`-ing the action segment after splitting on `?`.
 
 > **Latent, out-of-scope finding:** the tracker-job init block imports `.\modules\UserInput.psm1`, which does
 > **not exist** in the repo. Not touched by this feature; flagged for separate triage.
