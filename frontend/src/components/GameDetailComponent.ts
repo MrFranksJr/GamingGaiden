@@ -204,6 +204,15 @@ export class GameDetailComponent {
                             <span>View on Steam</span>
                             <i class="fa-solid fa-arrow-up-right-from-square external-icon"></i>
                         </a>
+                        <a href="${escapeHtml(`gaminggaiden://edit-game?name=${encodeURIComponent(stats.gameName)}`)}"
+                           id="game-detail-edit-btn"
+                           class="game-detail-edit-btn"
+                           role="button"
+                           title="Edit ${escapeHtml(stats.gameName)}"
+                           aria-label="Edit ${escapeHtml(stats.gameName)}">
+                            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                            <span>Edit</span>
+                        </a>
                     </div>
                 </div>
             </div>

@@ -221,4 +221,40 @@ describe("GameDetailComponent", () => {
         expect(component.render(mockData, null)).toContain("No game was selected");
         expect(component.render(null as any, "Game A")).toContain("No games found");
     });
+
+    it("renders an Edit button linking to the gaminggaiden:// edit-game scheme", () => {
+        const component = new GameDetailComponent();
+        document.body.innerHTML = component.render(mockData, "Game A");
+
+        const editButton = document.getElementById("game-detail-edit-btn") as HTMLAnchorElement;
+        expect(editButton).not.toBeNull();
+        // "Game A" -> name=Game%20A
+        expect(editButton.getAttribute("href")).toBe("gaminggaiden://edit-game?name=Game%20A");
+    });
+
+    it("URL-encodes special characters in the Edit button game name", () => {
+        const component = new GameDetailComponent();
+        const trickyData: GameData = {
+            ...mockData,
+            games: [
+                {
+                    name: "Ratchet & Clank",
+                    play_time: 30,
+                    session_count: 1,
+                    status: "playing",
+                    completed: false,
+                    icon_path: null
+                }
+            ],
+            session_history: [],
+            daily_playtime: []
+        };
+        document.body.innerHTML = component.render(trickyData, "Ratchet & Clank");
+
+        const editButton = document.getElementById("game-detail-edit-btn") as HTMLAnchorElement;
+        expect(editButton).not.toBeNull();
+        // encodeURIComponent turns space -> %20 and & -> %26; getAttribute returns the
+        // decoded-entity attribute value (the & of %26 is fine; there is no raw '&').
+        expect(editButton.getAttribute("href")).toBe("gaminggaiden://edit-game?name=Ratchet%20%26%20Clank");
+    });
 });

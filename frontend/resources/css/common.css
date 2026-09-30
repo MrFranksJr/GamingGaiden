@@ -762,6 +762,29 @@ body {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
+/* (+) Add Game button in the All Games header */
+.all-games-add-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--accent-blue);
+    color: #fff;
+    text-decoration: none;
+    font-size: 1rem;
+    border: 1px solid transparent;
+    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.all-games-add-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    filter: brightness(1.08);
+}
+
 .all-games-empty {
     padding: 60px 24px;
     text-align: center;
@@ -1985,6 +2008,29 @@ body {
 .steam-store-btn .external-icon {
     font-size: 0.7rem;
     opacity: 0.7;
+}
+
+/* Edit button in the Game Detail hero actions (mirrors the Steam button look) */
+.game-detail-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border-radius: var(--radius-full);
+    background: var(--bg-button);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.game-detail-edit-btn:hover {
+    background: var(--bg-button-hover);
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    transform: translateY(-1px);
 }
 
 /* Quick Stat Cards */

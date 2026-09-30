@@ -104,13 +104,19 @@ Pester test first, then implement.
 
 ## Workstream C — SPA buttons (frontend, depends on the `gaminggaiden://` contract from B)
 
-- [ ] **C1. `(+)` on All Games.** Add an accessible button/link to `AllGamesComponent` that navigates to
-  `gaminggaiden://add-game`. Vitest: asserts the control renders and carries the correct href/action.
-- [ ] **C2. Edit on Game Detail.** Add an Edit button to `GameDetailComponent` linking to
-  `gaminggaiden://edit-game?name=<encodeURIComponent(game.name)>`. Vitest: asserts correct, encoded href.
-- [ ] **C3. Safety.** Reuse existing HTML-escaping utilities; ensure the encoded name can't break out of the URL
-  or the attribute.
-- [ ] **C4. Verify.** `cd frontend && npm test && npx tsc --noEmit`.
+> **Status: complete and verified.** `npm test` (270 tests) and `npx tsc --noEmit` both pass on the dev
+> machine (the frontend toolchain runs natively, no PowerShell dependency).
+
+- [x] **C1. `(+)` on All Games.** `AllGamesComponent` renders an accessible `#all-games-add-button` anchor
+  (`href="gaminggaiden://add-game"`) in the header. A plain link works from the static `file:///` page — the
+  browser hands the scheme to the OS, no JS needed. Vitest asserts the href and aria-label.
+- [x] **C2. Edit on Game Detail.** `GameDetailComponent` renders a `#game-detail-edit-btn` anchor in the hero
+  actions, `href="gaminggaiden://edit-game?name=<encodeURIComponent(name)>"`. Vitest asserts the encoded href
+  for a normal name and for `Ratchet & Clank` (→ `name=Ratchet%20%26%20Clank`).
+- [x] **C3. Safety.** The name is `encodeURIComponent`-d for the URL, then the whole href is `escapeHtml`-d for
+  the attribute (defence in depth). Verified via the special-character test.
+- [x] **C4. Verify.** `npm test` → 270 passed; `npx tsc --noEmit` → clean. Styles for both buttons added to
+  `resources/css/common.css` (modeled on the existing search-clear and Steam buttons).
 
 ## Workstream D — Docs & wiring
 

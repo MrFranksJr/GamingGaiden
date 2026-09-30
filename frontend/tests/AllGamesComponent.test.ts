@@ -377,4 +377,14 @@ describe("AllGamesComponent", () => {
 
         component.destroy();
     });
+
+    it("renders an Add Game button linking to the gaminggaiden:// add-game scheme", () => {
+        const component = new AllGamesComponent();
+        document.body.innerHTML = component.render(mockData);
+
+        const addButton = document.getElementById("all-games-add-button") as HTMLAnchorElement;
+        expect(addButton).not.toBeNull();
+        expect(addButton.getAttribute("href")).toBe("gaminggaiden://add-game");
+        expect(addButton.getAttribute("aria-label")).toBe("Add a game");
+    });
 });

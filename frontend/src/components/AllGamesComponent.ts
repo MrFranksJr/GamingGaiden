@@ -173,6 +173,14 @@ export class AllGamesComponent {
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
+                    <a href="gaminggaiden://add-game"
+                       id="all-games-add-button"
+                       class="all-games-add-button"
+                       role="button"
+                       aria-label="Add a game"
+                       title="Add a game">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                    </a>
                 </div>
                 <div id="all-games-content">
                     ${gridContentHtml}
