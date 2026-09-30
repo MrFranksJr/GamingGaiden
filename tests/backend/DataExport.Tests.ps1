@@ -14,7 +14,7 @@ Describe "DataExport Module" {
                 $firstPath = Save-IconToCache -Bytes ([byte[]](0xFF, 0xD8, 1)) -Name "Game: One" -CacheDir $TestDrive
                 $secondPath = Save-IconToCache -Bytes ([byte[]](0xFF, 0xD8, 2)) -Name "Game? One" -CacheDir $TestDrive
 
-                $firstPath | Should Not Be $secondPath
+                $firstPath | Should -Not -Be $secondPath
             }
 
             It "Should refresh cached bytes even when the file length is unchanged" {
@@ -23,13 +23,13 @@ Describe "DataExport Module" {
 
                 Save-IconToCache -Bytes ([byte[]](0xFF, 0xD8, 2)) -Name "Changing Game" -CacheDir $TestDrive | Out-Null
 
-                [System.IO.File]::ReadAllBytes((Join-Path $TestDrive $fileName))[2] | Should Be 2
+                [System.IO.File]::ReadAllBytes((Join-Path $TestDrive $fileName))[2] | Should -Be 2
             }
 
             It "Should preserve recognized PNG extensions" {
                 $relativePath = Save-IconToCache -Bytes ([byte[]](0x89, 0x50, 0x4E, 0x47)) -Name "PNG Game" -CacheDir $TestDrive
 
-                [System.IO.Path]::GetExtension($relativePath) | Should Be ".png"
+                [System.IO.Path]::GetExtension($relativePath) | Should -Be ".png"
             }
         }
     }
@@ -63,7 +63,7 @@ Describe "DataExport Module" {
         }
 
         It "Should exist" {
-            Get-Command Export-GameDataToJson -ErrorAction SilentlyContinue | Should Not BeNullOrEmpty
+            Get-Command Export-GameDataToJson -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
         }
 
         It "Should reject an output path that is not JSON" {
@@ -76,7 +76,7 @@ Describe "DataExport Module" {
             {
                 $didThrow = $true
             }
-            $didThrow | Should Be $true
+            $didThrow | Should -Be $true
         }
 
         It "Should export data to data.json" {
@@ -87,24 +87,24 @@ Describe "DataExport Module" {
 
             Export-GameDataToJson -OutputPath $outputPath
 
-            Test-Path $outputPath | Should Be $true
+            Test-Path $outputPath | Should -Be $true
             # Check if data.js also exists
             $jsPath = $outputPath -replace "\.json$", ".js"
-            Test-Path $jsPath | Should Be $true
+            Test-Path $jsPath | Should -Be $true
 
             $content = Get-Content $outputPath | ConvertFrom-Json
             $jsContent = Get-Content $jsPath -Raw
             $jsJson = $jsContent -replace '^window\.gamingGaidenData\s*=\s*', '' -replace ';\s*$', ''
             $jsData = $jsJson | ConvertFrom-Json
 
-            $content.schema_version | Should Be 1
-            $jsData.schema_version | Should Be $content.schema_version
-            $jsData.hash | Should Be $content.hash
-            $content.games.Count | Should Be 2
-            $content.games[0].name | Should Be "Game 1"
-            $content.games[0].finish_date | Should Be "2023-01-03"
-            $content.session_history.Count | Should Be 2
-            $content.gaming_pcs.Count | Should Be 2
+            $content.schema_version | Should -Be 1
+            $jsData.schema_version | Should -Be $content.schema_version
+            $jsData.hash | Should -Be $content.hash
+            $content.games.Count | Should -Be 2
+            $content.games[0].name | Should -Be "Game 1"
+            $content.games[0].finish_date | Should -Be "2023-01-03"
+            $content.session_history.Count | Should -Be 2
+            $content.gaming_pcs.Count | Should -Be 2
 
             Remove-Item $outputPath
             Remove-Item $jsPath
@@ -133,9 +133,9 @@ Describe "DataExport Module" {
             Export-GameDataToJson -OutputPath $outputPath
             $secondHashAfter = Get-Content $lastHashFile -Raw
 
-            $secondHashAfter | Should Be $firstHashBefore
-            (Get-Item $outputPath).LastWriteTimeUtc.Ticks | Should Be $firstJsonWriteTime
-            (Get-Item $jsPath).LastWriteTimeUtc.Ticks | Should Be $firstJsWriteTime
+            $secondHashAfter | Should -Be $firstHashBefore
+            (Get-Item $outputPath).LastWriteTimeUtc.Ticks | Should -Be $firstJsonWriteTime
+            (Get-Item $jsPath).LastWriteTimeUtc.Ticks | Should -Be $firstJsWriteTime
 
             Remove-Item $outputPath
             Remove-Item $jsPath
@@ -159,8 +159,8 @@ Describe "DataExport Module" {
 
             Export-GameDataToJson -OutputPath $outputPath
 
-            Test-Path $jsPath | Should Be $true
-            (Get-Content $jsPath -Raw) | Should Match '^window\.gamingGaidenData\s*='
+            Test-Path $jsPath | Should -Be $true
+            (Get-Content $jsPath -Raw) | Should -Match '^window\.gamingGaidenData\s*='
 
             Remove-Item $outputPath
             Remove-Item $jsPath
@@ -177,7 +177,7 @@ Describe "DataExport Module" {
                 Remove-Item "$outputPath.last"
             }; if (Test-Path $dbPath)
             {
-                Export-GameDataToJson -DatabasePath $dbPath -OutputPath $outputPath -Force; Test-Path $outputPath | Should Be $true; $content = Get-Content $outputPath | ConvertFrom-Json; $content.games.Count | Should BeGreaterThan 0; Remove-Item $outputPath; Remove-Item $jsPath; Remove-Item "$outputPath.last"
+                Export-GameDataToJson -DatabasePath $dbPath -OutputPath $outputPath -Force; Test-Path $outputPath | Should -Be $true; $content = Get-Content $outputPath | ConvertFrom-Json; $content.games.Count | Should -BeGreaterThan 0; Remove-Item $outputPath; Remove-Item $jsPath; Remove-Item "$outputPath.last"
             }
         }
     }
