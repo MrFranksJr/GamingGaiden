@@ -16,6 +16,18 @@ For games you no longer have installed but still want in your library, the execu
 5. Click *Ok*. The game appears in your library with its hours, but is never matched against running
    processes and has no per-session/daily history.
 
+### Add or edit games from the dashboard
+
+The dashboard (SPA) can trigger the native Add/Edit dialogs directly:
+
+- **All Games** page: click the **(+)** button in the header to open *Add Game*.
+- **Game Detail** page: click **Edit** in the hero area to open *Edit Game* focused on that game.
+
+These buttons open the same native dialogs as the tray menu (Gaming Gaiden must be running). Your browser
+may ask for permission the first time to open the `gaminggaiden://` link — allow it. After you finish adding
+or editing, **press F5 / reload the dashboard** to see the change (the page is a static local file, so it
+does not refresh automatically).
+
 ### Update tracked game status, edit play time, change icon etc.
 
 App menu: *Settings => Edit Game*, select game from list (searchable).

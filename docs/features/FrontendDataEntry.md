@@ -120,9 +120,11 @@ Pester test first, then implement.
 
 ## Workstream D — Docs & wiring
 
-- [ ] **D1. `Manual.md` / `Readme.md`.** Document backfilling and the new SPA buttons; note the F5-refresh step.
-- [ ] **D2. Data contract.** No `schema_version` bump required (only relaxing a field to optional, which the
-  contract already permits). Confirm the `FrontendDataContract.md` wording still holds for a `NULL` exe.
+- [x] **D1. `Manual.md`.** Documented the legacy-game backfill flow (Workstream A) and the new SPA Add/Edit
+  buttons with the F5-refresh note.
+- [x] **D2. Data contract.** No `schema_version` bump: making `exe_name`/`last_play_date` optional is within
+  the existing contract (the validator already treats `exe_name` as optional and `last_play_date` as an
+  optional date value). No `FrontendDataContract.md` change required.
 
 ## Suggested order
 
