@@ -424,7 +424,7 @@ function RenderAddGameForm() {
     $textExe = CreateTextBox "" 245 60 200 20; $textExe.ReadOnly = $true; $addGameForm.Controls.Add($textExe)
 
     $labelPlayTime = Createlabel "PlayTime:" 170 100; $addGameForm.Controls.Add($labelPlayTime)
-    $textPlayTime = CreateTextBox "0 Hr 0 Min" 245 100 200 20; $textPlayTime.ReadOnly = $true; $addGameForm.Controls.Add($textPlayTime)
+    $textPlayTime = CreateTextBox "0 Hr 0 Min" 245 100 200 20; $addGameForm.Controls.Add($textPlayTime)
 
     $labelReleaseDate = Createlabel "Release Date:" 170 140; $addGameForm.Controls.Add($labelReleaseDate)
     $datePickerReleaseDate = New-Object System.Windows.Forms.DateTimePicker
@@ -529,22 +529,41 @@ function RenderAddGameForm() {
 
     $buttonOK = CreateButton "OK" 245 260
     $buttonOK.Add_Click({
-            if ($textExe.Text -eq "" -Or $textName.Text -eq "" ) {
-                ShowMessage "Name, Exe fields cannot be empty. Try Again." "OK" "Error"
+            if ($textName.Text -eq "") {
+                ShowMessage "Name field cannot be empty. Try Again." "OK" "Error"
                 return
             }
+
+            $playTime = $textPlayTime.Text
+            if ( -Not ($playTime -match '^[0-9]{0,5} Hr [0-5]{0,1}[0-9]{1} Min$') ) {
+                ShowMessage "Incorrect Playtime Format. Enter exactly 'x Hr y Min'." "OK" "Error"
+                return
+            }
+            $playTimeInMin = ([int]$playTime.Split(" ")[0] * 60) + [int]$playTime.Split(" ")[2]
 
             $gameReleaseDate = if ($datePickerReleaseDate.Checked) { $datePickerReleaseDate.Value.ToString("yyyy-MM-dd") } else { "" }
 
             $gameName = $textName.Text
-            $gameExeFile = Get-Item $textExe.Text
-            $gameExeName = $gameExeFile.BaseName
+
+            # Exe is optional. A backfilled/legacy game may have no executable; when the exe
+            # field is blank we pass an empty name and SaveGame stores it as SQL NULL.
+            $gameExeName = if ($textExe.Text -ne "") { (Get-Item $textExe.Text).BaseName } else { "" }
+
             $gameIconPath = $pictureBoxImagePath.Text
-            $gameLastPlayDate = [int]((Get-Date ([datetime]::UtcNow) -UFormat "%s").Split('.,')[0])
+
+            # last_play_date policy for a manual add: default to the release date (if given),
+            # otherwise leave it unset. Stamping "now" would misrepresent a legacy game as
+            # played today. An empty string flows through SaveGame to a SQL NULL last_play_date.
+            $gameLastPlayDate = if ($datePickerReleaseDate.Checked) {
+                [int]((Get-Date ($datePickerReleaseDate.Value.ToUniversalTime()) -UFormat "%s").Split('.,')[0])
+            } else {
+                ""
+            }
+
             $gameGamingPCName = if ($dropdownGamingPC.SelectedItem -eq "") { "" } else { $dropdownGamingPC.SelectedItem }
 
             SaveGame -GameName $gameName -GameExeName $gameExeName -GameIconPath $gameIconPath `
-                -GamePlayTime 0 -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus 'FALSE' -GameSessionCount 0 -GameGamingPCName $gameGamingPCName -GameReleaseDate $gameReleaseDate
+                -GamePlayTime $playTimeInMin -GameLastPlayDate $gameLastPlayDate -GameCompleteStatus 'FALSE' -GameSessionCount 0 -GameGamingPCName $gameGamingPCName -GameReleaseDate $gameReleaseDate
 
             ShowMessage "Registered '$gameName' in Database." "OK" "Asterisk"
         })

@@ -36,25 +36,29 @@ transport decision, and CONTEXT.md for **Backfilled game**, **Command trigger**,
 This is the smallest, lowest-risk slice and unblocks backfilling regardless of the frontend work. TDD:
 Pester test first, then implement.
 
-- [ ] **A1. Pester: `SaveGame` stores `NULL` for a blank exe.** Add a test in `tests/backend/` asserting that
-  `SaveGame` with an empty `-GameExeName` results in a row whose `exe_name` is SQL `NULL` (not `""`).
-- [ ] **A2. `SaveGame` null-coalesces `exe_name`.** In `StorageFunctions.psm1`, add `exe_name` to the existing
-  post-insert `[System.DBNull]::Value` follow-up-UPDATE pattern (the one already used for `status`,
-  `gaming_pc_name`, `release_date`, `finish_date`).
-- [ ] **A3. `UpdateGameOnEdit` null-coalesces `exe_name`.** Same treatment on the update path so editing a game
-  to clear its exe also yields `NULL`.
-- [ ] **A4. Add form: exe no longer mandatory.** In `RenderAddGameForm` (`SettingsFunctions.psm1`), change the
-  OK-handler validation from requiring `name` **and** exe to requiring **name only**.
-- [ ] **A5. Add form: editable playtime.** Make the playtime textbox editable and validate with the Edit form's
-  regex `^[0-9]{0,5} Hr [0-5]?[0-9] Min$`, converting to minutes (`Hr*60 + Min`). Default `0 Hr 0 Min`.
-- [ ] **A6. Add form: `last_play_date` policy.** Derive per the settled rule — release date (if the release-date
-  picker is checked) converted to epoch seconds, else `NULL`. Remove the unconditional "now" stamp for the
-  backfill case. (Confirm the DB/UI accept a `NULL` last_play_date; the frontend already treats it optional.)
-- [ ] **A7. Regression: tracker safety.** No code change expected — `DetectGame` already skips null/empty exe —
-  but add/confirm a Pester assertion that a game with `NULL` exe is never returned as a detected exe.
-- [ ] **A8. Verify.** `Invoke-Pester -Path tests\backend`; manual smoke: add a backfilled game (name + art +
-  playtime, no exe), confirm it appears in the export and renders in All Games with correct hours and no
-  "last played".
+> **Status: implemented, Windows verification pending.** The backend Pester suite depends on PSSQLite's
+> native (Windows) SQLite provider and cannot run on the macOS dev machine — the new tests skip cleanly there
+> and must be run with `Invoke-Pester -Path tests\backend` on the Windows install. Both modules parse cleanly
+> (AST check).
+
+- [x] **A1. Pester: `SaveGame` stores `NULL` for a blank exe.** `tests/backend/StorageFunctions.Tests.ps1`
+  asserts blank exe → SQL `NULL`, provided exe stored verbatim, blank `last_play_date` → `NULL`, edit-blanks-exe
+  → `NULL`, rename-with-blank-exe → `NULL`, and the tracker-safety invariant. Skips when PSSQLite is unavailable.
+- [x] **A2. `SaveGame` null-coalesces `exe_name`.** Added `$setExeNameNull` follow-up UPDATE (and
+  `$setLastPlayDateNull` for the backfill date), guarded by trim-aware blank checks.
+- [x] **A3. `UpdateGameOnEdit` null-coalesces `exe_name`.** In-place branch handles it; the rename branch
+  delegates to `SaveGame`, which now handles it too.
+- [x] **A4. Add form: exe no longer mandatory.** `RenderAddGameForm` OK-handler now validates **name only**;
+  exe is derived only when the exe textbox is non-empty (avoids `Get-Item` on a blank path).
+- [x] **A5. Add form: editable playtime.** Playtime textbox is no longer `ReadOnly`; OK-handler parses it with
+  `^[0-9]{0,5} Hr [0-5]?[0-9] Min$` into minutes. Default `0 Hr 0 Min`.
+- [x] **A6. Add form: `last_play_date` policy.** Release-date epoch if the release-date picker is checked,
+  otherwise blank → stored as SQL `NULL` (frontend already treats it optional).
+- [x] **A7. Regression: tracker safety.** No `DetectGame` code change needed; added a Pester assertion mirroring
+  its query + `$null -ne $exe -and $exe -ne ""` guard, proving a `NULL`-exe game yields no matchable exe.
+- [ ] **A8. Verify (user, on Windows).** `Invoke-Pester -Path tests\backend`; manual smoke: add a backfilled
+  game (name + art + playtime, no exe), confirm it appears in the export and renders in All Games with correct
+  hours and no "last played".
 
 ## Workstream B — Protocol handler + command trigger (backend/runtime)
 

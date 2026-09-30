@@ -23,6 +23,8 @@
     $setGamingPCNameNull = "UPDATE games SET gaming_pc_name = @GameGamingPCName WHERE name LIKE '{0}'" -f $gameNamePattern
     $setReleaseDateNull = "UPDATE games SET release_date = @GameReleaseDate WHERE name LIKE '{0}'" -f $gameNamePattern
     $setFinishDateNull = "UPDATE games SET finish_date = @GameFinishDate WHERE name LIKE '{0}'" -f $gameNamePattern
+    $setExeNameNull = "UPDATE games SET exe_name = @GameExeName WHERE name LIKE '{0}'" -f $gameNamePattern
+    $setLastPlayDateNull = "UPDATE games SET last_play_date = @GameLastPlayDate WHERE name LIKE '{0}'" -f $gameNamePattern
 
     Log "Adding $GameName in Database"
 
@@ -53,6 +55,18 @@
     if ($GameStatus -eq "") {
         RunDBQuery $setGameStatusNull @{
             GameStatus = [System.DBNull]::Value
+        }
+    }
+
+    if ($GameExeName.Trim() -eq "") {
+        RunDBQuery $setExeNameNull @{
+            GameExeName = [System.DBNull]::Value
+        }
+    }
+
+    if ("$GameLastPlayDate".Trim() -eq "") {
+        RunDBQuery $setLastPlayDateNull @{
+            GameLastPlayDate = [System.DBNull]::Value
         }
     }
 
@@ -166,6 +180,7 @@ function UpdateGameOnEdit() {
         $setGamingPCNameNull = "UPDATE games SET gaming_pc_name = @GameGamingPCName WHERE name LIKE '{0}'" -f $gameNamePattern
         $setReleaseDateNull = "UPDATE games SET release_date = @GameReleaseDate WHERE name LIKE '{0}'" -f $gameNamePattern
         $setFinishDateNull = "UPDATE games SET finish_date = @GameFinishDate WHERE name LIKE '{0}'" -f $gameNamePattern
+        $setExeNameNull = "UPDATE games SET exe_name = @GameExeName WHERE name LIKE '{0}'" -f $gameNamePattern
 
         Log "Editing $GameName in database"
         RunDBQuery $updateGameQuery @{
@@ -177,6 +192,12 @@ function UpdateGameOnEdit() {
             GameGamingPCName   = $GameGamingPCName.Trim()
             GameReleaseDate    = $GameReleaseDate
             GameFinishDate = $GameFinishDate
+        }
+
+        if ($GameExeName.Trim() -eq "") {
+            RunDBQuery $setExeNameNull @{
+                GameExeName = [System.DBNull]::Value
+            }
         }
 
         if ($GameGamingPCName -eq "") {

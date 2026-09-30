@@ -4,6 +4,18 @@
 3. Icon should auto update. You can set a new icon by using *Search* (searches google for game icon) and *Update* (browse for image) buttons.
 4. Change the auto populated *Name* to a better one and click *Ok*.
 
+### Backfill a legacy game (no executable required)
+
+For games you no longer have installed but still want in your library, the executable is optional:
+
+1. Notify icon menu *Settings => Add Game*.
+2. Leave *Exe* empty (skip *Add Exe*).
+3. Enter a *Name*, set an icon via *Search* / *Update*, and type the lifetime *PlayTime* as `x Hr y Min`.
+4. Optionally check *Release Date* — when set, it is also used as the game's last-played date. If left
+   unchecked, the game has no last-played date (it was never tracked).
+5. Click *Ok*. The game appears in your library with its hours, but is never matched against running
+   processes and has no per-session/daily history.
+
 ### Update tracked game status, edit play time, change icon etc.
 
 App menu: *Settings => Edit Game*, select game from list (searchable).
