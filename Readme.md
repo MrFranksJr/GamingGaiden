@@ -65,6 +65,9 @@ The whole UI ships with light and dark themes and remembers your choice.
     - Lifetime summary, monthly/yearly analysis, most-played games, and a per-game detail view.
     - Value-for-money analysis per rig (gaming cost per hour / per month).
     - Mark games as In Progress / Finished / On Hold / Dropped / Forever to track backlog completion.
+    - Add and edit games straight from the dashboard — the **(+)** button on All Games and **Edit** on a game's
+      detail page open the entry dialog. Backfill legacy games you no longer have installed by leaving the
+      executable blank and entering the playtime by hand.
     - Light & dark themes with your preference remembered.
 - #### Quality of Life
     - Small and fast — light on CPU & RAM, sub-5-second game detection.
