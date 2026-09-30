@@ -153,34 +153,36 @@ export class AllGamesComponent {
                         <h2 class="all-games-title">${escapeHtml(currentFilterOption.label)}</h2>
                         <span class="all-games-count">${escapeHtml(countText)}</span>
                     </div>
-                    <div class="all-games-search-wrapper">
-                        <span class="all-games-search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-                        <input 
-                            type="text" 
-                            id="all-games-search-input" 
-                            class="all-games-search-input" 
-                            placeholder="Search games..." 
-                            value="${escapeHtml(this.searchQuery)}"
-                            aria-label="Search games"
-                            autocomplete="off"
-                            spellcheck="false"
-                        />
-                        <button type="button" 
-                                id="all-games-search-clear" 
-                                class="all-games-search-clear${isClearVisible ? " visible" : ""}" 
-                                aria-label="Clear search" 
-                                title="Clear search">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
+                    <div class="all-games-header-actions">
+                        <a href="gaminggaiden://add-game"
+                           id="all-games-add-button"
+                           class="all-games-add-button"
+                           role="button"
+                           aria-label="Add a game"
+                           title="Add a game">
+                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                        </a>
+                        <div class="all-games-search-wrapper">
+                            <span class="all-games-search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input 
+                                type="text" 
+                                id="all-games-search-input" 
+                                class="all-games-search-input" 
+                                placeholder="Search games..." 
+                                value="${escapeHtml(this.searchQuery)}"
+                                aria-label="Search games"
+                                autocomplete="off"
+                                spellcheck="false"
+                            />
+                            <button type="button" 
+                                    id="all-games-search-clear" 
+                                    class="all-games-search-clear${isClearVisible ? " visible" : ""}" 
+                                    aria-label="Clear search" 
+                                    title="Clear search">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
                     </div>
-                    <a href="gaminggaiden://add-game"
-                       id="all-games-add-button"
-                       class="all-games-add-button"
-                       role="button"
-                       aria-label="Add a game"
-                       title="Add a game">
-                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                    </a>
                 </div>
                 <div id="all-games-content">
                     ${gridContentHtml}
