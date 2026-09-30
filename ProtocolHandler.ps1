@@ -56,7 +56,7 @@ try {
         $action = $withoutScheme.Substring(0, $qIndex)
         $query = $withoutScheme.Substring($qIndex + 1)
     }
-    $action = $action.Trim().ToLowerInvariant()
+    $action = $action.Trim().Trim('/').ToLowerInvariant()
 
     $command = $null
     switch ($action) {
