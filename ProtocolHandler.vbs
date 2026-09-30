@@ -14,7 +14,14 @@ Set args = WScript.Arguments
 If args.Count < 1 Then
     WScript.Quit 0
 End If
+
+' Reassemble ALL arguments with spaces. Some launch paths split a URI containing
+' "?" or "&" into multiple arguments; joining them back preserves the query string.
+Dim i
 uri = args(0)
+For i = 1 To args.Count - 1
+    uri = uri & " " & args(i)
+Next
 
 ' Resolve ProtocolHandler.ps1 sitting next to this .vbs.
 scriptDir = Left(WScript.ScriptFullName, InStrRev(WScript.ScriptFullName, "\"))

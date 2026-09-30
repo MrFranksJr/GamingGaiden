@@ -21,6 +21,16 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Diagnostic log so we can see exactly what the handler was invoked with. Written next to the
+# trigger file. Safe to leave in; it is tiny and only this handler writes it.
+$diagLog = Join-Path $env:TEMP 'GmGdn-Handler.log'
+try {
+    "$(Get-Date -Format s) : RAW Uri = [$Uri]" | Add-Content -Path $diagLog -Encoding UTF8
+}
+catch {
+    # ignore diagnostic failures
+}
+
 try {
     if ([string]::IsNullOrWhiteSpace($Uri)) {
         exit 0
@@ -78,6 +88,11 @@ try {
         }
     }
 
+    try {
+        "$(Get-Date -Format s) : action=[$action] query=[$query] command=[$command]" | Add-Content -Path $diagLog -Encoding UTF8
+    }
+    catch { }
+
     if ($null -eq $command) {
         exit 0
     }
@@ -87,6 +102,10 @@ try {
     Set-Content -Path $triggerPath -Value $command -Encoding UTF8 -NoNewline
 }
 catch {
+    try {
+        "$(Get-Date -Format s) : EXCEPTION $($_.Exception.Message)" | Add-Content -Path (Join-Path $env:TEMP 'GmGdn-Handler.log') -Encoding UTF8
+    }
+    catch { }
     # Best-effort: a protocol handler must never pop errors at the user.
     exit 1
 }
