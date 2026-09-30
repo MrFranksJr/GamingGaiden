@@ -12,6 +12,51 @@ function SQLEscapedMatchPattern($pattern) {
     return $pattern -replace "'", "''"
 }
 
+function Register-GamingGaidenProtocol {
+    <#
+        Idempotently registers the "gaminggaiden://" URI scheme for the current user, pointing
+        at the ProtocolHandler.vbs shim in the install directory. Called at app startup so the
+        scheme is always current without any change to Install.bat / Deploy.bat. Safe to call
+        every boot: it only writes when the key is missing or points at a stale command.
+    #>
+    param(
+        [string]$InstallDirectory = (Get-Location).Path
+    )
+
+    try {
+        $vbsPath = Join-Path $InstallDirectory "ProtocolHandler.vbs"
+        if (-not (Test-Path $vbsPath)) {
+            Log "Protocol handler shim not found at $vbsPath. Skipping scheme registration."
+            return
+        }
+
+        $expectedCommand = "wscript.exe `"$vbsPath`" `"%1`""
+        $schemeKey = "HKCU:\Software\Classes\gaminggaiden"
+        $commandKey = "$schemeKey\shell\open\command"
+
+        $currentCommand = $null
+        if (Test-Path $commandKey) {
+            $currentCommand = (Get-ItemProperty -Path $commandKey -ErrorAction SilentlyContinue).'(default)'
+        }
+
+        if ($currentCommand -eq $expectedCommand) {
+            Log "gaminggaiden:// scheme already registered and current."
+            return
+        }
+
+        Log "Registering gaminggaiden:// scheme -> $expectedCommand"
+        New-Item -Path $schemeKey -Force | Out-Null
+        Set-ItemProperty -Path $schemeKey -Name '(default)' -Value 'URL:Gaming Gaiden Protocol'
+        Set-ItemProperty -Path $schemeKey -Name 'URL Protocol' -Value ''
+        New-Item -Path $commandKey -Force | Out-Null
+        Set-ItemProperty -Path $commandKey -Name '(default)' -Value $expectedCommand
+    }
+    catch {
+        # Non-fatal: the app still works without the scheme, the SPA buttons just won't reach it.
+        Log "Warning: failed to register gaminggaiden:// scheme. Exception: $($_.Exception.Message)"
+    }
+}
+
 function ToBase64($String) {
     return [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($String))
 }

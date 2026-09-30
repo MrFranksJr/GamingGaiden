@@ -25,7 +25,7 @@ else
 }
 
 # Copy source files
-$FilesToCopy = ".\Install.bat", ".\Uninstall.bat"
+$FilesToCopy = ".\Install.bat", ".\Uninstall.bat", ".\ProtocolHandler.ps1", ".\ProtocolHandler.vbs"
 Copy-Item $FilesToCopy -Destination .\build\GamingGaiden\ -Force
 $FoldersToCopy = "modules", "icons", "frontend"
 foreach ($folder in $FoldersToCopy)

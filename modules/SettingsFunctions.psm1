@@ -39,7 +39,7 @@ function RefreshPCListBox {
     }
 }
 
-function RenderEditGameForm($GamesList) {
+function RenderEditGameForm($GamesList, $PreselectName = "") {
 
     $editGameForm = CreateForm "Gaming Gaiden: Edit Game" 865 445 ".\icons\running.ico"
 
@@ -403,8 +403,16 @@ function RenderEditGameForm($GamesList) {
         });
     $editGameForm.Controls.Add($buttonCancel)
 
-    #Select the first game to populate the form before rendering for first time
-    $listBox.SelectedIndex = 0
+    #Select the requested game (from a gaminggaiden://edit-game deep link) if it exists,
+    #otherwise fall back to the first game, to populate the form before first render.
+    $preselectIndex = 0
+    if (-not [string]::IsNullOrWhiteSpace($PreselectName)) {
+        $foundIndex = $listBox.FindStringExact($PreselectName)
+        if ($foundIndex -ge 0) {
+            $preselectIndex = $foundIndex
+        }
+    }
+    $listBox.SelectedIndex = $preselectIndex
 
     $editGameForm.ShowDialog()
     $textSearch.Remove_TextChanged({})

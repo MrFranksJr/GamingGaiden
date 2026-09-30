@@ -69,26 +69,35 @@ Pester test first, then implement.
 > **no `param()` block** in `GamingGaiden.ps1` and `ps12exe` arg-forwarding is unverified — another reason to
 > keep the handler standalone.
 
-- [ ] **B1. Ship a standalone protocol handler.** Add a small script in the install dir (e.g.
-  `ProtocolHandler.ps1`, invoked via a tiny `.cmd`/`.vbs` shim if needed to run hidden) that takes the
-  `gaminggaiden://…` URL as its argument, URL-decodes it, validates it, writes the parsed command to
-  `%TEMP%\GmGdn-Command.txt`, and exits. It never imports the app modules or touches the DB.
-- [ ] **B2. Self-registration at startup.** In `GamingGaiden.ps1` boot, idempotently write
-  `HKCU\Software\Classes\gaminggaiden` (with `URL Protocol`) whose `shell\open\command` invokes the shipped
-  handler with `"%1"`. Write only if missing or pointing at a stale path. Gate behind the same
-  `GAIDEN_DEV_MODE` awareness as other boot logic if appropriate.
-- [ ] **B3. Command-trigger polling.** Extend the existing 1-second `$Timer.Add_Tick` handler to check for
-  `GmGdn-Command.txt`; if present, read + delete it, then dispatch: `add-game` → `ExecuteSettingsFunction
-  RenderAddGameForm`; `edit-game:<name>` → open `RenderEditGameForm` pre-focused on `<name>`. Guard against
-  re-entrancy (don't pop a second dialog while one is open).
-- [ ] **B4. Edit-form pre-focus by name.** Ensure `RenderEditGameForm` can accept/apply an initial selection
-  (`$listBox.FindString($name)`); guard against an unknown/renamed name (fall back to first item).
-- [ ] **B5. Input hardening.** URL-decode and sanitise the game name in the handler; ignore unrecognised
-  commands; ensure the trigger path is per-user temp and the payload is length-bounded.
-- [ ] **B6. Uninstall nicety (optional).** Clear the `HKCU\Software\Classes\gaminggaiden` key in `Uninstall.bat`.
-- [ ] **B7. Verify.** With the tray app running, invoke `gaminggaiden://add-game` and
-  `gaminggaiden://edit-game?name=…`; confirm the correct dialog appears, no duplicate `GamingGaiden` process
-  spawns, and the single-instance/working-dir guards are never tripped.
+> **Status: implemented, Windows verification pending (B7).** The handler's URI parsing was
+> functionally tested on macOS (pure string logic — add-game, edit-game with URL-encoded spaces/&,
+> unknown/empty ignored, trailing slash tolerated). All PowerShell files parse cleanly (AST).
+
+- [x] **B1. Ship a standalone protocol handler.** `ProtocolHandler.ps1` parses the `gaminggaiden://…`
+  URI, URL-decodes/validates it, writes the command to `%TEMP%\GmGdn-Command.txt`, and exits — no app
+  modules, no DB. `ProtocolHandler.vbs` is the registered shim that runs it hidden (no console flash) via
+  `powershell.exe -WindowStyle Hidden`. Both are copied into the build by `Build.ps1` and carried to the
+  install dir by `Deploy.ps1`'s existing build-artifacts robocopy (no Deploy change needed).
+- [x] **B2. Self-registration at startup.** `Register-GamingGaidenProtocol` (in `HelperFunctions.psm1`)
+  idempotently writes `HKCU\Software\Classes\gaminggaiden` (with `URL Protocol`) pointing at
+  `wscript.exe "<dir>\ProtocolHandler.vbs" "%1"`, only when missing or stale. Called in `GamingGaiden.ps1`
+  boot after the HWiNFO block. No Install.bat / Deploy.bat change.
+- [x] **B3. Command-trigger polling.** `ProcessCommandTrigger` (next to `UpdateAppIconToShowTracking`) is
+  wired into the existing 1-second `$Timer.Add_Tick`. Reads + deletes the trigger, then dispatches
+  `add-game` → `ExecuteSettingsFunction RenderAddGameForm`; `edit-game:<name>` → `RenderEditGameForm`
+  preselected on `<name>`. A `$script:ProcessingCommand` flag guards re-entrancy (modal `ShowDialog` on the
+  UI thread already blocks overlapping ticks).
+- [x] **B4. Edit-form pre-focus by name.** `RenderEditGameForm($GamesList, $PreselectName="")` uses
+  `FindStringExact` to select the named game, falling back to the first item if not found.
+  `ExecuteSettingsFunction` gained `-PreselectName` and forwards it.
+- [x] **B5. Input hardening.** Handler caps raw URI at 2048 chars and names at 512, strips newlines,
+  URL-decodes the name, and ignores unknown/empty actions. The dispatcher trims, ignores whitespace, and
+  logs unrecognised commands. Trigger lives in per-user `%TEMP%`.
+- [x] **B6. Uninstall nicety.** `Uninstall.bat` now `reg delete HKCU\Software\Classes\gaminggaiden /f`.
+- [ ] **B7. Verify (user, on Windows).** Deploy, then with the tray app running invoke
+  `gaminggaiden://add-game` and `gaminggaiden://edit-game?name=…` (e.g. from a browser address bar or a
+  test link); confirm the correct dialog appears, the edit dialog is preselected on the named game, no
+  duplicate `GamingGaiden` process spawns, and no console window flashes.
 
 > **Latent, out-of-scope finding:** the tracker-job init block imports `.\modules\UserInput.psm1`, which does
 > **not exist** in the repo. Not touched by this feature; flagged for separate triage.

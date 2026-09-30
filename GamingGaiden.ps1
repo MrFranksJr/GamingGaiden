@@ -88,6 +88,11 @@ try {
     }
 
     #------------------------------------------
+    # Register the gaminggaiden:// URI scheme so the SPA's Add/Edit buttons can reach this
+    # running app. Idempotent; no Install.bat / Deploy.bat change needed.
+    Register-GamingGaidenProtocol -InstallDirectory (Get-Location).Path
+
+    #------------------------------------------
     # Tracker Job Scripts
     $TrackerJobInitializationScript = {
         Import-Module ".\modules\PSSQLite";
@@ -150,13 +155,17 @@ try {
     function  ExecuteSettingsFunction() {
         Param(
             [scriptblock]$SettingsFunctionToCall,
-            [string[]]$EntityList = $null
+            [string[]]$EntityList = $null,
+            [string]$PreselectName = ""
         )
 
         $databaseFileHashBefore = CalculateFileHash '.\GamingGaiden.db'; Log "Database hash before: $databaseFileHashBefore"
 
         if ($null -eq $EntityList) {
             $SettingsFunctionToCall.Invoke()
+        }
+        elseif (-not [string]::IsNullOrEmpty($PreselectName)) {
+            $SettingsFunctionToCall.Invoke($EntityList, $PreselectName)
         }
         else {
             $SettingsFunctionToCall.Invoke((, $EntityList))
@@ -189,12 +198,64 @@ try {
         }
     }
 
+    # Guards against re-entrancy if a tick somehow fires while a dialog is opening.
+    $script:ProcessingCommand = $false
+
+    function ProcessCommandTrigger() {
+        # One-shot commands from the gaminggaiden:// protocol handler (ProtocolHandler.ps1),
+        # which writes %TEMP%\GmGdn-Command.txt. We consume (read + delete) it, then open the
+        # matching native dialog. The WinForms timer runs on the UI thread and ShowDialog is
+        # modal, so ticks can't stack while a dialog is open; the flag is belt-and-braces.
+        $commandFile = "$env:TEMP\GmGdn-Command.txt"
+        if (-not (Test-Path $commandFile)) { return }
+        if ($script:ProcessingCommand) { return }
+
+        $script:ProcessingCommand = $true
+        try {
+            $command = (Get-Content $commandFile -Raw -ErrorAction SilentlyContinue)
+            # Consume the trigger immediately so it fires exactly once.
+            Remove-Item $commandFile -Force -ErrorAction SilentlyContinue
+
+            if ([string]::IsNullOrWhiteSpace($command)) { return }
+            $command = $command.Trim()
+
+            if ($command -eq 'add-game') {
+                Log "Command trigger: add-game"
+                ExecuteSettingsFunction -SettingsFunctionToCall $function:RenderAddGameForm
+                Remove-Item -Force "$env:TEMP\GmGdn-*" -ErrorAction SilentlyContinue
+            }
+            elseif ($command -like 'edit-game:*') {
+                $gameName = $command.Substring('edit-game:'.Length).Trim()
+                Log "Command trigger: edit-game for '$gameName'"
+
+                $gamesList = @((RunDBQuery "SELECT name FROM games").name)
+                if ($gamesList.Length -eq 0) {
+                    ShowMessage "No Games found in database. Please add few games first." "OK" "Error"
+                    return
+                }
+
+                ExecuteSettingsFunction -SettingsFunctionToCall $function:RenderEditGameForm -EntityList $gamesList -PreselectName $gameName
+                Remove-Item -Force "$env:TEMP\GmGdn-*" -ErrorAction SilentlyContinue
+            }
+            else {
+                Log "Command trigger: ignoring unrecognised command '$command'"
+            }
+        }
+        catch {
+            Log "Error processing command trigger: $($_.Exception.Message)"
+        }
+        finally {
+            $script:ProcessingCommand = $false
+        }
+    }
+
     #------------------------------------------
     # Setup Timer To Monitor Tracking Updates from Tracker Job
     $Timer = New-Object Windows.Forms.Timer
     $Timer.Interval = 1000
     $Timer.Add_Tick({
         UpdateAppIconToShowTracking;
+        ProcessCommandTrigger;
     })
 
     #------------------------------------------
