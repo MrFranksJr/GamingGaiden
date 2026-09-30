@@ -78,11 +78,13 @@ CREATE TABLE session_history (
         SaveGame -GameName "Legacy Game" -GameExeName "" -GameIconPath $script:iconPath `
             -GamePlayTime 600 -GameLastPlayDate "" -GameCompleteStatus "FALSE" -GameSessionCount 0
 
-        $row = Invoke-SqliteQuery -Query "SELECT exe_name FROM games WHERE name = 'Legacy Game'" `
+        # Ask SQLite directly whether the stored value is a true NULL (1) vs an empty
+        # string (0). This is unambiguous and independent of how the PSSQLite reader
+        # surfaces NULLs (its DBNullScrubber returns $null, not [System.DBNull]).
+        $row = Invoke-SqliteQuery -Query "SELECT (exe_name IS NULL) AS is_null FROM games WHERE name = 'Legacy Game'" `
             -DataBase $script:dbPath
 
-        # A true SQL NULL comes back as [System.DBNull], not an empty string.
-        ($row.exe_name -is [System.DBNull]) | Should -Be $true
+        $row.is_null | Should -Be 1
     }
 
     It "Stores the exe_name verbatim when provided (normal tracked game)" {
@@ -99,10 +101,10 @@ CREATE TABLE session_history (
         SaveGame -GameName "No Date Game" -GameExeName "" -GameIconPath $script:iconPath `
             -GamePlayTime 300 -GameLastPlayDate "" -GameCompleteStatus "FALSE" -GameSessionCount 0
 
-        $row = Invoke-SqliteQuery -Query "SELECT last_play_date FROM games WHERE name = 'No Date Game'" `
+        $row = Invoke-SqliteQuery -Query "SELECT (last_play_date IS NULL) AS is_null FROM games WHERE name = 'No Date Game'" `
             -DataBase $script:dbPath
 
-        ($row.last_play_date -is [System.DBNull]) | Should -Be $true
+        $row.is_null | Should -Be 1
     }
 
     It "Clears exe_name to SQL NULL when an edit blanks the exe (same name)" {
@@ -112,10 +114,10 @@ CREATE TABLE session_history (
         UpdateGameOnEdit -OriginalGameName "Editable Game" -GameName "Editable Game" -GameExeName "" `
             -GameIconPath $script:iconPath -GamePlayTime 60 -GameCompleteStatus "FALSE" -GameStatus ""
 
-        $row = Invoke-SqliteQuery -Query "SELECT exe_name FROM games WHERE name = 'Editable Game'" `
+        $row = Invoke-SqliteQuery -Query "SELECT (exe_name IS NULL) AS is_null FROM games WHERE name = 'Editable Game'" `
             -DataBase $script:dbPath
 
-        ($row.exe_name -is [System.DBNull]) | Should -Be $true
+        $row.is_null | Should -Be 1
     }
 
     It "Keeps exe_name NULL through a rename edit (delete + re-add path)" {
@@ -125,10 +127,10 @@ CREATE TABLE session_history (
         UpdateGameOnEdit -OriginalGameName "Old Name" -GameName "New Name" -GameExeName "" `
             -GameIconPath $script:iconPath -GamePlayTime 90 -GameCompleteStatus "FALSE" -GameStatus ""
 
-        $row = Invoke-SqliteQuery -Query "SELECT exe_name FROM games WHERE name = 'New Name'" `
+        $row = Invoke-SqliteQuery -Query "SELECT (exe_name IS NULL) AS is_null FROM games WHERE name = 'New Name'" `
             -DataBase $script:dbPath
 
-        ($row.exe_name -is [System.DBNull]) | Should -Be $true
+        $row.is_null | Should -Be 1
     }
 
     It "A backfilled (NULL exe) game never yields a matchable exe for the tracker" {
